@@ -28,6 +28,18 @@ from multiple runs.
   <email>veeve@php.net</email>
   <active>yes</active>
  </developer>
+ <lead>
+  <name>Changhao Jiang</name>
+  <user>cjiang</user>
+  <email>cjiang@php.net</email>
+  <active>yes</active>
+ </lead>
+ <developer>
+  <name>Haiping Zhao</name>
+  <user>haiping</user>
+  <email>haiping@php.net</email>
+  <active>yes</active>
+ </developer>
  <date>2009-03-17</date>
  <version>
   <release>0.9.0</release>
