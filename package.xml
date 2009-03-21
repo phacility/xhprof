@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package packagerversion="0.9.0" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+<package packagerversion="1.4.7" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
 http://pear.php.net/dtd/tasks-1.0.xsd
 http://pear.php.net/dtd/package-2.0
 http://pear.php.net/dtd/package-2.0.xsd">
@@ -40,10 +40,10 @@ from multiple runs.
   <email>haiping@php.net</email>
   <active>yes</active>
  </developer>
- <date>2009-03-17</date>
+ <date>2009-03-21</date>
  <version>
-  <release>0.9.0</release>
-  <api>0.9.0</api>
+  <release>0.9.1</release>
+  <api>0.9.1</api>
  </version>
  <stability>
   <release>beta</release>
@@ -51,7 +51,7 @@ from multiple runs.
  </stability>
  <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0</license>
  <notes>
--- initial release of xhprof
+-- doc improvements/fixes
  </notes>
  <contents>
   <dir name="/">
@@ -127,5 +127,22 @@ from multiple runs.
  </dependencies>
  <providesextension>xhprof</providesextension>
  <extsrcrelease/>
+ <changelog>
+   <release>
+      <version>
+        <release>0.9.0</release>
+        <api>0.9.0</api>
+      </version>
+      <date>2009-03-17</date>
+      <stability>
+       <release>beta</release>
+       <api>beta</api>
+     </stability>
+     <notes>
+ -- initial release of xhprof
+     </notes>
+  </release>
+
+ </changelog>
 
 </package>
