@@ -33,10 +33,10 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
   <email>haiping@php.net</email>
   <active>yes</active>
  </developer>
- <date>2009-03-21</date>
+ <date>2009-03-28</date>
  <version>
-  <release>0.9.1</release>
-  <api>0.9.1</api>
+  <release>0.9.2</release>
+  <api>0.9.2</api>
  </version>
  <stability>
   <release>beta</release>
@@ -44,7 +44,8 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
  </stability>
  <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0</license>
  <notes>
--- doc improvements/fixes
+-- add a sanity test for timer (kannan)
+-- fix for compile error on debian linux (russ)
  </notes>
  <contents>
   <dir name="/">
@@ -66,6 +67,7 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
         <file role="test" name="xhprof_003.phpt" />
         <file role="test" name="xhprof_004_inc.php" />
         <file role="test" name="xhprof_004.phpt" />
+        <file role="test" name="xhprof_005.phpt" />
       </dir>
     </dir>
     <dir name="xhprof_html">
@@ -121,6 +123,20 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
  <providesextension>xhprof</providesextension>
  <extsrcrelease/>
  <changelog>
+   <release>
+      <version>
+        <release>0.9.1</release>
+        <api>0.9.1</api>
+      </version>
+      <date>2009-03-21</date>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <notes>
+-- doc improvements/fixes
+      </notes>
+   </release>
    <release>
       <version>
         <release>0.9.0</release>

@@ -19,6 +19,11 @@
 #include "config.h"
 #endif
 
+#ifdef linux
+/* To enable CPU_ZERO and CPU_SET, etc.     */
+# define _GNU_SOURCE
+#endif
+
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
@@ -40,8 +45,6 @@
 #   error "This version of FreeBSD does not support cpusets"
 # endif /* __FreeBSD_version */
 #else
-/* To enable CPU_ZERO and CPU_SET, etc.     */
-# define __USE_GNU
 /* For sched_getaffinity, sched_setaffinity */
 # include <sched.h>
 # define SET_AFFINITY(pid, size, mask)	sched_setaffinity(0, size, mask)
