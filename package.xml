@@ -44,6 +44,7 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
  </stability>
  <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0</license>
  <notes>
+-- fix #16098: suppress notices due to use of FILE_BINARY (kannan)
 -- add a sanity test for timer (kannan)
 -- fix for compile error on debian linux (russ)
  </notes>
