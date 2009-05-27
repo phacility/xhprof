@@ -1,5 +1,12 @@
 Modification History:
 
+ *** NOTE ***
+ DO NOT UPDATE THIS FILE. UPDATE package.xml INSTEAD.
+  This file contains the CHANGELOG for the initial release. For subsequent
+  releases, the CHANGLELOG is maintained in the package.xml file itself.
+  Please edit package.xml instead.
+ ************
+
  03/02/2008   kannan, checkin xhprof_html/ and xhprof_lib/ directories.
               cjiang  [These contain PHP sources for the UI as well
                       as various supporting libraries to compute

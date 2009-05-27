@@ -8,7 +8,7 @@ Author: Kannan
 // Some coarse grained sanity tests for the time just
 // to make sure profiler's timer implementation isn't
 // way off.
-// The test allows for gives a 25% margin of error.
+// The test allows for a 25% margin of error.
 //
 
 include_once dirname(__FILE__).'/common.php';

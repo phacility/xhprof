@@ -293,11 +293,11 @@ to your php.ini file.
 <pre>
 [xhprof]
 extension=xhprof.so
-#
-# directory used by default implementation of the iXHProfRuns
-# interface (namely, the XHProfRuns_Default class) for storing
-# XHProf runs.
-#
+;
+; directory used by default implementation of the iXHProfRuns
+; interface (namely, the XHProfRuns_Default class) for storing
+; XHProf runs.
+;
 xhprof.output_dir=&lt;directory_for_storing_xhprof_runs&gt;
 </pre>
 
@@ -466,6 +466,7 @@ Array
 )
 </pre>
 
+<p><b>Skipping builtin functions during profiling</b>
 
 <p>By default PHP builtin functions (such as <code>strlen</code>) are
 profiled. If you do not want to profile builtin functions (to either
@@ -474,7 +475,41 @@ data), you can use the <code><b>XHPROF_FLAGS_NO_BUILTINS</b></code>
 flag as in for example:
 
 <ul><pre>
+// do not profile builtin functions
 <b>xhprof_enable(XHPROF_FLAGS_NO_BUILTINS)</b>;
+</pre></ul>
+
+
+<p><b>Ignoring specific functions during profiling (0.9.2 or higher)</b>
+
+<p>Starting with release 0.9.2 of xhprof, you can tell XHProf to
+ignore a specified list of functions during profiling. This allows you
+to ignore, for example, functions used for indirect function calls
+such as <code>call_user_func</code> and
+<code>call_user_func_array</code>. These intermediate functions
+unnecessarily complicate the call hierarchy and make the XHProf
+reports harder to interpret since they muddle the parent-child
+relationship for functions called indirectly.
+
+<p> To specify the list of functions to be ignored during profiling
+use the 2nd (optional) argument to <code>xhprof_enable</code>.
+For example,
+
+<pre>
+<ul><pre>
+<b>
+// elapsed time profiling; ignore call_user_func* during profiling
+xhprof_enable(0,
+             array('ignored_functions' =>  array('call_user_func',
+                                                 'call_user_func_array'));
+</b>
+or,
+<b>
+// elapsed time + memory profiling; ignore call_user_func* during profiling
+xhprof_enable(XHPROF_FLAGS_MEMORY,
+              array('ignored_functions' =>  array('call_user_func',
+                                                  'call_user_func_array'));
+</b>
 </pre></ul>
 
 
