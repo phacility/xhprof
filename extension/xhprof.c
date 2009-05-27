@@ -919,6 +919,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
           break;
         case ZEND_REQUIRE:
           func = "require";
+          add_filename = 1;
           break;
         case ZEND_INCLUDE_ONCE:
           func = "include_once";
@@ -926,6 +927,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
           break;
         case ZEND_REQUIRE_ONCE:
           func = "require_once";
+          add_filename = 1;
           break;
         default:
           func = "???_op";
