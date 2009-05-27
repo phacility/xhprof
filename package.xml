@@ -44,8 +44,9 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
  </stability>
  <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0</license>
  <notes>
+-- fix #16574: require/require_once not special cased like include/include_once (kannan)
 -- add a sanity test for sampling mode in xhprof (kannan)
--- add support to ignore functions (such as call_user_func) during profiling (mpal)
+-- add support to ignore functions (such as call_user_func) during profiling (mike paleczny)
 -- fix #16098: suppress notices due to use of FILE_BINARY (kannan)
 -- add a sanity test for timer (kannan)
 -- fix for compile error on debian linux (russ)
@@ -69,6 +70,7 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
         <file role="test" name="xhprof_002.phpt" />
         <file role="test" name="xhprof_003.phpt" />
         <file role="test" name="xhprof_004_inc.php" />
+        <file role="test" name="xhprof_004_require.php" />
         <file role="test" name="xhprof_004.phpt" />
         <file role="test" name="xhprof_005.phpt" />
         <file role="test" name="xhprof_006.phpt" />
