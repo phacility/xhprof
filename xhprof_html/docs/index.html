@@ -501,14 +501,14 @@ For example,
 // elapsed time profiling; ignore call_user_func* during profiling
 xhprof_enable(0,
              array('ignored_functions' =>  array('call_user_func',
-                                                 'call_user_func_array'));
+                                                 'call_user_func_array')));
 </b>
 or,
 <b>
 // elapsed time + memory profiling; ignore call_user_func* during profiling
 xhprof_enable(XHPROF_FLAGS_MEMORY,
               array('ignored_functions' =>  array('call_user_func',
-                                                  'call_user_func_array'));
+                                                  'call_user_func_array')));
 </b>
 </pre></ul>
 
