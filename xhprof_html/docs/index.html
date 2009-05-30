@@ -261,7 +261,10 @@ due to b(), but that's not necessarily true.]
 <ul><hr>
 
 <p><b>Note:</b> A windows port hasn't been implemented yet. We have
-tested <code>xhprof</code> on Linux/FreeBSD so far.
+tested <code>xhprof</code> on <b>Linux/FreeBSD</b> so far. 
+
+<p>Version 0.9.2 and above of XHProf is also expected to work on <b>Mac
+OS</b>. [We have tested on Mac OS 10.5.]
 
 <p><b>Note:</b> XHProf uses the RDTSC instruction (time stamp counter)
 to implement a really low overhead timer for elapsed time. So at the
@@ -269,6 +272,12 @@ moment <code>xhprof</code> only works on <b>x86</b> architecture.
 Also, since RDTSC values may not be synchronized across CPUs,
 <code>xhprof</code> binds the program to a single CPU during the
 profiling period.
+
+<p>XHProf's RDTSC based timer functionality doesn't work correctly if
+<b>SpeedStep</b> technology is turned on. This technology is available on
+some Intel processors. [Note: Mac desktops and laptops typically have
+SpeedStep turned on by default. To use XHProf, you'll need to disable
+SpeedStep.]
 
 <hr></ul>
 

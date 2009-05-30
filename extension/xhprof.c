@@ -37,18 +37,33 @@
 #   include <sys/resource.h>
 #   include <sys/cpuset.h>
 #   define cpu_set_t cpuset_t
-#   define SET_AFFINITY(pid, size, mask)	\
-		cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
-#   define GET_AFFINITY(pid, size, mask)	\
-		cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
+#   define SET_AFFINITY(pid, size, mask) \
+           cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
+#   define GET_AFFINITY(pid, size, mask) \
+           cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
 # else
 #   error "This version of FreeBSD does not support cpusets"
 # endif /* __FreeBSD_version */
+#elif __APPLE__
+/*
+ * Patch for compiling in Mac OS X Leopard
+ * @author Svilen Spasov <s.spasov@gmail.com> 
+ */
+#    include <mach/mach_init.h>
+#    include <mach/thread_policy.h>
+#    define cpu_set_t thread_affinity_policy_data_t
+#    define CPU_SET(cpu_id, new_mask) \
+        (*(new_mask)).affinity_tag = (cpu_id + 1)
+#    define CPU_ZERO(new_mask)                 \
+        (*(new_mask)).affinity_tag = THREAD_AFFINITY_TAG_NULL
+#   define SET_AFFINITY(pid, size, mask)       \
+        thread_policy_set(mach_thread_self(), THREAD_AFFINITY_POLICY, mask, \
+                          THREAD_AFFINITY_POLICY_COUNT)
 #else
 /* For sched_getaffinity, sched_setaffinity */
 # include <sched.h>
-# define SET_AFFINITY(pid, size, mask)	sched_setaffinity(0, size, mask)
-# define GET_AFFINITY(pid, size, mask)	sched_getaffinity(0, size, mask)
+# define SET_AFFINITY(pid, size, mask) sched_setaffinity(0, size, mask)
+# define GET_AFFINITY(pid, size, mask) sched_getaffinity(0, size, mask)
 #endif /* __FreeBSD__ */
 
 
@@ -400,10 +415,14 @@ PHP_MINIT_FUNCTION(xhprof) {
   hp_globals.cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
   /* Get the cpu affinity mask. */
+ #ifndef __APPLE__
   if (GET_AFFINITY(0, sizeof(cpu_set_t), &hp_globals.prev_mask) < 0) {
     perror("getaffinity");
     return FAILURE;
   }
+#else
+  CPU_ZERO(&(hp_globals.prev_mask));
+#endif
 
   /* Initialize cpu_frequencies and cur_cpu_id. */
   hp_globals.cpu_frequencies = NULL;

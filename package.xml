@@ -44,6 +44,7 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
  </stability>
  <license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0</license>
  <notes>
+-- Request #16544: Mac port for XHProf (svilen spasov)
 -- fix #16574: require/require_once not special cased like include/include_once (kannan)
 -- add a sanity test for sampling mode in xhprof (kannan)
 -- add support to ignore functions (such as call_user_func) during profiling (mike paleczny)
