@@ -415,7 +415,7 @@ PHP_MINIT_FUNCTION(xhprof) {
   hp_globals.cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
   /* Get the cpu affinity mask. */
- #ifndef __APPLE__
+#ifndef __APPLE__
   if (GET_AFFINITY(0, sizeof(cpu_set_t), &hp_globals.prev_mask) < 0) {
     perror("getaffinity");
     return FAILURE;
