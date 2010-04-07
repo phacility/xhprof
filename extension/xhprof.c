@@ -280,6 +280,21 @@ static inline zval  *hp_zval_at_key(char  *key,
 static inline char **hp_strings_in_zval(zval  *values);
 static inline void   hp_array_del(char **name_array);
 
+/* {{{ arginfo */
+ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprof_enable, 0, 0, 0)
+  ZEND_ARG_INFO(0, flags)
+  ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_disable, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_enable, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_disable, 0)
+ZEND_END_ARG_INFO()
+
 /**
  * *********************
  * PHP EXTENSION GLOBALS
@@ -287,10 +302,10 @@ static inline void   hp_array_del(char **name_array);
  */
 /* List of functions implemented/exposed by xhprof */
 zend_function_entry xhprof_functions[] = {
-  PHP_FE(xhprof_enable, NULL)
-  PHP_FE(xhprof_disable, NULL)
-  PHP_FE(xhprof_sample_enable, NULL)
-  PHP_FE(xhprof_sample_disable, NULL)
+  PHP_FE(xhprof_enable, arginfo_xhprof_enable)
+  PHP_FE(xhprof_disable, arginfo_xhprof_disable)
+  PHP_FE(xhprof_sample_enable, arginfo_xhprof_sample_enable)
+  PHP_FE(xhprof_sample_disable, arginfo_xhprof_sample_disable)
   {NULL, NULL, NULL}
 };
 
