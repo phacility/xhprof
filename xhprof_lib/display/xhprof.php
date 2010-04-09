@@ -1432,5 +1432,8 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
 
   } else {
     echo "No XHProf runs specified in the URL.";
+    if (method_exists($xhprof_runs_impl, 'list_runs')) {
+      $xhprof_runs_impl->list_runs();
+    }
   }
 }
