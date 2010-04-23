@@ -1,0 +1,32 @@
+<html>
+<head><title>XHProf: Hierarchical Profiler Report</title>
+<?php xhprof_include_js_css(); ?>
+<link href="/css/tablesorter.pager.css" rel="stylesheet" type="text/css" />              <!-- add style sheet -->
+
+<script src='/js/jquery-1.4.2.min.js' type="text/javascript"></script>                   <!-- add js sheets -->
+<script src='/js/tablesorter-function.js' type="text/javascript"></script>
+<script src='/js/tablesorter.min.js' type="text/javascript"></script>                      
+<script src='/js/tablesorter.pager.js' type="text/javascript"></script>
+<script type='text/javascript' src='http://www.google.com/jsapi'></script>
+<!-- It would be nice if JS appeared here -->
+<?php
+
+echo $_xh_header;
+?>
+</head>
+<body>
+ <div class="dash-header">
+   <div class="search">
+       <form name="simple_bar" method="get" action="" />      
+          Search: <input type="text" name="run" size="25" />
+          <input type="submit" value="Go" name="submit" class="form-button" />
+       </form>
+   </div>
+   <div class="link-options">
+      Last &nbsp;<a href="/?last=25">25</a> &nbsp;<a href="/?last=50">50</a> &nbsp;Runs |
+      Most Expensive &nbsp;<a href="/?getruns=cpu&days=1">Today</a> &nbsp;<a href="/?getruns=cpu&days=7">Past Week</a> |
+      Most Ram &nbsp;<a href="/?getruns=pmu&days=1">Today</a> &nbsp;<a href="/?getruns=pmu&days=7">Past Week</a> |
+      Longest Running &nbsp;<a href="/?getruns=wt&days=1">Today</a> &nbsp;<a href="/?getruns=wt&days=7">Past Week</a>
+   </div>
+   <h1 class="xh-title">XH Brazzers</h1> 
+ </div>  
