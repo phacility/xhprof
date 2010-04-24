@@ -1,0 +1,40 @@
+div.tablesorterPager {
+	padding: 10px 0 10px 0;
+	background-color: #D6D2C2;
+	text-align: center;
+}
+div.tablesorterPager span {
+	padding: 0 5px 0 5px;
+}
+div.tablesorterPager input.prev {
+	width: auto;
+	margin-right: 10px;
+}
+div.tablesorterPager input.next {
+	width: auto;
+	margin-left: 10px;
+}
+div.tablesorterPager input {
+	font-size: 8px;
+	width: 50px;
+	border: 1px solid #330000;
+	text-align: center;
+}
+table.tablesorter thead tr .header {
+   background-image: url(../img/bg.gif);
+   background-position:left center;
+   background-repeat:no-repeat;
+   cursor:pointer;
+   padding-left:55px;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(../img/asc.gif);
+	background-repeat:no-repeat;
+	background-position:left center;
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(../img/desc.gif);
+	background-repeat:no-repeat;
+	background-position:left center;
+}
+
