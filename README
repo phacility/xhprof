@@ -15,3 +15,11 @@ black list bases for specific documents. e.g. pages generating XML, images, etc.
  While the URLs are different, the PHP code execution path is likely identical, by tweaking
 the method in xhprof_runs.php you can help the front end be aware that these urls are identical.
  - Google's data visualization tool is used to graph stats over requests for an easy heads up display.
+
+
+
+Work that we're still doing:
+ - The aggregation functionality is ignored completely
+ - The code is... a mess. Deadlines do that to you, we're working on it
+ - The default table schema isn't indexed all the places it needs to be
+ - Easier ways to diff URLs 
