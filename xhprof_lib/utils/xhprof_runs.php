@@ -60,104 +60,284 @@ interface iXHProfRuns {
  * XHProfRuns_Default is the default implementation of the
  * iXHProfRuns interface for saving/fetching XHProf runs.
  *
- * It stores/retrieves runs to/from a filesystem directory
- * specified by the "xhprof.output_dir" ini parameter.
+ * This modified version of the file uses a MySQL backend to store
+ * the data, it also stores additional information outside the run
+ * itself (beyond simply the run id) to make comparisons and run
+ * location easier
+ * 
+ * Configuration steps:
+ *  1 - Set the database credentials in the class properties
+ *  2 - Create the database, create table syntax provided below
+ *  3 - Set the prefix for this server or application
+ *  4 - Configure the urlSimilator method (bottom of this file)
+ *  5 - Ensure you're using the callgraph_utils.php and xprof_runs.php 
+ * files from this repo, as they've been updated to deal with get_run() returning
+ * an array.
  *
  * @author Kannan
+ * @author Paul Reinheimer (http://blog.preinheimer.com)
  */
 class XHProfRuns_Default implements iXHProfRuns {
 
   private $dir = '';
-  private $suffix = 'xhprof';
+  public $prefix = 't11_';
+  public $run_details = null;
+  private $dbName = 'xhprof';
+  private $dbhost = 'localhost';
+  private $dbuser = 'xhprof';
+  private $dbpass = 'passwords_rule';
+  protected $linkID;
 
-  private function gen_run_id($type) {
-    return uniqid();
+  public function __construct($dir = null) 
+  {
+    $this->db();
   }
 
-  private function file_name($run_id, $type) {
-
-    $file = "$run_id.$type." . $this->suffix;
-
-    if (!empty($this->dir)) {
-      $file = $this->dir . "/" . $file;
-    }
-    return $file;
-  }
-
-  public function __construct($dir = null) {
-
-    // if user hasn't passed a directory location,
-    // we use the xhprof.output_dir ini setting
-    // if specified, else we default to the directory
-    // in which the error_log file resides.
-
-    if (empty($dir)) {
-      $dir = ini_get("xhprof.output_dir");
-      if (empty($dir)) {
-
-        // some default that at least works on unix...
-        $dir = "/tmp";
-
-        xhprof_error("Warning: Must specify directory location for XHProf runs. ".
-                     "Trying {$dir} as default. You can either pass the " .
-                     "directory location as an argument to the constructor ".
-                     "for XHProfRuns_Default() or set xhprof.output_dir ".
-                     "ini param.");
-      }
-    }
-    $this->dir = $dir;
-  }
-
-  public function get_run($run_id, $type, &$run_desc) {
-    $file_name = $this->file_name($run_id, $type);
-
-    if (!file_exists($file_name)) {
-      xhprof_error("Could not find file $file_name");
-      $run_desc = "Invalid Run Id = $run_id";
+  protected function db()
+  {
+    $linkid = mysql_connect($this->dbhost, $this->dbuser, $this->dbpass);
+    if ($linkid === FALSE)
+    {
+      xhprof_error("Could not connect to db");
+      $run_desc = "could not connect to db";
       return null;
     }
+    mysql_select_db($this->dbName, $linkid);
+    $this->linkID = $linkid; 
+  }
+  /**
+  * When setting the `id` column, consdier the length of the prefix you're specifying in $prefix
+  * 
+  *
+* CREATE TABLE `details` (
+  `id` CHAR(17) NOT NULL,
+  `url` VARCHAR(255) DEFAULT NULL,
+  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `server name` VARCHAR(64) DEFAULT NULL,
+  `perfdata` TEXT,
+  `type` TINYINT(4) DEFAULT NULL,
+  `cookie` TEXT,
+  `post` TEXT,
+  `get` TEXT,
+  PRIMARY KEY (`id`)
+) ENGINE=MYISAM DEFAULT CHARSET=utf8
+*/
 
-    $contents = file_get_contents($file_name);
+    
+  private function gen_run_id($type) 
+  {
+    return uniqid($this->prefix);
+  }
+  
+  
+  public function getRuns($stats)
+  {
+      $query = "SELECT * FROM `details` ";
+      $skippers = array("limit", "order by", "group by", "where");
+      $hasWhere = false;
+      
+      foreach($stats AS $column => $value)
+      {
+          
+          if (in_array($column, $skippers))
+          {
+              continue;
+          }
+          if ($hasWhere === false)
+          {
+              $query .= " WHERE ";
+              $hasWhere = true;
+          }
+          if (strlen($value) == 0)
+          {
+              $query .= $column;
+          }
+          $query .= " `$column` = '$value' ";
+      }
+      
+      if (isset($stats['where']))
+      {
+          if ($hasWhere === false)
+          {
+              $query .= " WHERE ";
+              $hasWhere = true;
+          }
+          $query .= $stats['where'];
+      }
+      
+      if (isset($stats['order by']))
+      {
+          $query .= " ORDER BY `{$stats['order by']}` DESC";
+      }
+      
+      if (isset($stats['group by']))
+      {
+          $query .= " GROUP BY `{$stats['group by']}` ";
+      }
+      
+      if (isset($stats['limit']))
+      {
+          $query .= " LIMIT {$stats['limit']} ";
+      }
+
+      $resultSet = mysql_query($query);
+      return $resultSet;
+  }
+  
+  
+  /**
+  * Retreives a run from the database, 
+  * 
+  * @param string $run_id unique identifier for the run being requested
+  * @param mixed $type
+  * @param mixed $run_desc
+  * @return mixed
+  */
+  public function get_run($run_id, $type, &$run_desc) 
+  {
+
+    $query = "SELECT * FROM `details` WHERE `id` = '$run_id'";
+    $resultSet = mysql_query($query, $this->linkID);
+    $data = mysql_fetch_assoc($resultSet);
+    
+    //The Performance data is compressed lightly to avoid max row length
+    $contents = unserialize(gzuncompress($data['perfdata']));
+    
+    //This data isnt' needed for display purposes, there's no point in keeping it in this array
+    unset($data['perfdata']);
+
+    if (is_null($this->run_details))
+    {
+        $this->run_details = $data;
+    }else
+    {
+        $this->run_details[0] = $this->run_details; 
+        $this->run_details[1] = $data;
+    }
+    
     $run_desc = "XHProf Run (Namespace=$type)";
-    return unserialize($contents);
+    $this->getRunComparativeData($data['url'], $data['c_url']);
+    
+    return array($contents, $data);
+  }
+  
+  /**
+  * Get stats (pmu, ct, wt) on a url or c_url
+  * 
+  * @param array $url
+  */
+  public function getUrlStats($data)
+  {
+
+      $limit = $data['limit'];
+      if (isset($data['c_url']))
+      {
+          $url = mysql_real_escape_string($data['c_url']);
+          $query = "SELECT `id`, UNIX_TIMESTAMP(`timestamp`) as `timestamp`, `pmu`, `wt`, `cpu` FROM `details` WHERE `c_url` = '$url' LIMIT $limit";
+      }else
+      {
+          $url = mysql_real_escape_string($data['url']);
+          $query = "SELECT `id`, UNIX_TIMESTAMP(`timestamp`) as `timestamp`, `pmu`, `wt`, `cpu` FROM `details` WHERE `url` = '$url' LIMIT $limit";
+      }
+      $rs = mysql_unbuffered_query($query, $this->linkID);
+      return $rs;
+  }
+  
+  public function getRunComparativeData($url, $c_url)
+  {
+      //Runs same URL
+      //  count, avg/min/max for wt, cpu, pmu
+      $query = "SELECT count(`id`), avg(`wt`), min(`wt`), max(`wt`),  avg(`cpu`), min(`cpu`), max(`cpu`), avg(`pmu`), min(`pmu`), max(`pmu`) FROM `details` WHERE `url` = '$url'";
+      $rs = mysql_query($query, $this->linkID);
+      $row = mysql_fetch_assoc($rs);
+      $row['url'] = $url;
+      global $comparative;
+      $comparative['url'] = $row;
+      unset($row);
+      
+      //Runs same c_url
+      //  count, avg/min/max for wt, cpu, pmu
+      $query = "SELECT count(`id`), avg(`wt`), min(`wt`), max(`wt`),  avg(`cpu`), min(`cpu`), max(`cpu`), avg(`pmu`), min(`pmu`), max(`pmu`) FROM `details` WHERE `c_url` = '$c_url'";
+      $rs = mysql_query($query, $this->linkID);
+      $row = mysql_fetch_assoc($rs);
+      $row['url'] = $c_url;
+      $comparative['c_url'] = $row;
+      unset($row);
+      return $comparative;
   }
 
-  public function save_run($xhprof_data, $type, $run_id = null) {
+    public function save_run($xhprof_data, $type, $run_id = null, $xhprof_details = null) 
+    {
+        global $_xhprof;
 
-    // Use PHP serialize function to store the XHProf's
-    // raw profiler data.
-    $xhprof_data = serialize($xhprof_data);
-
-    if ($run_id === null) {
-      $run_id = $this->gen_run_id($type);
-    }
-
-    $file_name = $this->file_name($run_id, $type);
-    $file = fopen($file_name, 'w');
-
-    if ($file) {
-      fwrite($file, $xhprof_data);
-      fclose($file);
-    } else {
-      xhprof_error("Could not open $file_name\n");
-    }
-
-    // echo "Saved run in {$file_name}.\nRun id = {$run_id}.\n";
-    return $run_id;
-  }
-
-  function list_runs() {
-    if (is_dir($this->dir)) {
-        echo "<hr/>Existing runs:\n<ul>\n";
-        foreach (glob("{$this->dir}/*.{$this->suffix}") as $file) {
-            list($run,$source) = explode('.', basename($file));
-            echo '<li><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
-                . '?run=' . htmlentities($run) . '&source='
-                . htmlentities($source) . '">'
-                . htmlentities(basename($file)) . "</a><small> "
-                . date("Y-m-d H:i:s", filemtime($file)) . "</small></li>\n";
+        if ($run_id === null) {
+          $run_id = $this->gen_run_id($type);
         }
-        echo "</ul>\n";
-    }
+        
+        $get = mysql_real_escape_string(serialize($_GET), $this->linkID);
+        $cookie = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
+        
+        //This code has not been tested
+        if ($_xhprof['savepost'])
+        {
+            $post = mysql_real_escape_string(serialize($_POST), $this->linkID);    
+        }else
+        {
+            $post = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule")));
+        }
+        
+        
+        $pmu = $xhprof_data['main()']['pmu'];
+        $wt = $xhprof_data['main()']['wt'];
+        $cpu = $xhprof_data['main()']['cpu'];
+        
+        //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
+        $xhprof_data = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
+        
+        $url = mysql_real_escape_string($_SERVER['REQUEST_URI']);
+        $c_url = mysql_real_escape_string($this->urlSimilartor($_SERVER['REQUEST_URI']));
+        $serverName = mysql_real_escape_string($_SERVER['SERVER_NAME']);
+        $type = isset($xhprof_details['type']) ? $xhprof_details['type'] : 0;
+        $timestamp = mysql_real_escape_string($_SERVER['REQUEST_TIME']);
+
+        
+        
+        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`) VALUES('$run_id', '$url', '$c_url', FROM_UNIXTIME('$timestamp'), '$serverName', '$xhprof_data', '$type', '$cookie', '$post', '$get', '$pmu', '$wt', '$cpu')";
+        
+        mysql_query($query, $this->linkID);
+        if (mysql_affected_rows($this->linkID) == 1)
+        {
+            return $run_id;
+        }else
+        {
+            global $_xhprof;
+            if ($_xhprof['display'] === true)
+            {
+                echo "Failed to insert: $query <br>\n";
+                var_dump(mysql_error($this->linkID));
+                var_dump(mysql_errno($this->linkID));
+            }
+            return -1;
+        }
+  }
+  
+  
+  /**
+  * The goal of this function is to accept the URL for a resource, and return a "simplified" version
+  * thereof. Similar URLs should become identical. Consider:
+  * http://example.org/stories.php?id=23
+  * http://example.org/stories.php?id=24
+  * Under most setups these two URLs, while unique, will have an identical execution path, thus it's
+  * worthwhile to consider them as identical. The script will store both the original URL and the
+  * Simplified URL for display and comparison purposes. 
+  * 
+  * @param string $url The URL to be simplified
+  * @return string The simplified URL 
+  */
+  protected function urlSimilartor($url)
+  {
+      //This is an example 
+      $url = preg_replace("!\d{4}!", "", $url);
+      return $url;
   }
 }
