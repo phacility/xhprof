@@ -882,7 +882,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
   
   
   print("<center><br><h3>" .
-        xhprof_render_link($callgraph_report_title,
+        xhprof_render_link("Callgraph Report",
                     "$base_path/callgraph.php" . "?" . http_build_query($url_params))
         . "</h3></center>");
 
