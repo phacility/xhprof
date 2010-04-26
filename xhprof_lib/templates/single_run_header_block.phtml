@@ -61,10 +61,14 @@
   <?php
     $cookieArr =  unserialize($xhprof_runs_impl->run_details['cookie']);
  // echo '<pre>'.print_r($cookieArr, true).'</pre>';        
-    foreach($cookieArr as $key=>$value){       
-        echo "<tr>";
-        echo "<td>" . $key . "</td><td>" . chunk_split($value) . "</td>";
-        echo "</tr>";
+    foreach($cookieArr as $key=>$value){
+        if (is_array($value))
+        {
+            $value = implode(", ", $value);
+        }
+        echo "<tr>\n";
+        echo "\t<td>" . $key . "</td><td>" . chunk_split($value) . "</td>\n";
+        echo "</tr>\n";
      }
   ?>
    </tbody>
