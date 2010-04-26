@@ -140,7 +140,14 @@ CREATE TABLE `details` (
     return uniqid($this->prefix);
   }
   
-  
+  /**
+  * This function gets runs based on passed parameters, column data as key, value as the value. Values
+  * are escaped automatically. You may also pass limit, order by, group by, or "where" to add thos values,
+  * all of which are used as is, no escaping. 
+  * 
+  * @param array $stats Criteria by which to select columns
+  * @return resource
+  */
   public function getRuns($stats)
   {
       $query = "SELECT * FROM `details` ";
@@ -163,6 +170,7 @@ CREATE TABLE `details` (
           {
               $query .= $column;
           }
+          $value = mysql_real_escape_string($value);
           $query .= " `$column` = '$value' ";
       }
       
@@ -206,7 +214,7 @@ CREATE TABLE `details` (
   */
   public function get_run($run_id, $type, &$run_desc) 
   {
-
+    $run_id = mysql_real_escape_string($run_id);
     $query = "SELECT * FROM `details` WHERE `id` = '$run_id'";
     $resultSet = mysql_query($query, $this->linkID);
     $data = mysql_fetch_assoc($resultSet);
@@ -217,6 +225,7 @@ CREATE TABLE `details` (
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
 
+    // The same function is called twice when diff'ing runs. In this case we'll populate the global scope with an array
     if (is_null($this->run_details))
     {
         $this->run_details = $data;
@@ -254,8 +263,17 @@ CREATE TABLE `details` (
       return $rs;
   }
   
+  /**
+  * Get comparative information for a given URL and c_url, this information will be used to display stats like how many calls a URL has,
+  * average, min, max execution time, etc. This information is pushed into the global namespace, which is horribly hacky. 
+  * 
+  * @param string $url
+  * @param string $c_url
+  */
   public function getRunComparativeData($url, $c_url)
   {
+      $url = mysql_real_escape_string($url);
+      $c_url = mysql_real_escape_string($c_url);
       //Runs same URL
       //  count, avg/min/max for wt, cpu, pmu
       $query = "SELECT count(`id`), avg(`wt`), min(`wt`), max(`wt`),  avg(`cpu`), min(`cpu`), max(`cpu`), avg(`pmu`), min(`pmu`), max(`pmu`) FROM `details` WHERE `url` = '$url'";
@@ -276,7 +294,16 @@ CREATE TABLE `details` (
       unset($row);
       return $comparative;
   }
-
+  
+  /**
+  * Save the run in the database. 
+  * 
+  * @param string $xhprof_data
+  * @param mixed $type
+  * @param string $run_id
+  * @param mixed $xhprof_details
+  * @return string
+  */
     public function save_run($xhprof_data, $type, $run_id = null, $xhprof_details = null) 
     {
         global $_xhprof;
