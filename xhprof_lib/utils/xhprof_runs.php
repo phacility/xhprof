@@ -85,7 +85,7 @@ class XHProfRuns_Default implements iXHProfRuns {
   private $dbName = 'xhprof';
   private $dbhost = 'localhost';
   private $dbuser = 'xhprof';
-  private $dbpass = '6549qHC6R8Yi';
+  private $dbpass = 'example_password';
   protected $linkID;
 
   public function __construct($dir = null) 
