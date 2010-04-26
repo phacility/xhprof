@@ -44,7 +44,7 @@ print('<div id="view-diff-tables">');
             foreach($cookieArr0 as $key=>$value){       
             echo "<tr>";
             
-            if($cookieArr0[$key] == $cookieArr1[$key]){
+            if(isset($cookieArr1[$key]) && $cookieArr0[$key] == $cookieArr1[$key]){
               $class ="normal";
             }else{
               $class ="different";
@@ -69,10 +69,14 @@ print('<div id="view-diff-tables">');
             foreach($getArr0 as $key=>$value){       
             echo "<tr>";
             
-             if($getArr0[$key] == $getArr1[$key]){
+            if(isset($getArr1[$key]) && ($getArr0[$key] == $getArr1[$key])){
               $class ="normal";
             }else{
               $class ="different";
+            }
+            if (is_array($value))
+            {
+                $value = implode(", ", $value);
             }
             echo "<td>" . $key . "</td><td class=\"".$class."\">" . chunk_split($value) . "</td>";
             echo "</tr>";
@@ -92,7 +96,7 @@ print('<div id="view-diff-tables">');
                 
             foreach($postArr0 as $key=>$value){       
             echo "<tr>";
-             if($postArr0[$key] == $postArr1[$key]){
+             if(isset($postArr1[$key]) && $postArr0[$key] == $postArr1[$key]){
               $class ="normal";
             }else{
                 $class ="different";
@@ -157,10 +161,10 @@ print('<div id="view-diff-tables">');
          //  cookie diff data from array position 1  
         //$cookieArr1 =  unserialize($xhprof_runs_impl->run_details[1]['cookie']);
             
-            foreach($cookieArr1 as $key=>$value){
+          foreach($cookieArr1 as $key=>$value){
             echo "<tr>";
             
-             if($cookieArr1[$key] == $cookieArr0[$key]){
+             if(isset($cookieArr0[$key]) && ($cookieArr1[$key] == $cookieArr0[$key])){
               $class ="normal";
             }else{
                 $class ="different";
@@ -185,10 +189,14 @@ print('<div id="view-diff-tables">');
             foreach($getArr1 as $key=>$value){
             echo "<tr>";
             
-             if($getArr1[$key] == $getArr0[$key]){
+             if(isset($getArr0[$key]) && ($getArr1[$key] == $getArr0[$key])){
               $class ="normal";
             }else{
                 $class ="different";
+            }
+            if(is_array($value))
+            {
+                $value = implode(", ", $value);
             }
             echo "<td>" . $key . "</td><td class=\"".$class."\">" . chunk_split($value) . "</td>";
             echo "</tr>";

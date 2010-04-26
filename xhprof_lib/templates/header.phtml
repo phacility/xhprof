@@ -10,8 +10,10 @@
 <script type='text/javascript' src='http://www.google.com/jsapi'></script>
 <!-- It would be nice if JS appeared here -->
 <?php
-
-echo $_xh_header;
+if (isset($_xh_header))
+{
+    echo $_xh_header;
+}
 ?>
 </head>
 <body>
@@ -28,5 +30,5 @@ echo $_xh_header;
       Most Ram &nbsp;<a href="/?getruns=pmu&days=1">Today</a> &nbsp;<a href="/?getruns=pmu&days=7">Past Week</a> |
       Longest Running &nbsp;<a href="/?getruns=wt&days=1">Today</a> &nbsp;<a href="/?getruns=wt&days=7">Past Week</a>
    </div>
-   <h1 class="xh-title">XH Gui</h1> 
+   <h1 class="xh-title">XH GUI</h1> 
  </div>  
