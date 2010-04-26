@@ -7,7 +7,7 @@ if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     if ($_xhprof['display'] === true)
     {
         // url to the XHProf UI libraries (change the host name and path)
-        $profiler_url = sprintf('http://xh.brazzers.com/index.php?run=%s&source=%s', $run_id, $profiler_namespace);
+        $profiler_url = sprintf('http://xh.example.com/index.php?run=%s&source=%s', $run_id, $profiler_namespace);
         echo '<a href="'. $profiler_url .'" target="_blank">Profiler output</a>';    
     }
 }

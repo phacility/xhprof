@@ -14,7 +14,7 @@ $_xhprof['doprofile'] = false;
 
 // Only users from authorized IP addresses may control Profiling
 $controlIPs = array();
-$controlIPs[] = "216.226.57.228";   //Mansef Office
+$controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
 if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
     $_xhprof['display'] = true;
@@ -55,7 +55,7 @@ unset($exceptionPostURLs);
 if ($_xhprof['doprofile'] === false)
 {
     //Profile weighting, one in one hundred requests will be profiled without being specifically requested
-    if (rand(1, 10) == 2)
+    if (rand(1, 100) == 42)
     {
         $_xhprof['doprofile'] = true;
         $_xhprof['type'] = 0;
@@ -63,7 +63,7 @@ if ($_xhprof['doprofile'] === false)
 }
 
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
-    include_once '/home/astaticpaysitetours/lib/php/xhprof_lib/utils/xhprof_lib.php';
-    include_once '/home/astaticpaysitetours/lib/php/xhprof_lib/utils/xhprof_runs.php';
+    include_once '../xhprof_lib/utils/xhprof_lib.php';
+    include_once '../xhprof_lib/utils/xhprof_runs.php';
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 }   
