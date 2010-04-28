@@ -106,7 +106,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     $this->linkID = $linkid; 
   }
   /**
-  * When setting the `id` column, consdier the length of the prefix you're specifying in $prefix
+  * When setting the `id` column, consider the length of the prefix you're specifying in $this->prefix
   * 
   *
 CREATE TABLE `details` (
@@ -142,7 +142,7 @@ CREATE TABLE `details` (
   
   /**
   * This function gets runs based on passed parameters, column data as key, value as the value. Values
-  * are escaped automatically. You may also pass limit, order by, group by, or "where" to add thos values,
+  * are escaped automatically. You may also pass limit, order by, group by, or "where" to add those values,
   * all of which are used as is, no escaping. 
   * 
   * @param array $stats Criteria by which to select columns
@@ -244,7 +244,8 @@ CREATE TABLE `details` (
   /**
   * Get stats (pmu, ct, wt) on a url or c_url
   * 
-  * @param array $url
+  * @param array $data An associative array containing the limit you'd like to set for the queyr, as well as either c_url or url for the desired element. 
+  * @return resource result set from the database query
   */
   public function getUrlStats($data)
   {
@@ -269,6 +270,7 @@ CREATE TABLE `details` (
   * 
   * @param string $url
   * @param string $c_url
+  * @return array
   */
   public function getRunComparativeData($url, $c_url)
   {
@@ -308,39 +310,66 @@ CREATE TABLE `details` (
     {
         global $_xhprof;
 
+		$sql = array();
         if ($run_id === null) {
           $run_id = $this->gen_run_id($type);
         }
         
-        $get = mysql_real_escape_string(serialize($_GET), $this->linkID);
-        $cookie = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
+		/*
+		Session data is ommitted purposefully, mostly because it's not likely that the data
+		that resides in $_SESSION at this point is the same as the data that the application
+		started off with (for most apps, it's likely that session data is manipulated on most
+		pageloads).
+		
+		The goal of storing get, post and cookie is to help explain why an application chose
+		a particular code execution path, pehaps it was a poorly filled out form, or a cookie that
+		overwrote some default parameters. So having them helps. Most applications don't push data
+		back into those super globals, so we're safe(ish) storing them now. 
+		
+		We can't just clone the session data in header.php to be sneaky either, starting the session
+		is an application decision, and we don't want to go starting sessions where none are needed
+		(not good performance wise). We could be extra sneaky and do something like:
+		if(isset($_COOKIE['phpsessid']))
+		{
+			session_start();
+			$_xhprof['session_data'] = $_SESSION;
+		} 
+		but starting session support really feels like an application level decision, not one that
+		a supposedly unobtrusive profiler makes for you. 
+		
+		*/
+
+        $sql['get'] = mysql_real_escape_string(serialize($_GET), $this->linkID);
+        $sql['cookie'] = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
         
         //This code has not been tested
         if ($_xhprof['savepost'])
         {
-            $post = mysql_real_escape_string(serialize($_POST), $this->linkID);    
+        	$sql['post'] = mysql_real_escape_string(serialize($_POST), $this->linkID);    
         }else
         {
-            $post = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule")));
+        	$sql['post'] = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule"), $this->linkID));
         }
         
         
-        $pmu = $xhprof_data['main()']['pmu'];
-        $wt = $xhprof_data['main()']['wt'];
-        $cpu = $xhprof_data['main()']['cpu'];
+        $sql['pmu'] = $xhprof_data['main()']['pmu'];
+        $sql['wt'] = $xhprof_data['main()']['wt'];
+        $sql['cpu'] = $xhprof_data['main()']['cpu'];
         
         //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
-        $xhprof_data = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
+		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
+		// full production code. 
+        $sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
         
-        $url = mysql_real_escape_string($_SERVER['REQUEST_URI']);
-        $c_url = mysql_real_escape_string($this->urlSimilartor($_SERVER['REQUEST_URI']));
-        $serverName = mysql_real_escape_string($_SERVER['SERVER_NAME']);
-        $type = isset($xhprof_details['type']) ? $xhprof_details['type'] : 0;
-        $timestamp = mysql_real_escape_string($_SERVER['REQUEST_TIME']);
+        $sql['url'] = mysql_real_escape_string($_SERVER['REQUEST_URI']);
+        $sql['c_url'] = mysql_real_escape_string($this->urlSimilartor($_SERVER['REQUEST_URI']));
+        $sql['servername'] = mysql_real_escape_string($_SERVER['SERVER_NAME']);
+        $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
+        $sql['timestamp'] = mysql_real_escape_string($_SERVER['REQUEST_TIME']);
 
         
         
-        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`) VALUES('$run_id', '$url', '$c_url', FROM_UNIXTIME('$timestamp'), '$serverName', '$xhprof_data', '$type', '$cookie', '$post', '$get', '$pmu', '$wt', '$cpu')";
+        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}')";
         
         mysql_query($query, $this->linkID);
         if (mysql_affected_rows($this->linkID) == 1)
