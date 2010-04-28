@@ -66,4 +66,7 @@ if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     include_once '../xhprof_lib/utils/xhprof_lib.php';
     include_once '../xhprof_lib/utils/xhprof_runs.php';
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
-}   
+}elseif(!extension_loaded('xhprof') && $_xhprof['display'] === true)
+{
+	echo "Warning! Unable to profile run, xhprof extension not loaded\n";
+}
