@@ -179,6 +179,4 @@ DATA;
     
 }
 
-
-echo "</body>";
-echo "</html>";
+include ("../xhprof_lib/templates/footer.phtml");
