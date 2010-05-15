@@ -1,5 +1,5 @@
 <?php
-$retval = require('../xhprof_lib/config.php');
+require(dirname(__FILE__) . '/../xhprof_lib/config.php');
 
 // Only users from authorized IP addresses may control Profiling
 if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
@@ -16,7 +16,6 @@ if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
         $_xhprof['type'] = 1;
     } 
 }
-
 //Certain URLs should never have a link displayed. Think images, xml, etc. 
 foreach($exceptionURLs as $url)
 {
@@ -55,8 +54,8 @@ unset($weight);
 
 //Display warning if extension not available
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
-    include_once '../xhprof_lib/utils/xhprof_lib.php';
-    include_once '../xhprof_lib/utils/xhprof_runs.php';
+    include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_lib.php';
+    include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_runs.php';
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 }elseif(!extension_loaded('xhprof') && $_xhprof['display'] === true)
 {
