@@ -1,3 +1,6 @@
+**Updating to this branch requries changes to your table schema, either figure out how
+to migrate your data or drop, and re-create. New schema in xhprof_runs.php**
+
 This branch/clone/whatever git calls it of the official Facebook GUI does a few things:
 
  - It includes a header.php and footer.php document you can use with PHP's auto_prepend_file and
