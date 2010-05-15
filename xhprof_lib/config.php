@@ -24,7 +24,6 @@ $controlIPs[] = "216.226.57.228";   //Localhost, you'll want to add your own ip 
 
 
 $otherURLS = array();
-$controlIPs = array();
 
 $weight = 100;
 
