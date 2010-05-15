@@ -1,20 +1,7 @@
 <?php
-$exceptionURLs = array();
-$exceptionURLs[] = "/get_scenes/";
-$exceptionURLs[] = "/get_scenes2/";
-
-$exceptionPostURLs = array();
-$exceptionPostURLs[] = "login";
-
-$_xhprof = array();
-
-$_xhprof['display'] = false;
-$_xhprof['doprofile'] = false;
-
+$retval = require('../xhprof_lib/config.php');
 
 // Only users from authorized IP addresses may control Profiling
-$controlIPs = array();
-$controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
 if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
     $_xhprof['display'] = true;
@@ -30,6 +17,7 @@ if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
     } 
 }
 
+//Certain URLs should never have a link displayed. Think images, xml, etc. 
 foreach($exceptionURLs as $url)
 {
     if (stripos($_SERVER['REQUEST_URI'], $url) !== FALSE)
@@ -41,6 +29,7 @@ foreach($exceptionURLs as $url)
 }
 unset($exceptionURLs);
 
+//Certain urls should have their POST data omitted. Think login forms, other privlidged info
 $_xhprof['savepost'] = true;
 foreach ($exceptionPostURLs as $url)
 {
@@ -52,16 +41,19 @@ foreach ($exceptionPostURLs as $url)
 }
 unset($exceptionPostURLs);
 
+//Determine wether or not to profile this URL randomly
 if ($_xhprof['doprofile'] === false)
 {
     //Profile weighting, one in one hundred requests will be profiled without being specifically requested
-    if (rand(1, 100) == 42)
+    if (rand(1, $weight) == 1)
     {
         $_xhprof['doprofile'] = true;
         $_xhprof['type'] = 0;
     } 
 }
+unset($weight);
 
+//Display warning if extension not available
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     include_once '../xhprof_lib/utils/xhprof_lib.php';
     include_once '../xhprof_lib/utils/xhprof_runs.php';
