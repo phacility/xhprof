@@ -85,3 +85,26 @@ DATA;
     echo $_xh_header;
     
 }
+
+function getFilter($filterName)
+{
+    if (isset($_GET[$filterName]))
+    {
+      if ($_GET[$filterName] == "None")
+      {
+        $serverFilter = null;
+        setcookie($filterName, null, 0);
+      }else
+      {
+        setcookie($filterName, $_GET[$filterName], (time() + 60 * 60));
+        $serverFilter = $_GET[$filterName];
+      }
+    }elseif(isset($_COOKIE[$filterName]))
+    {
+        $serverFilter = $_COOKIE[$filterName];  
+    }else
+    {
+      $serverFilter = null;
+    }
+    return $serverFilter;
+}
