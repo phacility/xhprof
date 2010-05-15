@@ -5,6 +5,7 @@ $_xhprof['dbhost'] = 'localhost';
 $_xhprof['dbuser'] = 'root';
 $_xhprof['dbpass'] = 'root';
 $_xhprof['dbname'] = 'xhprof';
+$_xhprof['servername'] = 't11';
 
 $exceptionURLs = array();
 $exceptionURLs[] = "/get_scenes/";
