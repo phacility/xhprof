@@ -879,12 +879,6 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
   
   
   //echo xhprof_render_actions($links);
-  
-  
-  print("<center><br><h3>" .
-        xhprof_render_link("Callgraph Report",
-                    "$base_path/callgraph.php" . "?" . http_build_query($url_params))
-        . "</h3></center>");
 
 
   $flat_data = array();
