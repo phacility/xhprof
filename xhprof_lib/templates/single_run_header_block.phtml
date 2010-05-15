@@ -11,6 +11,33 @@
         if ($display_calls) {
             $format_total= number_format($totals['ct']);
         }
+        
+        
+        function printSeconds($time)
+        {
+            $suffix = "microsecond";
+
+            if ($time > 1000)
+            {
+                $time = $time / 1000;
+                $suffix = "ms";
+                
+            }
+            
+            if ($time > 1000)
+            {
+                $time = $time / 1000;
+                $suffix = "s";
+            }
+            
+            if ($time > 60 && $suffix == "s")
+            {
+                $time = $time / 60;
+                $suffix = "minutes!";
+            }
+            return sprintf("%.4f {$suffix}", $time);
+            
+        }
  
     //TODO This is lame
     global $comparative;   
@@ -21,25 +48,29 @@
       <a href="callgraph.php?run=<?=$xhprof_runs_impl->run_details['id']; ?>" class="callgraph">View Callgraph</a>
    </div>
     <div id="left-col"> 
-     <div>   
+     <div>	 
      <table id="box-table-b">
      <thead>
         <tr><th>Stat</th><th>Exact URL</th><th>Similar URLs</th></tr>
      </thead>
      <tbody>
+	
         <tr><td>Count</td><td><a href="/?geturl=<?=urlencode($comparative['url']['url']);?>"><?=$comparative['url']['count(`id`)'];?></a></td><td><a href="/?getcurl=<?=urlencode($comparative['c_url']['url']);?>"><?=$comparative['c_url']['count(`id`)'];?></a></td></tr>
-        <tr><td>Min Wall Time</td><td><?=number_format($comparative['url'] ['min(`wt`)']) . " " . $arrayOfTotal[0]["metric"];?></td><td><?=number_format($comparative['c_url']['min(`wt`)']) . " " . $arrayOfTotal[0]["metric"];?></td></tr>
-        <tr><td>Max Wall Time</td><td><?=number_format($comparative['url']['max(`wt`)']) . " " . $arrayOfTotal[0]["metric"];?></td><td><?=number_format($comparative['c_url']['max(`wt`)']) . " " . $arrayOfTotal[0]["metric"];?></td></tr>
-        <tr><td>Avg Wall Time</td><td><?=number_format($comparative['url']['avg(`wt`)']) . " " . $arrayOfTotal[0]["metric"];?></td><td><?=number_format($comparative['c_url']['avg(`wt`)']) . " " . $arrayOfTotal[0]["metric"];?></td></tr>
-        <tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["value"]; ?></td><td>&nbsp;</td></tr>
-        <tr><td>Min CPU Ticks</td><td><?=number_format($comparative['url']['min(`cpu`)']) . " " . $arrayOfTotal[0]["metric"];?></td><td><?=number_format($comparative['c_url']['min(`cpu`)']) . " " . $arrayOfTotal[0]["metric"];?></td></tr>
-        <tr><td>Max CPU Ticks</td><td><?=number_format($comparative['url']['max(`cpu`)']) . " " . $arrayOfTotal[0]["metric"];?></td><td><?=number_format($comparative['c_url']['max(`cpu`)']) . " " . $arrayOfTotal[0]["metric"];?></td></tr>
-        <tr><td>Avg CPU Ticks</td><td><?=number_format($comparative['url']['avg(`cpu`)']) . " " . $arrayOfTotal[0]["metric"];?></td><td><?=number_format($comparative['c_url']['avg(`cpu`)']) . " " . $arrayOfTotal[0]["metric"];?></td></tr>
-        <tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["value"]; ?></td><td>&nbsp;</td></tr>
+        <tr><td>Min Wall Time</td><td><?=printSeconds($comparative['url']['min(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['min(`wt`)']);?></td></tr>
+        <tr><td>Max Wall Time</td><td><?=printSeconds($comparative['url']['max(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['max(`wt`)']);?></td></tr>
+        <tr><td>Avg Wall Time</td><td><?=printSeconds($comparative['url']['avg(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['avg(`wt`)']);?></td></tr>
+        <tr><td>95% Wall Time</td><td><?=printSeconds($comparative['url']['95(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['95(`wt`)']);?></td></tr>
+		<tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["value"]; ?></td><td>&nbsp;</td></tr>
+        <tr><td>Min CPU Ticks</td><td><?=printSeconds($comparative['url']['min(`cpu`)']);?></td><td><?=printSeconds($comparative['c_url']['min(`cpu`)']);?></td></tr>
+        <tr><td>Max CPU Ticks</td><td><?=printSeconds($comparative['url']['max(`cpu`)']);?></td><td><?=printSeconds($comparative['c_url']['max(`cpu`)']);?></td></tr>
+        <tr><td>Avg CPU Ticks</td><td><?=printSeconds($comparative['url']['avg(`cpu`)']);?></td><td><?=printSeconds($comparative['c_url']['avg(`cpu`)']);?></td></tr>
+        <tr><td>95% CPU Ticks</td><td><?=printSeconds($comparative['url']['95(`cpu`)']);?></td><td><?=printSeconds($comparative['c_url']['95(`cpu`)']);?></td></tr>
+		<tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["value"]; ?></td><td>&nbsp;</td></tr>
         <tr><td>Min Peak Memory Usage</td><td><?=number_format($comparative['url']['min(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?=number_format($comparative['c_url']['min(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
         <tr><td>Max Peak Memory Usage</td><td><?=number_format($comparative['url']['max(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?=number_format($comparative['c_url']['max(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
         <tr><td>Avg Peak Memory Usage</td><td><?=number_format($comparative['url']['avg(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?=number_format($comparative['c_url']['avg(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
-        <tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["value"]; ?></td><td>&nbsp;</td></tr>
+        <tr><td>95% Peak Memory Usage</td><td><?=number_format($comparative['url']['95(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?=number_format($comparative['c_url']['95(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
+		<tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["value"]; ?></td><td>&nbsp;</td></tr>
         <tr><td style="font-weight: bold;">Number of Function Calls:</td><td style="font-weight: bold;"><?php echo $format_total; ?></td><td>&nbsp;</td></tr>
         <tr><form method="get" action="/"><input type="hidden" name="run1" value="<?=$xhprof_runs_impl->run_details['id']; ?>">
             <td style="font-weight: bold;">Perform Delta:</td>
@@ -81,7 +112,12 @@
   <?php
     $getArr =  unserialize($xhprof_runs_impl->run_details['get']);
  // echo '<pre>'.print_r($getArr, true).'</pre>';         
-    foreach($getArr as $key=>$value){       
+    foreach($getArr as $key=>$value)
+    {  
+        if (is_array($value))
+        {
+            $value = implode(", ", $value);
+        }     
         echo "<tr>";
         echo "<td>" . $key . "</td><td>" . $value . "</td>";
         echo "</tr>";
@@ -97,7 +133,11 @@
   <?php
      $postArr =  unserialize($xhprof_runs_impl->run_details['post']);
   // echo '<pre>'.print_r($postArr, true).'</pre>';       
-    foreach($postArr as $key=>$value){        
+    foreach($postArr as $key=>$value){
+        if (is_array($value))
+        {
+            $value = implode(", ", $value);
+        }         
         echo "<tr>";
         echo "<td>" . $key . "</td><td>" . $value . "</td>";
         echo "</tr>";
