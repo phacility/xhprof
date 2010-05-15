@@ -377,7 +377,7 @@ CREATE TABLE `details` (
         	$sql['post'] = mysql_real_escape_string(serialize($_POST), $this->linkID);    
         }else
         {
-        	$sql['post'] = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule"), $this->linkID));
+        	$sql['post'] = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule")), $this->linkID);
         }
         
         
