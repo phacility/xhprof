@@ -1,8 +1,10 @@
 <?php
 $GLOBALS['XHPROF_LIB_ROOT'] = dirname(__FILE__) . '/../xhprof_lib';
-
+require ("../xhprof_lib/config.php");
 include_once $GLOBALS['XHPROF_LIB_ROOT'].'/display/xhprof.php';
-include ("../xhprof_lib/templates/header.phtml");
+include ("../xhprof_lib/utils/common.php");
+
+
 
 // param name, its type, and default value
 $params = array('run'        => array(XHPROF_STRING_PARAM, ''),
@@ -42,10 +44,47 @@ $vrbar = ' class="vrbar"';
 $vgbar = ' class="vgbar"';
 
 $xhprof_runs_impl = new XHProfRuns_Default();
-if (isset($_GET['geturl']))
-{
 
-    $rs = $xhprof_runs_impl->getUrlStats(array("url" => $_GET['geturl'], 'limit' => 100));
+$domainFilter = getFilter('domain_filter');
+$serverFilter = getFilter('server_filter');
+
+$domainsRS = $xhprof_runs_impl->getDistinct(array('column' => 'server name'));
+$domainFilterOptions = array("None");
+while ($row = mysql_fetch_assoc($domainsRS))
+{
+	$domainFilterOptions[] = $row['server name'];
+}
+
+$serverRS = $xhprof_runs_impl->getDistinct(array('column' => 'server_id'));
+$serverFilterOptions = array("None");
+while ($row = mysql_fetch_assoc($serverRS))
+{
+	$serverFilterOptions[] = $row['server_id'];
+}
+
+
+
+
+include ("../xhprof_lib/templates/header.phtml");
+$criteria = array();
+if (!is_null($domainFilter))
+{
+  $criteria['server name'] = $domainFilter;
+}
+if (!is_null($serverFilter))
+{
+  $criteria['server_id'] = $serverFilter;
+}
+
+if(isset($_GET['run1']) || isset($_GET['run']))
+{
+	displayXHProfReport($xhprof_runs_impl, $params, $source, $run, $wts,
+	                    $symbol, $sort, $run1, $run2);	
+}elseif (isset($_GET['geturl']))
+{
+    $criteria['url'] = $_GET['geturl'];
+    $criteria['limit'] = 100;
+    $rs = $xhprof_runs_impl->getUrlStats($criteria);
     showChart($rs);
     
     $rs = $xhprof_runs_impl->getRuns(array('url' => $_GET['geturl'], 'limit' => 100));
@@ -53,17 +92,14 @@ if (isset($_GET['geturl']))
     displayRuns($rs, "Runs with URL: $url");
 }elseif (isset($_GET['getcurl']))
 {
-    $rs = $xhprof_runs_impl->getUrlStats(array("c_url" => $_GET['getcurl'], 'limit' => 100));
+    $criteria['c_url'] = $_GET['getcurl'];
+    $criteria['limit'] = 100;
+    $rs = $xhprof_runs_impl->getUrlStats($criteria);
     showChart($rs);
     
     $url = htmlentities($_GET['getcurl'], ENT_QUOTES);
-    $rs = $xhprof_runs_impl->getRuns(array('c_url' => $_GET['getcurl'], 'limit' => 100));
+    $rs = $xhprof_runs_impl->getRuns($criteria);
     displayRuns($rs, "Runs with Simplified URL: $url");
-}elseif (isset($_GET['last']))
-{
-    $last = (int) $_GET['last'];
-    $rs = $xhprof_runs_impl->getRuns(array("order by" => 'timestamp', 'limit' => $last));
-    displayRuns($rs, "Last $last Runs");
 }elseif (isset($_GET['getruns']))
 {
     $days = (int) $_GET['days'];
@@ -81,102 +117,20 @@ if (isset($_GET['geturl']))
             break;
     }
     
-    
-    $rs = $xhprof_runs_impl->getRuns(array("order by" => $load, 'limit' => 500 ,'where' => "DATE_SUB(CURDATE(), INTERVAL $days DAY) <= `timestamp`"));
+    $criteria['order by'] = $load;
+    $criteria['limit'] = "500";
+    $criteria['where'] = "DATE_SUB(CURDATE(), INTERVAL $days DAY) <= `timestamp`";
+    $rs = $xhprof_runs_impl->getRuns($criteria);
     displayRuns($rs, "Worst runs by $load");
-}else
+}else 
 {
-    
-    displayXHProfReport($xhprof_runs_impl, $params, $source, $run, $wts,
-                    $symbol, $sort, $run1, $run2);
-    
+	$last = (isset($_GET['last'])) ?  $_GET['last'] : 25;
+	$last = (int) $last;
+	$criteria['order by'] = "timestamp";
+	$criteria['limit'] = $last;
+	$rs = $xhprof_runs_impl->getRuns($criteria);
+	displayRuns($rs, "Last $last Runs");
 }
 
-
-function displayRuns($resultSet, $title = "")
-{
-    echo "<div class=\"runTitle\">$title</div>\n";
-    echo "<table id=\"box-table-a\" class=\"tablesorter\" summary=\"Stats\"><thead><tr><th>Timestamp</th><th>Cpu</th><th>Wall Time</th><th>Peak Memory Usage</th><th>URL</th><th>Simplified URL</th></tr></thead>";
-    echo "<tbody>\n";
-    while ($row = mysql_fetch_assoc($resultSet))
-    {
-        $c_url = urlencode($row['c_url']);
-        $url = urlencode($row['url']);
-        $date = strtotime($row['timestamp']);
-        $date = date('M d H:i:s', $date);
-        echo "\t<tr><td><a href=\"/?run={$row['id']}\">$date</a><br><span class=\"runid\">{$row['id']}</span></td><td>{$row['cpu']}</td><td>{$row['wt']}</td><td>{$row['pmu']}</td><td><a href=\"?geturl={$url}\">{$row['url']}</a></td><td><a href=\"?getcurl={$c_url}\">{$row['c_url']}</a></td></tr>\n";
-    }
-    echo "</tbody>\n";
-    echo "</table>\n";   
-}
-
-function showChart($rs)
-{
-    global $_xh_header;
-    
-    $_xh_header = "
-          <script type=\"text/javascript\">
-      google.load(\"visualization\", \"1\", {packages:[\"linechart\"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('date', 'Date');
-        data.addColumn('number', 'CPU');
-        data.addColumn('number', 'Wall Time');
-        data.addColumn('number', 'Peak Memory Usage');
-        data.addColumn('string', 'Run ID');
-        ";
-        $count = 0;
-        
-        
-        $dataPoints = "";
-        $ids = array();
-        while($row = mysql_fetch_assoc($rs))
-        {
-            
-            $date = date("Y, ", $row['timestamp']) . (date("n", $row['timestamp']) - 1) . date(", j, g, i, s", $row['timestamp']);
-            $cpu = $row['cpu'] * 75;
-            $dataPoints .=  <<<DATA
-        data.setValue($count, 0, new Date($date));
-        data.setValue($count, 1, {$cpu});
-        data.setValue($count, 2, {$row['wt']});
-        data.setValue($count, 3, {$row['pmu']});
-        data.setValue($count, 4, '{$row['id']}');
-
-DATA;
-            $ids[] = $row['id'];
-            $count++;
-            
-        }
-        $_xh_header .= "data.addRows($count);
-        ";
-
-        $_xh_header .= $dataPoints;
-        $_xh_header .= "
-        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-        chart.draw(data, {displayAnnotations: true, hideColumns: 4});
-        
-        google.visualization.events.addListener(chart, 'select', function() 
-        {
-          var idlookup = new Array($count);
-          ";
-          $i = 0;
-          foreach($ids as $id)
-          {
-            $_xh_header .= "idlookup[$i] = '$id';\n"; 
-            $i++;  
-          }
-          $_xh_header .= "
-          var selection = chart.getSelection();
-          document.location = '/?run=' + idlookup[selection[0].row];
-        });
-        
-      }
-    </script>";
-
-    echo "<div id='chart_div' style='width: 1200px; height: 260px;'></div>";
-    echo $_xh_header;
-    
-}
 
 include ("../xhprof_lib/templates/footer.phtml");
