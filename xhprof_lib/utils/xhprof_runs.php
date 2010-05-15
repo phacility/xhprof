@@ -82,10 +82,6 @@ class XHProfRuns_Default implements iXHProfRuns {
   private $dir = '';
   public $prefix = 't11_';
   public $run_details = null;
-  private $dbName = 'xhprof';
-  private $dbhost = 'localhost';
-  private $dbuser = 'xhprof';
-  private $dbpass = 'example_password';
   protected $linkID;
 
   public function __construct($dir = null) 
@@ -95,14 +91,17 @@ class XHProfRuns_Default implements iXHProfRuns {
 
   protected function db()
   {
-    $linkid = mysql_connect($this->dbhost, $this->dbuser, $this->dbpass);
+	global $_xhprof;
+
+	
+    $linkid = mysql_connect($_xhprof['dbhost'], $_xhprof['dbuser'], $_xhprof['dbpass']);
     if ($linkid === FALSE)
     {
       xhprof_error("Could not connect to db");
       $run_desc = "could not connect to db";
       return null;
     }
-    mysql_select_db($this->dbName, $linkid);
+    mysql_select_db($_xhprof['dbname'], $linkid);
     $this->linkID = $linkid; 
   }
   /**
@@ -123,6 +122,7 @@ CREATE TABLE `details` (
   `pmu` int(11) default NULL,
   `wt` int(11) default NULL,
   `cpu` int(11) default NULL,
+  `server_id` char(3) NOT NULL default 't11',
   PRIMARY KEY  (`id`),
   KEY `url` (`url`),
   KEY `c_url` (`c_url`),
@@ -130,14 +130,14 @@ CREATE TABLE `details` (
   KEY `wt` (`wt`),
   KEY `pmu` (`pmu`),
   KEY `timestamp` (`timestamp`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
   
 */
 
     
   private function gen_run_id($type) 
   {
-    return uniqid($this->prefix);
+    return uniqid();
   }
   
   /**
@@ -150,8 +150,15 @@ CREATE TABLE `details` (
   */
   public function getRuns($stats)
   {
-      $query = "SELECT * FROM `details` ";
-      $skippers = array("limit", "order by", "group by", "where");
+      if (isset($stats['select']))
+      {
+        $query = "SELECT {$stats['select']} FROM `details` ";  
+      }else
+      {
+        $query = "SELECT * FROM `details` ";
+      }
+      
+      $skippers = array("limit", "order by", "group by", "where", "select");
       $hasWhere = false;
       
       foreach($stats AS $column => $value)
@@ -165,6 +172,9 @@ CREATE TABLE `details` (
           {
               $query .= " WHERE ";
               $hasWhere = true;
+          }elseif($hasWhere === true)
+          {
+            $query .= "AND ";
           }
           if (strlen($value) == 0)
           {
@@ -180,6 +190,9 @@ CREATE TABLE `details` (
           {
               $query .= " WHERE ";
               $hasWhere = true;
+          }else
+          {
+            $query .= " AND ";
           }
           $query .= $stats['where'];
       }
@@ -203,6 +216,13 @@ CREATE TABLE `details` (
       return $resultSet;
   }
   
+  public function getDistinct($data)
+  {
+	$sql['column'] = mysql_real_escape_string($data['column']);
+	$query = "SELECT DISTINCT(`{$sql['column']}`) FROM `details`";
+	$rs = mysql_query($query);
+	return $rs;
+  }
   
   /**
   * Retreives a run from the database, 
@@ -224,6 +244,7 @@ CREATE TABLE `details` (
     
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
+
 
     // The same function is called twice when diff'ing runs. In this case we'll populate the global scope with an array
     if (is_null($this->run_details))
@@ -249,18 +270,8 @@ CREATE TABLE `details` (
   */
   public function getUrlStats($data)
   {
-
-      $limit = $data['limit'];
-      if (isset($data['c_url']))
-      {
-          $url = mysql_real_escape_string($data['c_url']);
-          $query = "SELECT `id`, UNIX_TIMESTAMP(`timestamp`) as `timestamp`, `pmu`, `wt`, `cpu` FROM `details` WHERE `c_url` = '$url' LIMIT $limit";
-      }else
-      {
-          $url = mysql_real_escape_string($data['url']);
-          $query = "SELECT `id`, UNIX_TIMESTAMP(`timestamp`) as `timestamp`, `pmu`, `wt`, `cpu` FROM `details` WHERE `url` = '$url' LIMIT $limit";
-      }
-      $rs = mysql_unbuffered_query($query, $this->linkID);
+      $data['select'] = '`id`, UNIX_TIMESTAMP(`timestamp`) as `timestamp`, `pmu`, `wt`, `cpu`';   
+      $rs = $this->getRuns($data);
       return $rs;
   }
   
@@ -282,6 +293,11 @@ CREATE TABLE `details` (
       $rs = mysql_query($query, $this->linkID);
       $row = mysql_fetch_assoc($rs);
       $row['url'] = $url;
+      
+      $row['95(`wt`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'wt', 'type' => 'url', 'url' => $url));
+      $row['95(`cpu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'cpu', 'type' => 'url', 'url' => $url));
+      $row['95(`pmu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'pmu', 'type' => 'url', 'url' => $url));
+
       global $comparative;
       $comparative['url'] = $row;
       unset($row);
@@ -292,9 +308,22 @@ CREATE TABLE `details` (
       $rs = mysql_query($query, $this->linkID);
       $row = mysql_fetch_assoc($rs);
       $row['url'] = $c_url;
+      $row['95(`wt`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'wt', 'type' => 'c_url', 'url' => $c_url));
+      $row['95(`cpu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'cpu', 'type' => 'c_url', 'url' => $c_url));
+      $row['95(`pmu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'pmu', 'type' => 'c_url', 'url' => $c_url));
+
       $comparative['c_url'] = $row;
       unset($row);
       return $comparative;
+  }
+  
+  protected function calculatePercentile($details)
+  {
+                  $limit = (int) ($details['count'] / 20);
+                  $query = "SELECT `{$details['column']}` as `value` FROM `details` WHERE `{$details['type']}` = '{$details['url']}' ORDER BY `{$details['column']}` DESC LIMIT $limit, 1";
+                  $rs = mysql_query($query, $this->linkID);
+                  $row = mysql_fetch_assoc($rs);
+                  return $row['value'];
   }
   
   /**
@@ -362,14 +391,14 @@ CREATE TABLE `details` (
         $sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
         
         $sql['url'] = mysql_real_escape_string($_SERVER['REQUEST_URI']);
-        $sql['c_url'] = mysql_real_escape_string($this->urlSimilartor($_SERVER['REQUEST_URI']));
+        $sql['c_url'] = mysql_real_escape_string(_urlSimilartor($_SERVER['REQUEST_URI']));
         $sql['servername'] = mysql_real_escape_string($_SERVER['SERVER_NAME']);
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = mysql_real_escape_string($_SERVER['REQUEST_TIME']);
-
+		$sql['server_id'] = mysql_real_escape_string($_xhprof['servername']);
         
         
-        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}')";
+        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}')";
         
         mysql_query($query, $this->linkID);
         if (mysql_affected_rows($this->linkID) == 1)
@@ -389,22 +418,5 @@ CREATE TABLE `details` (
   }
   
   
-  /**
-  * The goal of this function is to accept the URL for a resource, and return a "simplified" version
-  * thereof. Similar URLs should become identical. Consider:
-  * http://example.org/stories.php?id=23
-  * http://example.org/stories.php?id=24
-  * Under most setups these two URLs, while unique, will have an identical execution path, thus it's
-  * worthwhile to consider them as identical. The script will store both the original URL and the
-  * Simplified URL for display and comparison purposes. 
-  * 
-  * @param string $url The URL to be simplified
-  * @return string The simplified URL 
-  */
-  protected function urlSimilartor($url)
-  {
-      //This is an example 
-      $url = preg_replace("!\d{4}!", "", $url);
-      return $url;
-  }
+
 }
