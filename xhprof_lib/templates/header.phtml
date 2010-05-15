@@ -24,6 +24,48 @@ if (isset($_xh_header))
           <input type="submit" value="Go" name="submit" class="form-button" />
        </form>
    </div>
+   <div class="search">
+       <form name="simple_bar" method="get" action="" />      
+          Filter Domain: 
+		  <select name="domain_filter">
+<?php
+foreach($domainFilterOptions as $server)
+{
+    if($server == $domainFilter)
+    {
+	echo "<option value=\"{$server}\" selected=\"selected\">$server</option>\n";
+    }else
+    {
+	echo "<option value=\"{$server}\">$server</option>\n";
+    }
+}
+
+?>
+		  </select>
+          <input type="submit" value="Apply" name="submit" class="form-button" />
+       </form>
+   </div>
+      <div class="search">
+       <form name="simple_bar" method="get" action="" />      
+          Filter Server: 
+		  <select name="server_filter">
+<?php
+foreach($serverFilterOptions as $server)
+{
+    if($server == $serverFilter)
+    {
+	echo "<option value=\"{$server}\" selected=\"selected\">$server</option>\n";
+    }else
+    {
+	echo "<option value=\"{$server}\">$server</option>\n";
+    }
+}
+
+?>
+		  </select>
+          <input type="submit" value="Apply" name="submit" class="form-button" />
+       </form>
+   </div>
    <div class="link-options">
       Last &nbsp;<a href="/?last=25">25</a> &nbsp;<a href="/?last=50">50</a> &nbsp;Runs |
       Most Expensive &nbsp;<a href="/?getruns=cpu&days=1">Today</a> &nbsp;<a href="/?getruns=cpu&days=7">Past Week</a> |
