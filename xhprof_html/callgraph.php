@@ -28,6 +28,7 @@
  *
  * @author Changhao Jiang (cjiang@facebook.com)
  */
+require ("../xhprof_lib/config.php");
 
 // by default assume that xhprof_html & xhprof_lib directories
 // are at the same level.
