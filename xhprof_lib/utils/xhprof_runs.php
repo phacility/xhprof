@@ -381,18 +381,22 @@ CREATE TABLE `details` (
         }
         
         
-        $sql['pmu'] = $xhprof_data['main()']['pmu'];
-        $sql['wt'] = $xhprof_data['main()']['wt'];
-        $sql['cpu'] = $xhprof_data['main()']['cpu'];
-        
+	$sql['pmu'] = isset($xhprof_data['main()']['pmu']) ? $xhprof_data['main()']['pmu'] : '';
+ 	$sql['wt']  = isset($xhprof_data['main()']['wt'])  ? $xhprof_data['main()']['wt']  : '';
+	$sql['cpu'] = isset($xhprof_data['main()']['cpu']) ? $xhprof_data['main()']['cpu'] : '';        
+
+
         //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
         $sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
         
-        $sql['url'] = mysql_real_escape_string($_SERVER['REQUEST_URI']);
+	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
+ 	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
+	
+        $sql['url'] = mysql_real_escape_string($url);
         $sql['c_url'] = mysql_real_escape_string(_urlSimilartor($_SERVER['REQUEST_URI']));
-        $sql['servername'] = mysql_real_escape_string($_SERVER['SERVER_NAME']);
+        $sql['servername'] = mysql_real_escape_string($sname);
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = mysql_real_escape_string($_SERVER['REQUEST_TIME']);
 		$sql['server_id'] = mysql_real_escape_string($_xhprof['servername']);
