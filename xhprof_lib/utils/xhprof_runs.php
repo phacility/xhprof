@@ -99,7 +99,8 @@ class XHProfRuns_Default implements iXHProfRuns {
     {
       xhprof_error("Could not connect to db");
       $run_desc = "could not connect to db";
-      return null;
+      throw new Exception("Unable to connect to database");
+      return false;
     }
     mysql_select_db($_xhprof['dbname'], $linkid);
     $this->linkID = $linkid; 
