@@ -31,11 +31,12 @@ $weight = 100;
   /**
   * The goal of this function is to accept the URL for a resource, and return a "simplified" version
   * thereof. Similar URLs should become identical. Consider:
-  * http://example.org/stories.php?id=23
-  * http://example.org/stories.php?id=24
+  * http://example.org/stories.php?id=2323
+  * http://example.org/stories.php?id=2324
   * Under most setups these two URLs, while unique, will have an identical execution path, thus it's
   * worthwhile to consider them as identical. The script will store both the original URL and the
-  * Simplified URL for display and comparison purposes. 
+  * Simplified URL for display and comparison purposes. A good simplified URL would be:
+  * http://example.org/stories.php?id=
   * 
   * @param string $url The URL to be simplified
   * @return string The simplified URL 
@@ -44,5 +45,7 @@ $weight = 100;
   {
       //This is an example 
       $url = preg_replace("!\d{4}!", "", $url);
+      
+      $url = preg_replace("![?&]_profile=\d!", "", $url);
       return $url;
   }
