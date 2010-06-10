@@ -236,34 +236,34 @@ $descriptions = array(
                       "ct" =>  "Calls",
                       "Calls%" => "Calls%",
 
-                      "wt" => "Incl. Wall Time<br>(microsec)",
+                      "wt" => "Incl. Wall Time<br />(microsec)",
                       "IWall%" => "IWall%",
-                      "excl_wt" => "Excl. Wall Time<br>(microsec)",
+                      "excl_wt" => "Excl. Wall Time<br />(microsec)",
                       "EWall%" => "EWall%",
 
-                      "ut" => "Incl. User<br>(microsecs)",
+                      "ut" => "Incl. User<br />(microsecs)",
                       "IUser%" => "IUser%",
-                      "excl_ut" => "Excl. User<br>(microsec)",
+                      "excl_ut" => "Excl. User<br />(microsec)",
                       "EUser%" => "EUser%",
 
-                      "st" => "Incl. Sys <br>(microsec)",
+                      "st" => "Incl. Sys <br />(microsec)",
                       "ISys%" => "ISys%",
-                      "excl_st" => "Excl. Sys <br>(microsec)",
+                      "excl_st" => "Excl. Sys <br />(microsec)",
                       "ESys%" => "ESys%",
 
-                      "cpu" => "Incl. CPU<br>(microsecs)",
+                      "cpu" => "Incl. CPU<br />(microsecs)",
                       "ICpu%" => "ICpu%",
-                      "excl_cpu" => "Excl. CPU<br>(microsec)",
+                      "excl_cpu" => "Excl. CPU<br />(microsec)",
                       "ECpu%" => "ECPU%",
 
-                      "mu" => "Incl.<br>MemUse<br>(bytes)",
+                      "mu" => "Incl.<br />MemUse<br />(bytes)",
                       "IMUse%" => "IMemUse%",
-                      "excl_mu" => "Excl.<br>MemUse<br>(bytes)",
+                      "excl_mu" => "Excl.<br />MemUse<br />(bytes)",
                       "EMUse%" => "EMemUse%",
 
-                      "pmu" => "Incl.<br> PeakMemUse<br>(bytes)",
+                      "pmu" => "Incl.<br /> PeakMemUse<br />(bytes)",
                       "IPMUse%" => "IPeakMemUse%",
-                      "excl_pmu" => "Excl.<br>PeakMemUse<br>(bytes)",
+                      "excl_pmu" => "Excl.<br />PeakMemUse<br />(bytes)",
                       "EPMUse%" => "EPeakMemUse%",
 
                       "samples" => "Incl. Samples",
@@ -319,37 +319,37 @@ $format_cbk = array(
 $diff_descriptions = array(
                       "fn" => "Function Name",
                       "ct" =>  "Calls Diff",
-                      "Calls%" => "Calls<br>Diff%",
+                      "Calls%" => "Calls<br />Diff%",
 
-                      "wt" => "Incl. Wall<br>Diff<br>(microsec)",
-                      "IWall%" => "IWall<br> Diff%",
-                      "excl_wt" => "Excl. Wall<br>Diff<br>(microsec)",
-                      "EWall%" => "EWall<br>Diff%",
+                      "wt" => "Incl. Wall<br />Diff<br />(microsec)",
+                      "IWall%" => "IWall<br /> Diff%",
+                      "excl_wt" => "Excl. Wall<br />Diff<br />(microsec)",
+                      "EWall%" => "EWall<br />Diff%",
 
-                      "ut" => "Incl. User Diff<br>(microsec)",
-                      "IUser%" => "IUser<br>Diff%",
-                      "excl_ut" => "Excl. User<br>Diff<br>(microsec)",
-                      "EUser%" => "EUser<br>Diff%",
+                      "ut" => "Incl. User Diff<br />(microsec)",
+                      "IUser%" => "IUser<br />Diff%",
+                      "excl_ut" => "Excl. User<br />Diff<br />(microsec)",
+                      "EUser%" => "EUser<br />Diff%",
 
-                      "cpu" => "Incl. CPU Diff<br>(microsec)",
-                      "ICpu%" => "ICpu<br>Diff%",
-                      "excl_cpu" => "Excl. CPU<br>Diff<br>(microsec)",
-                      "ECpu%" => "ECpu<br>Diff%",
+                      "cpu" => "Incl. CPU Diff<br />(microsec)",
+                      "ICpu%" => "ICpu<br />Diff%",
+                      "excl_cpu" => "Excl. CPU<br />Diff<br />(microsec)",
+                      "ECpu%" => "ECpu<br />Diff%",
 
-                      "st" => "Incl. Sys Diff<br>(microsec)",
-                      "ISys%" => "ISys<br>Diff%",
-                      "excl_st" => "Excl. Sys Diff<br>(microsec)",
-                      "ESys%" => "ESys<br>Diff%",
+                      "st" => "Incl. Sys Diff<br />(microsec)",
+                      "ISys%" => "ISys<br />Diff%",
+                      "excl_st" => "Excl. Sys Diff<br />(microsec)",
+                      "ESys%" => "ESys<br />Diff%",
 
-                      "mu" => "Incl.<br>MemUse<br>Diff<br>(bytes)",
-                      "IMUse%" => "IMemUse<br>Diff%",
-                      "excl_mu" => "Excl.<br>MemUse<br>Diff<br>(bytes)",
-                      "EMUse%" => "EMemUse<br>Diff%",
+                      "mu" => "Incl.<br />MemUse<br />Diff<br />(bytes)",
+                      "IMUse%" => "IMemUse<br />Diff%",
+                      "excl_mu" => "Excl.<br />MemUse<br />Diff<br />(bytes)",
+                      "EMUse%" => "EMemUse<br />Diff%",
 
-                      "pmu" => "Incl.<br> PeakMemUse<br>Diff<br>(bytes)",
-                      "IPMUse%" => "IPeakMemUse<br>Diff%",
-                      "excl_pmu" => "Excl.<br>PeakMemUse<br>Diff<br>(bytes)",
-                      "EPMUse%" => "EPeakMemUse<br>Diff%",
+                      "pmu" => "Incl.<br /> PeakMemUse<br />Diff<br />(bytes)",
+                      "IPMUse%" => "IPeakMemUse<br />Diff%",
+                      "excl_pmu" => "Excl.<br />PeakMemUse<br />Diff<br />(bytes)",
+                      "EPMUse%" => "EPeakMemUse<br />Diff%",
 
                       "samples" => "Incl. Samples Diff",
                       "ISamples%" => "ISamples Diff%",
@@ -607,7 +607,7 @@ function profiler_report ($url_params,
     '<dl class=phprof_report_info>' .
     '  <dt>' . $diff_text . ' Report</dt>' .
     '  <dd>' . ($diff_mode ?
-                $run1_txt . '<br><b>vs.</b><br>' . $run2_txt :
+                $run1_txt . '<br /><b>vs.</b><br />' . $run2_txt :
                 $run1_txt) .
     '  </dd>' .
     '  <dt>Tip</dt>' .
@@ -803,47 +803,7 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
                                                                          'all', 1)));
   }
 
-  print("<h3 align=center>$title $display_link</h3><br>");
-
-  print('<table border=1 cellpadding=2 cellspacing=1 width="90%" '
-        .'rules=rows bordercolor="#bdc7d8" align=center>');
-  print('<tr bgcolor="#bdc7d8" align=right>');
-
-  foreach ($stats as $stat) {
-    $desc = stat_description($stat);
-    if (array_key_exists($stat, $sortable_columns)) {
-      $href = "$base_path/?"
-              . http_build_query(xhprof_array_set($url_params, 'sort', $stat));
-      $header = xhprof_render_link($desc, $href);
-    } else {
-      $header = $desc;
-    }
-
-    if ($stat == "fn")
-      print("<th align=left><nobr>$header</th>");
-    else
-      print("<th " . $vwbar . "><nobr>$header</th>");
-  }
-  print("</tr>\n");
-
-  if ($limit >= 0) {
-    $limit = min($size, $limit);
-    for($i=0; $i < $limit; $i++) {
-      print_function_info($url_params, $flat_data[$i], $sort, $run1, $run2);
-    }
-  } else {
-    // if $limit is negative, print abs($limit) items starting from the end
-    $limit = min($size, abs($limit));
-    for($i=0; $i < $limit; $i++) {
-      print_function_info($url_params, $flat_data[$size - $i - 1], $sort, $run1, $run2);
-    }
-  }
-  print("</table>");
-
-  // let's print the display all link at the bottom as well...
-  if ($display_link) {
-    echo '<div style="text-align: left; padding: 2em">' . $display_link . '</div>';
-  }
+  include( "../xhprof_lib/templates/profTable.phtml");
 
 }
 
@@ -889,7 +849,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
   }
   usort($flat_data, 'sort_cbk');
 
-  print("<br>");
+  print("<br />");
 
   if (!empty($url_params['all'])) {
     $all = true;
@@ -899,7 +859,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
     $limit = 100;  // display only limited number of rows
   }
 
-  $desc = str_replace("<br>", " ", $descriptions[$sort_col]);
+  $desc = str_replace("<br />", " ", $descriptions[$sort_col]);
 
   if ($diff_mode) {
     if ($all) {
@@ -1005,7 +965,7 @@ function print_pc_array($url_params, $results, $base_ct, $base_info, $parent,
 function print_symbol_summary($symbol_info, $stat, $base) {
 
   $val = $symbol_info[$stat];
-  $desc = str_replace("<br>", " ", stat_description($stat));
+  $desc = str_replace("<br />", " ", stat_description($stat));
 
   print("$desc: </td>");
   print(number_format($val));
@@ -1014,7 +974,7 @@ function print_symbol_summary($symbol_info, $stat, $base) {
     $func_base = $symbol_info[str_replace("excl_", "", $stat)];
     print(" (" . pct($val, $func_base) . "% of this function)");
   }
-  print("<br>");
+  print("<br />");
 }
 
 /**
@@ -1061,7 +1021,7 @@ function symbol_report($url_params,
     $href2 = "$base_path?"
       . http_build_query(xhprof_array_set($base_url_params, 'run', $run2));
 
-    print("<h3 align=center>$regr_impr summary for $rep_symbol<br><br></h3>");
+    print("<h3 align=center>$regr_impr summary for $rep_symbol<br /><br /></h3>");
     print('<table border=1 cellpadding=2 cellspacing=1 width="30%" '
           .'rules=rows bordercolor="#bdc7d8" align=center>' . "\n");
     print('<tr bgcolor="#bdc7d8" align=right>');
@@ -1090,7 +1050,7 @@ function symbol_report($url_params,
 
       // Inclusive stat for metric
       print('<tr>');
-      print("<td>" . str_replace("<br>", " ", $descriptions[$m]) . "</td>");
+      print("<td>" . str_replace("<br />", " ", $descriptions[$m]) . "</td>");
       print_td_num($symbol_info1[$m], $format_cbk[$m]);
       print_td_num($symbol_info2[$m], $format_cbk[$m]);
       print_td_num($symbol_info2[$m] - $symbol_info1[$m], $format_cbk[$m], true);
@@ -1099,7 +1059,7 @@ function symbol_report($url_params,
 
       // AVG (per call) Inclusive stat for metric
       print('<tr>');
-      print("<td>" . str_replace("<br>", " ", $descriptions[$m]) . " per call </td>");
+      print("<td>" . str_replace("<br />", " ", $descriptions[$m]) . " per call </td>");
       $avg_info1 = 'N/A';
       $avg_info2 = 'N/A';
       if ($symbol_info1['ct'] > 0) {
@@ -1117,7 +1077,7 @@ function symbol_report($url_params,
       // Exclusive stat for metric
       $m = "excl_" . $metric;
       print('<tr style="border-bottom: 1px solid black;">');
-      print("<td>" . str_replace("<br>", " ", $descriptions[$m]) . "</td>");
+      print("<td>" . str_replace("<br />", " ", $descriptions[$m]) . "</td>");
       print_td_num($symbol_info1[$m], $format_cbk[$m]);
       print_td_num($symbol_info2[$m], $format_cbk[$m]);
       print_td_num($symbol_info2[$m] - $symbol_info1[$m], $format_cbk[$m], true);
@@ -1128,15 +1088,15 @@ function symbol_report($url_params,
     print('</table>');
   }
 
-  print("<br><h4><center>");
+  print("<br /><h4><center>");
   print("Parent/Child $regr_impr report for <b>$rep_symbol</b>");
 
   $callgraph_href = "$base_path/callgraph.php?"
     . http_build_query(xhprof_array_set($url_params, 'func', $rep_symbol));
 
-  print(" <a href='$callgraph_href'>[View Callgraph $diff_text]</a><br>");
+  print(" <a href='$callgraph_href'>[View Callgraph $diff_text]</a><br />");
 
-  print("</center></h4><br>");
+  print("</center></h4><br />");
 
   print('<table border=1 cellpadding=2 cellspacing=1 width="90%" '
         .'rules=rows bordercolor="#bdc7d8" align=center>' . "\n");
