@@ -105,6 +105,7 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     displayRuns($rs, "Runs with Simplified URL: $url");
 }elseif (isset($_GET['getruns']))
 {
+    include ("../xhprof_lib/templates/header.phtml");
     $days = (int) $_GET['days'];
     
     switch ($_GET['getruns'])
@@ -127,12 +128,13 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     displayRuns($rs, "Worst runs by $load");
 }else 
 {
-	$last = (isset($_GET['last'])) ?  $_GET['last'] : 25;
-	$last = (int) $last;
-	$criteria['order by'] = "timestamp";
-	$criteria['limit'] = $last;
-	$rs = $xhprof_runs_impl->getRuns($criteria);
-	displayRuns($rs, "Last $last Runs");
+    include ("../xhprof_lib/templates/header.phtml");
+    $last = (isset($_GET['last'])) ?  $_GET['last'] : 25;
+    $last = (int) $last;
+    $criteria['order by'] = "timestamp";
+    $criteria['limit'] = $last;
+    $rs = $xhprof_runs_impl->getRuns($criteria);
+    displayRuns($rs, "Last $last Runs");
 }
 
 include ("../xhprof_lib/templates/footer.phtml");
