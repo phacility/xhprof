@@ -94,13 +94,14 @@ function xhprof_generate_mime_header($type, $length) {
  * @author cjiang
  */
 function xhprof_generate_image_by_dot($dot_script, $type) {
+  $errorFile = "/tmp/xh_dot.err";
   $descriptorspec = array(
        // stdin is a pipe that the child will read from
        0 => array("pipe", "r"),
        // stdout is a pipe that the child will write to
        1 => array("pipe", "w"),
        // stderr is a file to write to
-       2 => array("file", "/dev/null", "a")
+       2 => array("file", $errorFile, "a")
        );
 
   $cmd = " /usr/bin/dot -T".$type;
@@ -115,6 +116,10 @@ function xhprof_generate_image_by_dot($dot_script, $type) {
     fclose($pipes[1]);
 
     proc_close($process);
+    if (filesize($errorFile) > 0)
+    {
+      die('Error producing callgraph, check $errorFile');
+    }
     return $output;
   }
   print "failed to shell execute cmd=\"$cmd\"\n";
