@@ -1,0 +1,16 @@
+The HighCharts graphing library is a kick ass JS graping library, free for non-commercial use.
+
+Since you may be using XHProf to aid the performance of a commercial site, a single blanket license
+has already been purchased. You can use XHProf with Highcharts on any site, you do _not_ need to
+purchase another license for Highcharts. If you decide to use HighCharts within another aspect
+of your site, you will need to handle licensing that seperately.
+
+
+
+The decision to use HighCharts was made as it easily supports multiple scales per axis, which makes
+displaying information on PMU, CPU, and WT easy on the main display pages (this is hard/impossible
+in the google graphs we looked at).
+
+
+Enjoy
+paul
