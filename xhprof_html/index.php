@@ -62,10 +62,6 @@ while ($row = mysql_fetch_assoc($serverRS))
 	$serverFilterOptions[] = $row['server_id'];
 }
 
-
-
-
-include ("../xhprof_lib/templates/header.phtml");
 $criteria = array();
 if (!is_null($domainFilter))
 {
@@ -75,9 +71,10 @@ if (!is_null($serverFilter))
 {
   $criteria['server_id'] = $serverFilter;
 }
-
+$_xh_header = "";
 if(isset($_GET['run1']) || isset($_GET['run']))
 {
+    include ("../xhprof_lib/templates/header.phtml");
 	displayXHProfReport($xhprof_runs_impl, $params, $source, $run, $wts,
 	                    $symbol, $sort, $run1, $run2);	
 }elseif (isset($_GET['geturl']))
@@ -85,9 +82,12 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     $criteria['url'] = $_GET['geturl'];
     $criteria['limit'] = 100;
     $rs = $xhprof_runs_impl->getUrlStats($criteria);
-    showChart($rs);
+    list($header, $body) = showChart($rs);
+    $_xh_header .= $header;
+    include ("../xhprof_lib/templates/header.phtml");
     
     $rs = $xhprof_runs_impl->getRuns(array('url' => $_GET['geturl'], 'limit' => 100));
+    include ("../xhprof_lib/templates/emptyBody.phtml");
     $url = htmlentities($_GET['geturl'], ENT_QUOTES);
     displayRuns($rs, "Runs with URL: $url");
 }elseif (isset($_GET['getcurl']))
@@ -95,10 +95,13 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     $criteria['c_url'] = $_GET['getcurl'];
     $criteria['limit'] = 100;
     $rs = $xhprof_runs_impl->getUrlStats($criteria);
-    showChart($rs);
+    list($header, $body) = showChart($rs);
+    $_xh_header .= $header;
+    include ("../xhprof_lib/templates/header.phtml");
     
     $url = htmlentities($_GET['getcurl'], ENT_QUOTES);
     $rs = $xhprof_runs_impl->getRuns($criteria);
+    include("../xhprof_lib/templates/emptyBody.phtml");
     displayRuns($rs, "Runs with Simplified URL: $url");
 }elseif (isset($_GET['getruns']))
 {
@@ -131,6 +134,5 @@ if(isset($_GET['run1']) || isset($_GET['run']))
 	$rs = $xhprof_runs_impl->getRuns($criteria);
 	displayRuns($rs, "Last $last Runs");
 }
-
 
 include ("../xhprof_lib/templates/footer.phtml");

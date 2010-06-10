@@ -17,74 +17,57 @@ function displayRuns($resultSet, $title = "")
     echo "</table>\n";   
 }
 
+
 function showChart($rs)
 {
-    global $_xh_header;
-    
-    $_xh_header = "
-          <script type=\"text/javascript\">
-      google.load(\"visualization\", \"1\", {packages:[\"linechart\"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('date', 'Date');
-        data.addColumn('number', 'CPU');
-        data.addColumn('number', 'Wall Time');
-        data.addColumn('number', 'Peak Memory Usage');
-        data.addColumn('string', 'Run ID');
-        ";
-        $count = 0;
-        
-        
+        $count = 0;        
         $dataPoints = "";
-        $ids = array();
-        while($row = mysql_fetch_assoc($rs))
-        {
-            
-            $date = date("Y, ", $row['timestamp']) . (date("n", $row['timestamp']) - 1) . date(", j, g, i, s", $row['timestamp']);
-            $cpu = $row['cpu'] * 75;
-            $dataPoints .=  <<<DATA
-        data.setValue($count, 0, new Date($date));
-        data.setValue($count, 1, {$cpu});
-        data.setValue($count, 2, {$row['wt']});
-        data.setValue($count, 3, {$row['pmu']});
-        data.setValue($count, 4, '{$row['id']}');
-
-DATA;
-            $ids[] = $row['id'];
-            $count++;
-            
-        }
-        $_xh_header .= "data.addRows($count);
-        ";
-
-        $_xh_header .= $dataPoints;
-        $_xh_header .= "
-        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-        chart.draw(data, {displayAnnotations: true, hideColumns: 4});
-        
-        google.visualization.events.addListener(chart, 'select', function() 
-        {
-          var idlookup = new Array($count);
-          ";
-          $i = 0;
-          foreach($ids as $id)
-          {
-            $_xh_header .= "idlookup[$i] = '$id';\n"; 
-            $i++;  
-          }
-          $_xh_header .= "
-          var selection = chart.getSelection();
-          document.location = '/?run=' + idlookup[selection[0].row];
-        });
-        
-      }
-    </script>";
-
-    echo "<div id='chart_div' style='width: 1200px; height: 260px;'></div>";
-    echo $_xh_header;
+        $ids = array(); 
+        $arCPU = array();
+        $arWT = array();
+        $arPEAK = array();
+        $arIDS = array();
+        $arDateIDs = array();
+      //  $arSplit = array();
     
+         while($row = mysql_fetch_assoc($rs))
+        {
+            
+            $date[] = "'" . date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp']) . "'" ;
+            $cpu = $row['cpu'];
+            $wt = $row['wt'];
+            $pmu = $row['pmu'];
+            $ids = "'{$row['id']}'";                       
+            $id = "{$row['id']}";                       
+           
+            $arCPU[] = $cpu;
+            $arWT[] = $wt;
+            $arPEAK[] = $pmu;
+            $arIDS[] = $ids; 
+            
+            $arDateIDs[] =  "'" . date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp']) . " <br/> ".$id."'"; 
+         //   $arSplit[] =  "'" . $id . " ".date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp'])."'";           
+           
+            $count++;             
+        }
+       $dateJS = implode(", ", $date);
+       $cpuJS = implode(", ", $arCPU);
+       $wtJS = implode(", ", $arWT);
+       $pmuJS = implode(", ", $arPEAK);
+       $idsJS = implode(", ", $arIDS);
+       $dateidsJS = implode(", ", $arDateIDs);
+    //   $SplitJS = implode(", ", $arSplit);        
+        
+       //   echo "[" . $idsJS . "]";     
+   
+    ob_start();
+      require ("../xhprof_lib/templates/chart.phtml");   
+      $stuff = ob_get_contents();
+    ob_end_clean();
+   return array($stuff, "<div id=\"container\" style=\"width: 1000px; height: 500px; margin: 0 auto\"></div>");
 }
+ 
+
 
 function getFilter($filterName)
 {
