@@ -1,3 +1,8 @@
+The Apache license is applied to XHProf code, the GUI portion ships
+with libraries such as Highcharts, as well as JQuery. Those portions
+may be shipped under different licesnes. 
+
+
 
                                  Apache License
                            Version 2.0, January 2004
