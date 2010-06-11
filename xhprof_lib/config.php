@@ -49,3 +49,39 @@ $weight = 100;
       $url = preg_replace("![?&]_profile=\d!", "", $url);
       return $url;
   }
+  
+  function _aggregateCalls($calls, $rules = null)
+  {
+    $rules = array(
+        'Loading' => 'load::',
+        'mysql' => 'mysql_'
+        );
+    $addIns = array();
+    foreach($calls as $index => $call)
+    {
+        foreach($rules as $rule => $search)
+        {
+            if (strpos($call['fn'], $search) !== false)
+            {
+                if (isset($addIns[$search]))
+                {
+                    unset($call['fn']);
+                    foreach($call as $k => $v)
+                    {
+                        $addIns[$search][$k] += $v;
+                    }
+                }else
+                {
+                    $call['fn'] = $rule;
+                    $addIns[$search] = $call;
+                }
+                unset($calls[$index]);  //Remove it from the listing
+                break;  //We don't need to run any more rules on this
+            }else
+            {
+                //echo "nomatch for $search in {$call['fn']}<br />\n";
+            }
+        }
+    }
+    return array_merge($addIns, $calls);
+  }

@@ -804,7 +804,9 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
   }
   
   //Find top $n requests
-  usort($flat_data, 'sortWT');
+  $data_copy = $flat_data;
+  $data_copy = _aggregateCalls($data_copy);
+  usort($data_copy, 'sortWT');
   
   include( "../xhprof_lib/templates/profChart.phtml");
   include( "../xhprof_lib/templates/profTable.phtml");
