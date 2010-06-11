@@ -112,8 +112,8 @@ a.callgraph:visited {margin-left:20px;font-family: "Lucida Grande", Sans-Serif;f
 #box-table-b .link-options a:hover {color:#0066ff;}
 #box-table-b .link-options a:visited {color:#cc0066;} 
 
-.box-fix {width: 100%;height:120px;overflow:auto;}
-.box-fix-cr {width:100%;height:110px;;overflow:auto;margin:20px 0 0 0;clear:right;}                                         
+.box-fix {width: 100%;overflow:auto;}
+.box-fix-cr {width:100%;overflow:auto;margin:20px 0 0 0;clear:right;}                                         
 .box-tables {width: 100%;font-family: Monospace,"Courier New";font-size:12px;border-collapse:collapse;text-align:left;}
 .box-tables th {font-size:13px;font-weight:normal;padding: 4px 4px 4px 4px;background-color:#b9c9fe;border-top: 4px solid #aabcfe;border-bottom: 1px solid #ffffff;color:#333333;}
 .box-tables td {padding:4px;background:#e8edff;border-bottom:1px solid #ffffff;color:#333333;border-top:1px solid transparent;}

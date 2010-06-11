@@ -1,0 +1,68 @@
+<script type="text/javascript">
+       var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'container',
+      margin: [20, 20, 20, 20],
+      height: '300'
+   },
+   title: {
+      text: 'Expensive Calls by Exclusive Wall Time'
+   },
+   plotArea: {
+      shadow: null,
+      borderWidth: null,
+      backgroundColor: null
+   },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ this.point.name +'</b>: '+ this.y + 'ms';
+      }
+   },
+   plotOptions: {
+      pie: {
+         allowPointSelect: true,
+         dataLabels: {
+            enabled: true,
+            formatter: function() {
+               if (this.y > 5) return this.point.name;
+            },
+            color: 'white',
+            style: {
+               font: '13px Trebuchet MS, Verdana, sans-serif'
+            }
+         }
+      }
+   },
+   legend: {
+      layout: 'vertical',
+      style: {
+         left: 'auto',
+         bottom: 'auto',
+         right: '20px',
+         top: '35px'
+      }
+   },
+        series: [{
+      type: 'pie',
+      name: 'Expensive by exclusive wall time',
+      data: [
+        <?php
+            $iterations = 0;
+            $other = 0;
+            foreach($flat_data as $dataPoint)
+            {
+                if (++$iterations > 15)
+                {
+                    $other+= $dataPoint['excl_wt'];
+                }else
+                {
+                    echo "['{$dataPoint['fn']}', {$dataPoint['excl_wt']}],\n";
+                }
+            }
+            echo "['Other', $other]";
+        ?>
+      ]
+   }]
+});
+
+</script>

@@ -802,9 +802,22 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
                                        http_build_query(xhprof_array_set($url_params,
                                                                          'all', 1)));
   }
-
+  
+  //Find top $n requests
+  usort($flat_data, 'sortWT');
+  
+  include( "../xhprof_lib/templates/profChart.phtml");
   include( "../xhprof_lib/templates/profTable.phtml");
 
+}
+
+function sortWT($a, $b)
+{
+  if ($a['excl_wt'] == $b['excl_wt'])
+  {
+    return 0;
+  }
+  return ($a['excl_wt'] < $b['excl_wt']) ? 1 : -1;
 }
 
 /**
