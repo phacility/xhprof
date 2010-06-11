@@ -23,9 +23,7 @@
          allowPointSelect: true,
          dataLabels: {
             enabled: true,
-            formatter: function() {
-               if (this.y > 5) return this.point.name;
-            },
+
             color: 'white',
             style: {
                font: '13px Trebuchet MS, Verdana, sans-serif'
@@ -40,7 +38,17 @@
          bottom: 'auto',
          right: '10px',
          top: '35px'
-      }
+      },
+      labelFormatter: function() {
+         if(this.name.length > 20)
+         {
+              return this.name.substring(0,20) + '...'
+         }else
+         {
+              return this.name
+         }
+         
+       }
    },
         series: [{
       type: 'pie',
