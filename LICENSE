@@ -1,6 +1,28 @@
-The Apache license is applied to XHProf code, the GUI portion ships
-with libraries such as Highcharts, as well as JQuery. Those portions
-may be shipped under different licesnes. 
+The bulk of this work is provided under, and subject to the Apache license, included
+below.
+
+
+This software uses the JQuery javascript library, which is provided under the
+MIT or GPL licenses. You may obtain the terms of these licenses from
+MIT: http://www.opensource.org/licenses/mit-license.php
+GPL: http://www.opensource.org/licenses/gpl-license.php
+
+You may obtain JQuery directly: http://jquery.com/
+
+
+This software uses the JQuery Table Sorter, which is provided under the MIT or GPL
+licenses, you may obtain the terms of these licenses from:
+MIT: http://www.opensource.org/licenses/mit-license.php
+GPL: http://www.opensource.org/licenses/gpl-license.php
+
+You may obtain Table Sorter directly: http://tablesorter.com/docs/
+
+
+This software uses the HighCharts graphing library which is provided under
+a commercial license. A license has been purchased for use within the GUI portion
+of XHProf.
+
+You may obtain Highcharts directly: http://highcharts.com/
 
 
 
