@@ -4,6 +4,10 @@ require ("../xhprof_lib/config.php");
 include_once $GLOBALS['XHPROF_LIB_ROOT'].'/display/xhprof.php';
 include ("../xhprof_lib/utils/common.php");
 
+if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+{
+  die();
+}
 
 
 // param name, its type, and default value
