@@ -5,17 +5,17 @@
 	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 	<title>XHProf: Hierarchical Profiler Report</title>
 
-<link href='/css/xhprof.css' rel='stylesheet'  type='text/css'></link>
-<link href="/css/tablesorter.pager.css" rel="stylesheet" type="text/css" />             
-<link href='/jquery/jquery.tooltip.css'  rel='stylesheet' type='text/css'></link>
-<link href='/jquery/jquery.autocomplete.css'  rel='stylesheet' type='text/css'></link>
+<link href='css/xhprof.css' rel='stylesheet'  type='text/css'></link>
+<link href="css/tablesorter.pager.css" rel="stylesheet" type="text/css" />             
+<link href='jquery/jquery.tooltip.css'  rel='stylesheet' type='text/css'></link>
+<link href='jquery/jquery.autocomplete.css'  rel='stylesheet' type='text/css'></link>
 <script src='http://code.jquery.com/jquery-1.4.2.min.js	' type="text/javascript"></script>    
-<script src='/jquery/jquery.tooltip.js' type="text/javascript"></script>
-<script src='/jquery/jquery.autocomplete.js' type="text/javascript"></script>
-<script src='/jquery/tablesorter-function.js' type="text/javascript"></script>
-<script src='/jquery/tablesorter.min.js' type="text/javascript"></script>                      
-<script src='/jquery/tablesorter.pager.js' type="text/javascript"></script>
-<script src='/highcharts/highcharts.js' type="text/javascript"></script>
+<script src='jquery/jquery.tooltip.js' type="text/javascript"></script>
+<script src='jquery/jquery.autocomplete.js' type="text/javascript"></script>
+<script src='jquery/tablesorter-function.js' type="text/javascript"></script>
+<script src='jquery/tablesorter.min.js' type="text/javascript"></script>
+<script src='jquery/tablesorter.pager.js' type="text/javascript"></script>
+<script src='highcharts/highcharts.js' type="text/javascript"></script>
 <!-- It would be nice if JS appeared here -->
 <?php
 if (isset($_xh_header))
@@ -75,10 +75,10 @@ foreach($serverFilterOptions as $server)
        </form>
    </div>
    <div class="link-options">
-      Last &nbsp;<a href="/?last=25">25</a> &nbsp;<a href="/?last=50">50</a> &nbsp;Runs |
-      Most Expensive &nbsp;<a href="/?getruns=cpu&amp;days=1">Today</a> &nbsp;<a href="/?getruns=cpu&amp;days=7">Past Week</a> |
-      Most Ram &nbsp;<a href="/?getruns=pmu&amp;days=1">Today</a> &nbsp;<a href="/?getruns=pmu&amp;days=7">Past Week</a> |
-      Longest Running &nbsp;<a href="/?getruns=wt&amp;days=1">Today</a> &nbsp;<a href="/?getruns=wt&amp;days=7">Past Week</a>
+      Last &nbsp;<a href="?last=25">25</a> &nbsp;<a href="?last=50">50</a> &nbsp;Runs |
+      Most Expensive &nbsp;<a href="?getruns=cpu&amp;days=1">Today</a> &nbsp;<a href="?getruns=cpu&amp;days=7">Past Week</a> |
+      Most Ram &nbsp;<a href="?getruns=pmu&amp;days=1">Today</a> &nbsp;<a href="?getruns=pmu&amp;days=7">Past Week</a> |
+      Longest Running &nbsp;<a href="?getruns=wt&amp;days=1">Today</a> &nbsp;<a href="?getruns=wt&amp;days=7">Past Week</a>
    </div>
    <h1 class="xh-title">XH GUI</h1> 
  </div>  
