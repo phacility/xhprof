@@ -46,7 +46,7 @@ $xhprof_runs = new XHProfRuns_Default();
 $run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_foo");
 
 echo "<pre>".
-     "<a href='../../index.php?run=$run_id&source=xhprof_foo'>".
+     "<a href='../xhprof_html/index.php?run=$run_id&source=xhprof_foo'>".
      "View the XH GUI for this run".
      "</a>\n".
      "</pre>\n";
