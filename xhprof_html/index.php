@@ -54,14 +54,14 @@ $serverFilter = getFilter('server_filter');
 
 $domainsRS = $xhprof_runs_impl->getDistinct(array('column' => 'server name'));
 $domainFilterOptions = array("None");
-while ($row = mysql_fetch_assoc($domainsRS))
+while ($row = XHProfRuns_Default::getNextAssoc($domainsRS))
 {
 	$domainFilterOptions[] = $row['server name'];
 }
 
 $serverRS = $xhprof_runs_impl->getDistinct(array('column' => 'server_id'));
 $serverFilterOptions = array("None");
-while ($row = mysql_fetch_assoc($serverRS))
+while ($row = XHProfRuns_Default::getNextAssoc($serverRS))
 {
 	$serverFilterOptions[] = $row['server_id'];
 }

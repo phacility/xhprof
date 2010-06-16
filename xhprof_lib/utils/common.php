@@ -5,7 +5,7 @@ function displayRuns($resultSet, $title = "")
     echo "<div class=\"runTitle\">$title</div>\n";
     echo "<table id=\"box-table-a\" class=\"tablesorter\" summary=\"Stats\"><thead><tr><th>Timestamp</th><th>Cpu</th><th>Wall Time</th><th>Peak Memory Usage</th><th>URL</th><th>Simplified URL</th></tr></thead>";
     echo "<tbody>\n";
-    while ($row = mysql_fetch_assoc($resultSet))
+    while ($row = XHProfRuns_Default::getNextAssoc($resultSet))
     {
         $c_url = urlencode($row['c_url']);
         $url = urlencode($row['url']);
@@ -32,7 +32,7 @@ function showChart($rs)
         $arDateIDs = array();
       //  $arSplit = array();
     
-         while($row = mysql_fetch_assoc($rs))
+         while($row = XHProfRuns_Default::getNextAssoc($rs))
         {
             
             $date[] = "'" . date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp']) . "'" ;
