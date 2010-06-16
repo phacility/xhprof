@@ -7,7 +7,7 @@
 the constructor.
 4. Edit xhprof_lib/config.php with your database credentials, control IPs, and other fun stuff
 5. Load up index.php, ensure happiness
-6. Edit the virtual host configuration to 
+6. Edit the virtual host configuration for the site you'd like to profile to 
 php_admin_value auto_prepend_file="<path>/external/header.php"
 php_admin_value auto_append_file="<path>/external/footer.php"
 7. Bump your server, hope for the best
