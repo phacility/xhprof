@@ -55,7 +55,7 @@
         <tr><th>Stat</th><th>Exact URL</th><th>Similar URLs</th></tr>
      </thead>
      <tbody>
-        <tr><td>Count</td><td><a href="/?geturl=<?=urlencode($comparative['url']['url']);?>"><?=$comparative['url']['count(`id`)'];?></a></td><td><a href="/?getcurl=<?=urlencode($comparative['c_url']['url']);?>"><?=$comparative['c_url']['count(`id`)'];?></a></td></tr>
+        <tr><td>Count</td><td><a href="?geturl=<?=urlencode($comparative['url']['url']);?>"><?=$comparative['url']['count(`id`)'];?></a></td><td><a href="?getcurl=<?=urlencode($comparative['c_url']['url']);?>"><?=$comparative['c_url']['count(`id`)'];?></a></td></tr>
         <tr><td>Min Wall Time</td><td><?=printSeconds($comparative['url']['min(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['min(`wt`)']);?></td></tr>
         <tr><td>Max Wall Time</td><td><?=printSeconds($comparative['url']['max(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['max(`wt`)']);?></td></tr>
         <tr><td>Avg Wall Time</td><td><?=printSeconds($comparative['url']['avg(`wt`)']);?></td><td><?=printSeconds($comparative['c_url']['avg(`wt`)']);?></td></tr>

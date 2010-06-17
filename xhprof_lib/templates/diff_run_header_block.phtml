@@ -10,7 +10,7 @@
 print('<div id="view-diff-tables">'); 
         print("<div id=\"invert-wrapper\">"); 
            print("<div id=\"invert-image\">");                                        
-             print("<a class=\"invert\" href=?run1=$run2&run2=$run1><img src=\"img/invert-2.png\" alt=\"Invert Report\" /></a>");                                          
+             print("<a class=\"invert\" href=\"?run1=$run2&run2=$run1\"><img src=\"img/invert-2.png\" alt=\"Invert Report\" /></a>");                                          
            print("</div>");                  
            print("<div id=\"link-id\">");                            
              print("<h2 class=\"diff-details\">Run One ID: $run1 against {$xhprof_runs_impl->run_details[0]['server name']}</h2>"); 
@@ -19,7 +19,7 @@ print('<div id="view-diff-tables">');
         print("</div>");                    
                 
          print("<div id=\"diff-graph\">");
-           print("<a href=callgraph.php?run1=$run1&run2=$run2 class=\"callgraph\">View Callgraph</a>");         
+           print("<a href=\"callgraph.php?run1=$run1&run2=$run2\" class=\"callgraph\">View Callgraph</a>");         
          print("</div>");
         
         print("<div id=\"clear\"></div>");

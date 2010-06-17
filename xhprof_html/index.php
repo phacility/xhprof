@@ -6,7 +6,7 @@ include ("../xhprof_lib/utils/common.php");
 
 if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
-  die();
+  die("You do not have permission to view this page.");
 }
 
 
@@ -37,7 +37,6 @@ foreach ($params as $k => $v) {
     unset($params[$k]);
   }
 }
-
 
 
 $vbar  = ' class="vbar"';
