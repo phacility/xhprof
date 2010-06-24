@@ -74,6 +74,7 @@ ul.xhprof_actions li a:hover {
 .dash-header {width:100%;height:100px;background:#e8edff;border: 2px solid #b9c9fe;margin-right:auto;margin-left:auto;}
 .search {width:auto;float:right;height:25px;margin-top:10px;margin-right:25px;font-family:"Lucida Grande", Sans-Serif;font-size:13px;}
 .link-options {width:auto;float:right;clear:right;height:auto;font-family:"Lucida Grande", Sans-Serif;font-size:13px;margin-right:20px;position:relative;top:45px;}
+.link-options a { margin: 0 0.2em; }
 h1.xh-title {width:225px;font-family:"Lucida Grande", Sans-Serif;font-size:30px;font-weight:bold;color:#333333;margin-left:20px;}
 .form-button {border:1px solid #999999;cursor:pointer;background-color:#b9c9fe;-webkit-border-radius: 4px;-moz-border-radius: 4px;} 
 .form-button:hover {border:1px solid #999999;cursor:pointer;background-color:#e8edff;-webkit-border-radius: 4px;-moz-border-radius: 4px;}
