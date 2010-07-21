@@ -30,7 +30,7 @@
                     }
                 },
                 xAxis: [{
-                    categories: [<?=$dateidsJS;?>],
+                    categories: [<?php echo $dateidsJS;?>],
                     labels: { 
                         formatter: function() {
                             var date = (this.value).split(" ");                            
@@ -142,20 +142,20 @@
                     color: '#4572A7',
                     type: 'line',
                     yAxis: 1,
-                    data: [<?=$cpuJS;?>],
+                    data: [<?php echo $cpuJS;?>],
                                  
                 },{
                     name: 'Wall Time',
                     type: 'line',
                     color: '#AA4643',
                     yAxis: 2,
-                    data: [<?=$wtJS;?>]        
+                    data: [<?php echo $wtJS;?>]        
                 
                 },{
                     name: 'Peak Memory Usage',
                     color: '#89A54E',
                     type: 'line',
-                    data: [<?=$pmuJS;?>,]        
+                    data: [<?php echo $pmuJS;?>,]        
                 }]
               });            
             
