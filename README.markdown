@@ -29,11 +29,13 @@ Key features include:
   easy heads up display.
 
 Requirements:
-* Zlib library in PHP: http://php.net/manual/en/zlib.installation.php (Used to 
-  compress serialized data)
+
+* Zlib library in PHP: <http://php.net/manual/en/zlib.installation.php> 
+  (Used to compress serialized data)
 * Short tags must be enabled
 
 Work that we're still doing:
+
 * The aggregation functionality is ignored completely
 * The code is... a mess. Deadlines do that to you, we're working on it
 * The default table schema isn't indexed all the places it needs to be

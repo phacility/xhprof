@@ -13,7 +13,7 @@ function displayRuns($resultSet, $title = "")
         $html['c_url'] = htmlentities($row['c_url'], ENT_QUOTES, 'UTF-8');
         $date = strtotime($row['timestamp']);
         $date = date('M d H:i:s', $date);
-        echo "\t<tr><td><a href=\"/?run={$row['id']}\">$date</a><br /><span class=\"runid\">{$row['id']}</span></td><td>{$row['cpu']}</td><td>{$row['wt']}</td><td>{$row['pmu']}</td><td><a href=\"?geturl={$url}\">{$html['url']}</a></td><td><a href=\"?getcurl={$c_url}\">{$html['c_url']}</a></td></tr>\n";
+        echo "\t<tr><td><a href=\"?run={$row['id']}\">$date</a><br /><span class=\"runid\">{$row['id']}</span></td><td>{$row['cpu']}</td><td>{$row['wt']}</td><td>{$row['pmu']}</td><td><a href=\"?geturl={$url}\">{$html['url']}</a></td><td><a href=\"?getcurl={$c_url}\">{$html['c_url']}</a></td></tr>\n";
     }
     echo "</tbody>\n";
     echo "</table>\n";   

@@ -1,17 +1,18 @@
 <?php
 $_xhprof = array();
 
+// Change these:
 $_xhprof['dbhost'] = 'localhost';
-$_xhprof['dbuser'] = 'xhprof';
-$_xhprof['dbpass'] = 'xh23as0ahd';
+$_xhprof['dbuser'] = 'root';
+$_xhprof['dbpass'] = 'password';
 $_xhprof['dbname'] = 'xhprof';
-$_xhprof['servername'] = 'sd1';
+$_xhprof['servername'] = 'myserver';
+$_xhprof['namespace'] = 'myapp';
+$_xhprof['url'] = 'http://url/to/xhprof/xhprof_html';
+
 
 $exceptionURLs = array();
-$exceptionURLs[] = "/get_scenes/";
-$exceptionURLs[] = "/get_scenes2/";
-$exceptionURLs[] = "/EdmAjax/";
-$exceptionURLs[] = "/EdmFax/";
+
 $exceptionPostURLs = array();
 $exceptionPostURLs[] = "login";
 
@@ -21,21 +22,6 @@ $_xhprof['doprofile'] = false;
 
 $controlIPs = array();
 $controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
-$controlIPs[] = "10.3.2.14";
-$controlIPs[] = "10.3.2.13";
-$controlIPs[] = "10.3.2.12";
-$controlIPs[] = "10.3.2.11";
-$controlIPs[] = "10.3.2.10";
-$controlIPs[] = "10.3.2.15";
-$controlIPs[] = "10.3.2.16";
-$controlIPs[] = "10.3.2.17";
-$controlIPs[] = "10.3.2.18";
-$controlIPs[] = "10.3.2.19";
-$controlIPs[] = "10.3.2.20";
-$controlIPs[] = "10.3.2.21";
-$controlIPs[] = "10.3.2.22";
-$controlIPs[] = "10.3.2.23";
-
 
 $otherURLS = array();
 
@@ -68,7 +54,7 @@ $weight = 100;
   {
     $rules = array(
         'Loading' => 'load::',
-	'Encryption' => 'CI_Encrypt'
+        'mysql' => 'mysql_'
         );
     $addIns = array();
     foreach($calls as $index => $call)
