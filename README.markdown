@@ -1,7 +1,3 @@
-**Updating to this branch requries changes to your table schema, either figure 
-out how to migrate your data or drop, and re-create. New schema in 
-xhprof\_runs.php**
-
 This branch/clone/whatever git calls it of the official Facebook GUI does a few things:
 
 * It includes a header.php and footer.php document you can use with PHP's 
@@ -25,7 +21,7 @@ Key features include:
   While the URLs are different, the PHP code execution path is likely identical,
   by tweaking the method in xhprof\_runs.php you can help the front end be aware
   that these urls are identical.
-* Google's data visualization tool is used to graph stats over requests for an 
+* Highcharts is used to graph stats over requests for an 
   easy heads up display.
 
 Requirements:
