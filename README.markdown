@@ -32,7 +32,6 @@ Requirements:
 
 * Zlib library in PHP: <http://php.net/manual/en/zlib.installation.php> 
   (Used to compress serialized data)
-* Short tags must be enabled
 
 Work that we're still doing:
 
