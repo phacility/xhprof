@@ -686,6 +686,10 @@ function xhprof_get_string_param($param, $default = '') {
   if ($val === null)
     return $default;
 
+  if (get_magic_quotes_gpc() == 1) {
+    return stripslashes($val);
+  }
+
   return $val;
 }
 

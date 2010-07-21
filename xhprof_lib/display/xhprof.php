@@ -1374,6 +1374,11 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
       $description = $data['description'];
     }
 
+    if (!$xhprof_data) {
+        echo "Given XHProf Run not found.";
+        return;
+    }
+
 
     profiler_single_run_report($url_params,
                                $xhprof_data,
