@@ -129,6 +129,71 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     $criteria['where'] = "DATE_SUB(CURDATE(), INTERVAL $days DAY) <= `timestamp`";
     $rs = $xhprof_runs_impl->getRuns($criteria);
     displayRuns($rs, "Worst runs by $load");
+}elseif(isset($_GET['hit']))
+{
+    include ("../xhprof_lib/templates/header.phtml");
+    $last = (isset($_GET['hit'])) ?  $_GET['hit'] : 25;
+    $last = (int) $last;
+    $days = (isset($_GET['days'])) ?  $_GET['days'] : 1;
+    $days = (int) $days;
+    if (isset($_GET['type']) && ($_GET['type'] === 'url' OR $_GET['type'] = 'curl'))
+    {
+      $type = $_GET['type'];
+    }else
+    {
+      $type = 'url';
+    }
+    
+    $criteria['limit'] = $last;
+    $criteria['days'] = $days;
+    $criteria['type'] = $type;
+    $resultSet = $xhprof_runs_impl->getHardHit($criteria);
+
+    echo "<div class=\"runTitle\">Hardest Hit</div>\n";
+    echo "<table id=\"box-table-a\" class=\"tablesorter\" summary=\"Stats\"><thead><tr><th>URL</th><th>Hits</th><th class=\"{sorter: 'numeric'}\">Total Wall Time</th><th>Avg Wall Time</th></tr></thead>";
+    echo "<tbody>\n";
+    while ($row = XHProfRuns_Default::getNextAssoc($resultSet))
+    {
+        $c_url = urlencode($row['c_url']);
+        $url = urlencode($row['url']);
+        $html['url'] = htmlentities($row['url'], ENT_QUOTES, 'UTF-8');
+        $html['c_url'] = htmlentities($row['c_url'], ENT_QUOTES, 'UTF-8');
+        $date = strtotime($row['timestamp']);
+        $date = date('M d H:i:s', $date);
+        echo "\t<tr><td><a href=\"?geturl={$url}\">{$html['url']}</a></td><td>{$row['count']}</td><td>" . number_format($row['total_wall']) . " ms</td><td>" . number_format($row['avg_wall']) . " ms</td></tr>\n";
+    }
+    echo "</tbody>\n";
+    echo "</table>\n";   
+    echo <<<CODESE
+    <script type="text/javascript">
+    $(document).ready(function() { 
+      $.tablesorter.addParser({ 
+	  id: 'pretty', 
+	  is: function(s) { 
+	      return false; 
+	  }, 
+	  format: function(s) {
+	      s = s.replace(/ ms/g,"");
+	      return s.replace(/,/g,"");
+	  }, 
+	  // set type, either numeric or text 
+	  type: 'numeric' 
+      });
+      $(function() { 
+	  $("table").tablesorter({ 
+	      headers: { 
+		  2: { 
+		      sorter:'pretty' 
+		  },
+		  3: {
+		      sorter:'pretty'
+		  }
+	      }
+	  }); 
+      });
+    }); 
+    </script>
+CODESE;
 }else 
 {
     include ("../xhprof_lib/templates/header.phtml");
