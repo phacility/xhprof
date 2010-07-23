@@ -214,7 +214,6 @@ CREATE TABLE `details` (
       }
       
       $resultSet = mysqli_query($this->linkID, $query);
-      var_dump(mysqli_error($this->linkID));
       return $resultSet;
   }
   
