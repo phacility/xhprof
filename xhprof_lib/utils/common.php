@@ -16,8 +16,44 @@ function displayRuns($resultSet, $title = "")
         echo "\t<tr><td><a href=\"?run={$row['id']}\">$date</a><br /><span class=\"runid\">{$row['id']}</span></td><td>{$row['cpu']}</td><td>{$row['wt']}</td><td>{$row['pmu']}</td><td><a href=\"?geturl={$url}\">{$html['url']}</a></td><td><a href=\"?getcurl={$c_url}\">{$html['c_url']}</a></td></tr>\n";
     }
     echo "</tbody>\n";
-    echo "</table>\n";   
+    echo "</table>\n";
+    echo <<<SORTTABLE
+<script type="text/javascript">
+$(document).ready(function() 
+    { 
+        $("#box-table-a").tablesorter( {sortList: []} ); 
+    } 
+);
+</script>
+SORTTABLE;
 }
+
+function printSeconds($time)
+{
+    $suffix = "microsecond";
+
+    if ($time > 1000)
+    {
+        $time = $time / 1000;
+        $suffix = "ms";
+        
+    }
+    
+    if ($time > 1000)
+    {
+        $time = $time / 1000;
+        $suffix = "s";
+    }
+    
+    if ($time > 60 && $suffix == "s")
+    {
+        $time = $time / 60;
+        $suffix = "minutes!";
+    }
+    return sprintf("%.4f {$suffix}", $time);
+    
+}
+ 
 
 
 function showChart($rs)
