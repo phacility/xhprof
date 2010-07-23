@@ -12,33 +12,6 @@
             $format_total= number_format($totals['ct']);
         }
         
-        
-        function printSeconds($time)
-        {
-            $suffix = "microsecond";
-
-            if ($time > 1000)
-            {
-                $time = $time / 1000;
-                $suffix = "ms";
-                
-            }
-            
-            if ($time > 1000)
-            {
-                $time = $time / 1000;
-                $suffix = "s";
-            }
-            
-            if ($time > 60 && $suffix == "s")
-            {
-                $time = $time / 60;
-                $suffix = "minutes!";
-            }
-            return sprintf("%.4f {$suffix}", $time);
-            
-        }
- 
     //TODO This is lame
     global $comparative;   
     ?>
