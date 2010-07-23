@@ -217,6 +217,28 @@ CREATE TABLE `details` (
       return $resultSet;
   }
   
+  /**
+   * Obtains the pages that have been the hardest hit over the past N days, utalizing the getRuns() method.
+   *
+   * @param array $criteria An associative array containing, at minimum, type, days, and limit
+   * @return resource The result set reprsenting the results of the query
+   */
+  public function getHardHit($criteria)
+  {
+    //call thing to get runs
+    $criteria['select'] = "distinct(`{$criteria['type']}`), count(`{$criteria['type']}`) AS `count` , sum(`wt`) as total_wall, avg(`wt`) as avg_wall";
+    unset($criteria['type']);
+    $criteria['where'] = "DATE_SUB(CURDATE(), INTERVAL {$criteria['days']} DAY) <= `timestamp`";
+    unset($criteria['days']);
+    $criteria['group by'] = "url";
+    $criteria['order by'] = "count";
+    $resultSet = $this->getRuns($criteria);
+    //$query = "SELECT distinct(`$type`), count(`$type`) AS `count` , sum(`wt`) as total_wall, avg(`wt`) as avg_wall FROM `details` WHERE DATE_SUB(CURDATE(), INTERVAL $days DAY) <= `timestamp` GROUP BY `url` ORDER BY `count` DESC LIMIT $limit";
+    
+    //$resultSet = mysqli_query($this->linkID, $query);
+    return $resultSet;
+  }
+  
   public function getDistinct($data)
   {
 	$sql['column'] = mysql_real_escape_string($data['column']);
