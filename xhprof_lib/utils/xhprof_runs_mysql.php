@@ -233,9 +233,7 @@ CREATE TABLE `details` (
     $criteria['group by'] = "url";
     $criteria['order by'] = "count";
     $resultSet = $this->getRuns($criteria);
-    //$query = "SELECT distinct(`$type`), count(`$type`) AS `count` , sum(`wt`) as total_wall, avg(`wt`) as avg_wall FROM `details` WHERE DATE_SUB(CURDATE(), INTERVAL $days DAY) <= `timestamp` GROUP BY `url` ORDER BY `count` DESC LIMIT $limit";
     
-    //$resultSet = mysqli_query($this->linkID, $query);
     return $resultSet;
   }
   
