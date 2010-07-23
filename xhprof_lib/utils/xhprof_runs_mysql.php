@@ -198,14 +198,14 @@ CREATE TABLE `details` (
           $query .= $stats['where'];
       }
       
-      if (isset($stats['order by']))
-      {
-          $query .= " ORDER BY `{$stats['order by']}` DESC";
-      }
-      
       if (isset($stats['group by']))
       {
           $query .= " GROUP BY `{$stats['group by']}` ";
+      }
+      
+      if (isset($stats['order by']))
+      {
+          $query .= " ORDER BY `{$stats['order by']}` DESC";
       }
       
       if (isset($stats['limit']))
