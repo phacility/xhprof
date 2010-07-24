@@ -1,5 +1,5 @@
 <?php
-
+include(dirname(__FILE__) . '/..//xhprof_lib/config.php');
 // Only users from authorized IP addresses may control Profiling
 if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
