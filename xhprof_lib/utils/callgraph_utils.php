@@ -116,9 +116,9 @@ function xhprof_generate_image_by_dot($dot_script, $type) {
     fclose($pipes[1]);
 
     proc_close($process);
-    if (filesize($errorFile) > 0)
+    if ($output == "" && filesize($errorFile) > 0)
     {
-      die('Error producing callgraph, check $errorFile');
+      die("Error producing callgraph, check $errorFile");
     }
     return $output;
   }

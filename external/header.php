@@ -1,20 +1,25 @@
 <?php
 include(dirname(__FILE__) . '/..//xhprof_lib/config.php');
+
+//User has control, and is attempting to modify profiling parameters
+if(in_array($_SERVER['REMOTE_ADDR'], $controlIPs) && isset($_GET['_profile']))
+{
+    //Give them a cookie to hold status, and redirect back to the same page
+    setcookie('_profile', $_GET['_profile']);
+    $newURI = str_replace(array('_profile=1','_profile=0'), '', $_SERVER['REQUEST_URI']);
+    header("Location: $newURI");
+    exit;
+}
+
+
 // Only users from authorized IP addresses may control Profiling
-if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+if (in_array($_SERVER['REMOTE_ADDR'], $controlIPs) && (isset($_COOKIE['_profile']) && $_COOKIE['_profile']))
 {
     $_xhprof['display'] = true;
-    if (isset($_GET['_profile']) && !headers_sent()) {
-        setcookie('_profile', $_GET['_profile']);
-    }
-    if (
-        (isset($_GET['_profile']) && $_GET['_profile'])
-        || (isset($_COOKIE['_profile']) && $_COOKIE['_profile'])) 
-    {
-        $_xhprof['doprofile'] = true;
-        $_xhprof['type'] = 1;
-    } 
+    $_xhprof['doprofile'] = true;
+    $_xhprof['type'] = 1;
 }
+
 //Certain URLs should never have a link displayed. Think images, xml, etc. 
 foreach($exceptionURLs as $url)
 {
