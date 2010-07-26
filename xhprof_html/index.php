@@ -1,8 +1,10 @@
 <?php
-$GLOBALS['XHPROF_LIB_ROOT'] = dirname(__FILE__) . '/../xhprof_lib';
-require ("../xhprof_lib/config.php");
-include_once $GLOBALS['XHPROF_LIB_ROOT'].'/display/xhprof.php';
-include ("../xhprof_lib/utils/common.php");
+if (!defined('XHPROF_LIB_ROOT')) {
+  define('XHPROF_LIB_ROOT', dirname(dirname(__FILE__)) . '/xhprof_lib');
+}
+require (XHPROF_LIB_ROOT . "/config.php");
+include_once XHPROF_LIB_ROOT . '/display/xhprof.php';
+include (XHPROF_LIB_ROOT . "/utils/common.php");
 
 if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
