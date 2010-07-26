@@ -37,9 +37,11 @@ if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 
 // by default assume that xhprof_html & xhprof_lib directories
 // are at the same level.
-$GLOBALS['XHPROF_LIB_ROOT'] = dirname(__FILE__) . '/../xhprof_lib';
+if (!defined('XHPROF_LIB_ROOT')) {
+  define('XHPROF_LIB_ROOT', dirname(dirname(__FILE__)) . '/xhprof_lib';
+}
 
-include_once $GLOBALS['XHPROF_LIB_ROOT'].'/display/xhprof.php';
+include_once XHPROF_LIB_ROOT . '/display/xhprof.php';
 
 ini_set('max_execution_time', 100);
 
