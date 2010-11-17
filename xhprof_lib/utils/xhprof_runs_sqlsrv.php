@@ -461,7 +461,7 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
 		$sql['server_id'] = addslashes($_xhprof['servername']);
         
         
-        $query = "INSERT INTO [details] (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
+        $query = "INSERT INTO [details] ([id], [url], [c_url], [timestamp], [server name], [perfdata], [type], [cookie], [post], [get], [pmu], [wt], [cpu], [server_id]) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
         
         $stmt = sqlsrv_query($this->linkID, $query);
         if (sqlsrv_rows_affected($stmt) == 1)
