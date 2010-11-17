@@ -28,6 +28,9 @@ Requirements:
 
 * Zlib library in PHP: <http://php.net/manual/en/zlib.installation.php> 
   (Used to compress serialized data)
+* Database backend
+* MySQL, or MySQLi for data storage fully supported
+* Support for SQL Server now in beta stages #jumpInCamp
 
 Work that we're still doing:
 
