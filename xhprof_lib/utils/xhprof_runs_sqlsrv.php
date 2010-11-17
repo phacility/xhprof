@@ -92,7 +92,7 @@ class XHProfRuns_Default implements iXHProfRuns {
   protected function db()
   {
 	global $_xhprof;
-	$connectionInfo = array("UID" => $_xhprof['dbuser'], "PWD" =>  $_xhprof['dbpass'], "Database"=>$_xhprof['dbname']);
+	$connectionInfo = array("UID" => $_xhprof['dbuser'], "PWD" =>  $_xhprof['dbpass'], "Database"=>$_xhprof['dbname'], "ReturnDatesAsStrings" => TRUE);
     $linkid = sqlsrv_connect($_xhprof['dbhost'], $connectionInfo);
     if ($linkid === FALSE)
     {
@@ -162,12 +162,22 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
   */
   public function getRuns($stats)
   {
-      if (isset($stats['select']))
+  
+      if (isset($stats['limit']))
       {
-        $query = "SELECT {$stats['select']} FROM `details` ";  
+          $query = "SELECT TOP {$stats['limit']} ";
       }else
       {
-        $query = "SELECT * FROM `details` ";
+		$query = "SELECT ";
+      }
+      
+      
+      if (isset($stats['select']))
+      {
+        $query .= "{$stats['select']} FROM [details] ";  
+      }else
+      {
+        $query .= "* FROM [details] ";
       }
       
       $skippers = array("limit", "order by", "group by", "where", "select");
@@ -192,8 +202,8 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
           {
               $query .= $column;
           }
-          $value = addslashes($this->linkID);
-          $query .= " `$column` = '$value' ";
+          $value = addslashes($value);
+          $query .= " [$column] = '$value' ";
       }
       
       if (isset($stats['where']))
@@ -211,20 +221,22 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
       
       if (isset($stats['group by']))
       {
-          $query .= " GROUP BY `{$stats['group by']}` ";
+          $query .= " GROUP BY [{$stats['group by']}] ";
       }
       
       if (isset($stats['order by']))
       {
-          $query .= " ORDER BY `{$stats['order by']}` DESC";
+          $query .= " ORDER BY [{$stats['order by']}] DESC";
       }
-      
-      if (isset($stats['limit']))
-      {
-          $query .= " LIMIT {$stats['limit']} ";
-      }
+
       
       $resultSet = sqlsrv_query($this->linkID, $query);
+      if (!$resultSet)
+      {
+		echo "Failed: <b>$query</b>";
+	  }
+      //echo "ran $query";
+      //var_dump($resultSet);
       return $resultSet;
   }
   
@@ -237,9 +249,10 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
   public function getHardHit($criteria)
   {
     //call thing to get runs
-    $criteria['select'] = "distinct(`{$criteria['type']}`), count(`{$criteria['type']}`) AS `count` , sum(`wt`) as total_wall, avg(`wt`) as avg_wall";
+    $criteria['select'] = "([{$criteria['type']}]), count([{$criteria['type']}]) AS 'count' , sum([wt]) as total_wall, avg([wt]) as avg_wall";
     unset($criteria['type']);
-    $criteria['where'] = "DATE_SUB(CURDATE(), INTERVAL {$criteria['days']} DAY) <= `timestamp`";
+    
+    $criteria['where'] = "dateadd(d, -{$criteria['days']}, getdate()) <= details.timestamp";
     unset($criteria['days']);
     $criteria['group by'] = "url";
     $criteria['order by'] = "count";
@@ -250,15 +263,18 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
   
   public function getDistinct($data)
   {
-	$sql['column'] = mysqli_real_escape_string($this->linkID, $data['column']);
-	$query = "SELECT DISTINCT(`{$sql['column']}`) FROM `details`";
+	$sql['column'] = addslashes($data['column']);
+	$query = "SELECT DISTINCT([{$sql['column']}]) FROM [details]";
 	$rs = sqlsrv_query($this->linkID, $query);
 	return $rs;
   }
   
   public static function getNextAssoc($resultSet)
   {
-    return sqlsrv_fetch_array($resultSet, SQLSRV_FETCH_ASSOC);
+  //var_dump($resultSet);
+  $a = sqlsrv_fetch_array($resultSet, SQLSRV_FETCH_ASSOC);
+  //var_dump($a);
+    return $a;
   }
   
   /**
@@ -272,7 +288,7 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
   public function get_run($run_id, $type, &$run_desc) 
   {
     $run_id = addslashes($run_id);
-    $query = "SELECT * FROM `details` WHERE `id` = '$run_id'";
+    $query = "SELECT * FROM [details] WHERE [id] = '$run_id'";
     $resultSet = sqlsrv_query($this->linkID, $query);
     $data = sqlsrv_fetch_array($resultSet, SQLSRV_FETCH_ASSOC);
     
@@ -307,7 +323,7 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
   */
   public function getUrlStats($data)
   {
-      $data['select'] = '`id`, UNIX_TIMESTAMP(`timestamp`) as `timestamp`, `pmu`, `wt`, `cpu`';   
+      $data['select'] = '[id], DATEDIFF(s, \'1970-01-01 00:00:00\', [timestamp]) as [timestamp], [pmu], [wt], [cpu]';   
       $rs = $this->getRuns($data);
       return $rs;
   }
@@ -326,7 +342,7 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
       $c_url = addslashes($c_url);
       //Runs same URL
       //  count, avg/min/max for wt, cpu, pmu
-      $query = "SELECT count(`id`), avg(`wt`), min(`wt`), max(`wt`),  avg(`cpu`), min(`cpu`), max(`cpu`), avg(`pmu`), min(`pmu`), max(`pmu`) FROM `details` WHERE `url` = '$url'";
+      $query = "SELECT count([id]) as 'count(`id`)', avg([wt]) as 'avg(`wt`)', min([wt]) as 'min(`wt`)', max([wt]) as 'max(`wt`)', avg([cpu]) as 'avg(`cpu`)', min([cpu]) as 'min(`cpu`)', max([cpu]) as 'max(`cpu`)', avg([pmu]) as 'avg(`pmu`)', min([pmu]) as 'min(`pmu`)', max([pmu]) as 'max(`pmu`)'  FROM [details] WHERE [url] = '$url'";
       $rs = sqlsrv_query($this->linkID, $query);
       $row = sqlsrv_fetch_array($rs, SQLSRV_FETCH_ASSOC);
       $row['url'] = $url;
@@ -336,15 +352,20 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
       $row['95(`pmu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'pmu', 'type' => 'url', 'url' => $url));
 
       global $comparative;
+      
       $comparative['url'] = $row;
       unset($row);
       
       //Runs same c_url
       //  count, avg/min/max for wt, cpu, pmu
-      $query = "SELECT count(`id`), avg(`wt`), min(`wt`), max(`wt`),  avg(`cpu`), min(`cpu`), max(`cpu`), avg(`pmu`), min(`pmu`), max(`pmu`) FROM `details` WHERE `c_url` = '$c_url'";
+      $query = "SELECT count([id]) as 'count(`id`)', avg([wt]) as 'avg(`wt`)', min([wt]) as 'min(`wt`)', max([wt]) as 'max(`wt`)', avg([cpu]) as 'avg(`cpu`)', min([cpu]) as 'min(`cpu`)', max([cpu]) as 'max(`cpu`)', avg([pmu]) as 'avg(`pmu`)', min([pmu]) as 'min(`pmu`)', max([pmu]) as 'max(`pmu`)' FROM [details] WHERE [c_url] = '$c_url'";
+     
+     
       $rs = sqlsrv_query($this->linkID, $query);
+      
       $row = sqlsrv_fetch_array($rs, SQLSRV_FETCH_ASSOC);
       $row['url'] = $c_url;
+      
       $row['95(`wt`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'wt', 'type' => 'c_url', 'url' => $c_url));
       $row['95(`cpu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'cpu', 'type' => 'c_url', 'url' => $c_url));
       $row['95(`pmu`)'] = $this->calculatePercentile(array('count' => $row['count(`id`)'], 'column' => 'pmu', 'type' => 'c_url', 'url' => $c_url));
@@ -357,9 +378,10 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
   protected function calculatePercentile($details)
   {
                   $limit = (int) ($details['count'] / 20);
-                  $query = "SELECT `{$details['column']}` as `value` FROM `details` WHERE `{$details['type']}` = '{$details['url']}' ORDER BY `{$details['column']}` DESC LIMIT $limit, 1";
+                  //TODO Put the limit stuff back LIMIT $limit, 1
+                  $query = "SELECT [{$details['column']}] as [value] FROM [details] WHERE [{$details['type']}] = '{$details['url']}' ORDER BY [{$details['column']}] DESC";
                   $rs = sqlsrv_query($this->linkID, $query);
-                  $row = sqlsrv_fetch_assoc($rs, SQLSRV_FETCH_ASSOC);
+                  $row = sqlsrv_fetch_array($rs, SQLSRV_FETCH_ASSOC);
                   return $row['value'];
   }
   
@@ -439,7 +461,7 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
 		$sql['server_id'] = addslashes($_xhprof['servername']);
         
         
-        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
+        $query = "INSERT INTO [details] (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
         
         $stmt = sqlsrv_query($this->linkID, $query);
         if (sqlsrv_rows_affected($stmt) == 1)
