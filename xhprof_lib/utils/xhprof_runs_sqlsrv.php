@@ -469,7 +469,6 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
         $stmt = sqlsrv_prepare($this->linkID, $query, $params);
         if ($stmt)
         {
-        echo "executing!";
 			sqlsrv_execute($stmt);
             return $run_id;
         }else
