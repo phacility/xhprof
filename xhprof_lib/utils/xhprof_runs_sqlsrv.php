@@ -473,8 +473,6 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
             return $run_id;
         }else
         {
-        echo "fail";
-        exit;
             global $_xhprof;
             if ($_xhprof['display'] === true)
             {
