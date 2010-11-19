@@ -448,27 +448,34 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
         //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-        $sql['data'] = addslashes(gzcompress(serialize($xhprof_data), 2));
+        $sql['data'] = gzcompress(serialize($xhprof_data), 2);
         
 	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
 	
-        $sql['url'] = addslashes($url);
-        $sql['c_url'] = addslashes(_urlSimilartor($_SERVER['REQUEST_URI']));
-        $sql['servername'] = addslashes($sname);
+        $sql['url'] = $url;
+        $sql['c_url'] = _urlSimilartor($_SERVER['REQUEST_URI']);
+        $sql['servername'] = $sname;
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
-        $sql['timestamp'] = addslashes($_SERVER['REQUEST_TIME']);
+        $sql['timestamp'] = addslashes(date('c', $_SERVER['REQUEST_TIME']));
 		$sql['server_id'] = addslashes($_xhprof['servername']);
         
         
-        $query = "INSERT INTO [details] ([id], [url], [c_url], [timestamp], [server name], [perfdata], [type], [cookie], [post], [get], [pmu], [wt], [cpu], [server_id]) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
+        $query = "INSERT INTO [details] ([id], [url], [c_url], [timestamp], [server name], [perfdata], [type], [cookie], [post], [get], [pmu], [wt], [cpu], [server_id]) 
+        VALUES(?, ?, ?, ?, ?,?, ?, ?, ?, ?,?,?,?,?)";
+        $params = array(&$run_id, &$sql['url'], &$sql['c_url'], &$sql['timestamp'], &$sql['servername'], &$sql['data'], &$sql['type'], &$sql['cookie'], &$sql['post'], &$sql['get'], &$sql['pmu'], &$sql['wt'], &$sql['cpu'], &$sql['server_id']);
         
-        $stmt = sqlsrv_query($this->linkID, $query);
-        if (sqlsrv_rows_affected($stmt) == 1)
+
+        $stmt = sqlsrv_prepare($this->linkID, $query, $params);
+        if ($stmt)
         {
+        echo "executing!";
+			sqlsrv_execute($stmt);
             return $run_id;
         }else
         {
+        echo "fail";
+        exit;
             global $_xhprof;
             if ($_xhprof['display'] === true)
             {
