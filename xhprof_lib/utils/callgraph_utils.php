@@ -94,7 +94,23 @@ function xhprof_generate_mime_header($type, $length) {
  * @author cjiang
  */
 function xhprof_generate_image_by_dot($dot_script, $type) {
-  $errorFile = "/tmp/xh_dot.err";
+  // get config => yep really dirty - but unobstrusive
+  global $_xhprof;
+  
+  $errorFile    = $_xhprof['dot_errfile'];
+  $tmpDirectory = $_xhprof['dot_tempdir'];
+  $dotBinary    = $_xhprof['dot_binary'];
+ 
+  // detect windows
+  if (stristr(PHP_OS, 'WIN') && !stristr(PHP_OS, 'Darwin')) {
+    return xhprof_generate_image_by_dot_on_win($dot_script, 
+                                               $type, 
+                                               $errorFile, 
+                                               $tmpDirectory, 
+                                               $dotBinary);
+  }
+
+  // parts of the original source
   $descriptorspec = array(
        // stdin is a pipe that the child will read from
        0 => array("pipe", "r"),
@@ -104,9 +120,9 @@ function xhprof_generate_image_by_dot($dot_script, $type) {
        2 => array("file", $errorFile, "a")
        );
 
-  $cmd = " /usr/bin/dot -T".$type;
+  $cmd = ' "'.$dotBinary.'" -T'.$type;
 
-  $process = proc_open($cmd, $descriptorspec, $pipes, "/tmp", array());
+  $process = proc_open($cmd, $descriptorspec, $pipes, $tmpDirectory, array());
 
   if (is_resource($process)) {
     fwrite($pipes[0], $dot_script);
@@ -124,6 +140,72 @@ function xhprof_generate_image_by_dot($dot_script, $type) {
   }
   print "failed to shell execute cmd=\"$cmd\"\n";
   exit();
+}
+
+/**
+ * Generate image according to DOT script. This function will make the 
+ * process working on windows boxes (some win-boxes seems to having problems
+ * with creating processes via proc_open so we do it the lame win way by 
+ * creating and writing to temp-files and reading them in again ... 
+ * not really nice but functional
+ *
+ * @param dot_script, string, the script for DOT to generate the image.
+ * @param type, one of the supported image types, see
+ * @param errorFile, string, the file to write errors to
+ * @param tmpDirectory, string, the directory for temporary created files
+ * @param dotBin, the dot-binary file (e.g. dot.exe)
+ * @returns, binary content of the generated image on success.
+ *
+ * @author Benjamin Carl <opensource@clickalicious.de>
+ */
+function xhprof_generate_image_by_dot_on_win($dot_script, 
+                                             $type, 
+                                             $errorFile, 
+                                             $tmpDirectory, 
+                                             $dotBin
+) {
+  // assume no error
+  $error = false;
+
+  // get unique identifier
+  $uid = md5(time());
+
+  // files we handle with
+  $files = array(
+    'dot'   => $tmpDirectory.'\\'.$uid.'.dot',
+    'img' => $tmpDirectory.'\\'.$uid.'.'.$type
+  );
+
+  // build command for dot.exe
+  $cmd = '"'.$dotBin.'" -T'.$type.' "'.$files['dot'].'" -o "'.$files['img'].'"';
+
+  // 1. write dot script temp
+  file_put_contents($files['dot'], $dot_script);
+
+  // 2. call dot-binary with temp dot script and write file (out) type
+  shell_exec($cmd);
+  
+  // 3. read in the img
+  $output = file_get_contents($files['img']);
+  if ($output == '' 
+      || !file_exists($files['img']) 
+      || filesize($files['img']) == 0
+  ) {
+    $error = true;
+  }
+
+  // 4. delete temp files
+  foreach ($files as $type => $file) {
+    unlink($file);
+  }
+
+  // 5. check for possible error (empty result)
+  if ($error) {
+    die("Error producing callgraph!");
+  }
+
+  // 6. return result
+  return $output;
 }
 
 /*
@@ -441,7 +523,7 @@ function xhprof_get_content_by_run($xhprof_runs_impl, $run_id, $type,
 
   $script = xhprof_generate_dot_script($raw_data, $threshold, $source,
                                        $description, $func, $critical_path);
-
+                    
   $content = xhprof_generate_image_by_dot($script, $type);
   return $content;
 }
