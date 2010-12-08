@@ -10,20 +10,21 @@ $_xhprof['servername'] = 'myserver';
 $_xhprof['namespace'] = 'myapp';
 $_xhprof['url'] = 'http://url/to/xhprof/xhprof_html';
 
-/* Note(clickalicious):
-   start required patch to make it work on win platforms */
-if (stristr(PHP_OS, 'WIN') && !stristr(PHP_OS, 'Darwin')) {
-    // win
-    $_xhprof['dot_binary']  = 'C:\\Programme\\Graphviz\\bin\\dot.exe';
-    $_xhprof['dot_tempdir'] = 'C:\\WINDOWS\\Temp';
-    $_xhprof['dot_errfile'] = 'C:\\WINDOWS\\Temp\\xh_dot.err';
-} else {
-    // linux derivates
-    $_xhprof['dot_binary']  = '/usr/bin/dot';
-    $_xhprof['dot_tempdir'] = '/tmp';
-    $_xhprof['dot_errfile'] = '/tmp/xh_dot.err';
-}
-/* end required patch to make it work on win platforms */
+//Uncomment one of these, platform dependent. You may need to tune for your specific environment, but they're worth a try
+
+//These are good for Windows
+/*
+$_xhprof['dot_binary']  = 'C:\\Programme\\Graphviz\\bin\\dot.exe';
+$_xhprof['dot_tempdir'] = 'C:\\WINDOWS\\Temp';
+$_xhprof['dot_errfile'] = 'C:\\WINDOWS\\Temp\\xh_dot.err';
+*/
+
+//These are good for linux and its derivatives.
+/*
+$_xhprof['dot_binary']  = '/usr/bin/dot';
+$_xhprof['dot_tempdir'] = '/tmp';
+$_xhprof['dot_errfile'] = '/tmp/xh_dot.err';
+*/
 
 $exceptionURLs = array();
 
