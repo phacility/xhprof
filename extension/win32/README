@@ -1,0 +1,108 @@
+********************************************************************************
+
+ Copyright (c) 2010 Benjamin Carl
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+********************************************************************************
+  WHAT YOU (PROBABLY) NEED
+********************************************************************************
+
+- MS VC++ 6 (Professional or Enterprise - cause the required VC++ 6 Processor
+  Pack only runs on one of these Versions)
+
+- MS Platform SDK (don't user a newer/younger version then Feb(02)/2003! cause
+  later releases are incompatible with VC++ 6) Cause Microsoft don't link to 
+  the file active use the links from this site:
+  http://wiki.tcl.tk/11970
+  
+- MS Visual Studio Service Pack 5 - THE PROCESSOR PACK ISN'T COMPATIBLE WITH THE
+  LATEST SP6 - SO USE THE SP5!)
+  http://www.filewatcher.com/m/vs6sp5.exe.136410832.0.0.html
+    
+- VC++ 6 Processor Pack
+  http://download.microsoft.com/download/vb60ent/update/6/w9x2kxp/en-us/vcpp5.exe
+
+- UPX (if you are planning to use my deploy.bat)
+  http://upx.sourceforge.net/
+
+I'm sure that the sources will also compile on other (free) compilers as well
+but I don't know how - cause I don't use one of them.
+
+********************************************************************************
+  CONFIGURATION
+********************************************************************************
+
+The file "xhprof.example.dsp" contains the configuration for the "xhprof.dsw"-
+workspace.
+
+If you plan to rename and configure "xhprof.example.dsp" manually then you 
+should continue reading at step I). If you are plan to use the configure.vbs 
+to do the job semiautomatically then continue reading at step II).
+
+--------------------------------------------------------------------------------
+I) MANUALLY
+   Open the file "xhprof.example.dsw" and replace all occurances of 
+   __PHP_SOURCE_FOLDER__ with the path to your extracted PHP-sources (e.g.
+   C:\PHP_5.3.3) the PHP-source folder is the folder containing the subfolder 
+   win32, TSRM and Zend for example. Then simply rename "xhprof.example.dsw" to
+   "xhprof.dsw" and you're done.   
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+II) AUTOMATIC  
+   Simply run the configure.vbs script. It shows you a browser-folder dialog 
+   where you select the folder containing the PHP-sources (e.g. C:\PHP_5.3.3).
+   The configure.vbs the do the job for you by replacing the placeholders in
+   "xhprof.example.dsp" and copying it to xhprof.dsp.
+--------------------------------------------------------------------------------
+
+Now you can run/open the "xhprof.dsw" workspace with your VC++ 6 IDE and compile
+the extension easily. Happy coding.
+
+
+********************************************************************************
+  DEPLOYING
+********************************************************************************
+
+I've build a little batch-tool cause on windows you can't delete files used by 
+running services. So it's a bit annoying doing all the needed tasks for testing
+a build manually - which means that you must:
+
+1. stop the (Apache) service
+2. delete the old extension file from PHP's extension folder
+3. copy the new extension file to PHP's extension folder
+4. start the (Apache) service again
+
+So if you want to use the "deploy.bat" to do this automatically for you, you 
+need to run it with the parameters matching your system.
+
+Create a new empty batch file in the same folder as "deploy.bat" and name it 
+e.g. "deploy_debug_at_work.bat" or "deploy_release_at_work.bat" 
+(or whatever name you prefer).
+
+After that open it in an editor and insert the following line:
+"%cd%\deploy.bat" "__PHP_EXTENSION_FOLDER__" __EXTENSION_NAME__ __APACHE_SERVICE__ __MODE__
+
+and now replace
+  __PHP_EXTENSION_FOLDER__        with the folder containing your PHP-extensions
+  __EXTENSION_NAME__        with the name of the extension (e.g. php_xhprof.dll)
+  __APACHE_SERVICE__     with the name of your apache-service (for start + stop)
+  __MODE__              with the mode you compiled (either "Debug" or "Release")
+  
+For example my "Debug"-deploy file looks like that:
+"%cd%\deploy.bat" "D:\php_5.3.3\ext\" php_xhprof.dll Apache2.2_php_5.3.3 Debug
+
+********************************************************************************
+ ENJOY CODING - BENJAMIN CARL
+********************************************************************************
