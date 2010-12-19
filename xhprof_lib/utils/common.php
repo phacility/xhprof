@@ -56,7 +56,7 @@ function printSeconds($time)
  
 
 
-function showChart($rs)
+function showChart($rs, $flip = false)
 {
         $count = 0;        
         $dataPoints = "";
@@ -66,37 +66,39 @@ function showChart($rs)
         $arPEAK = array();
         $arIDS = array();
         $arDateIDs = array();
-      //  $arSplit = array();
     
          while($row = XHProfRuns_Default::getNextAssoc($rs))
         {
             
-            $date[] = "'" . date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp']) . "'" ;
+            $date[] = "'" . date("Y-m-d", $row['timestamp']) . "'" ;
             $cpu = $row['cpu'];
             $wt = $row['wt'];
-            $pmu = $row['pmu'];
-            $ids = "'{$row['id']}'";                       
-            $id = "{$row['id']}";                       
+            $pmu = $row['pmu'];                       
            
             $arCPU[] = $cpu;
             $arWT[] = $wt;
             $arPEAK[] = $pmu;
-            $arIDS[] = $ids; 
+            $arIDS[] = $row['id']; 
             
-            $arDateIDs[] =  "'" . date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp']) . " <br/> ".$id."'"; 
-         //   $arSplit[] =  "'" . $id . " ".date("Y", $row['timestamp']) . "-" . (date("m", $row['timestamp']) - 1) . "-" . date("d", $row['timestamp'])."'";           
-           
+            $arDateIDs[] =  "'" . date("Y-m-d", $row['timestamp']) . " <br/> " . $row['id'] . "'"; 
+
             $count++;             
         }
+
+        $date = $flip ? array_reverse($date) : $date;
+        $arCPU = $flip ? array_reverse($arCPU) : $arCPU;
+        $arWT = $flip ? array_reverse($arWT) : $arWT;
+        $arPEAK = $flip ? array_reverse($arPEAK) : $arPEAK;
+        $arIDS = $flip ? array_reverse($arIDS) : $arIDS;
+        $arDateIDs = $flip ? array_reverse($arDateIDs) : $arDateIDs;
+        
        $dateJS = implode(", ", $date);
        $cpuJS = implode(", ", $arCPU);
        $wtJS = implode(", ", $arWT);
        $pmuJS = implode(", ", $arPEAK);
        $idsJS = implode(", ", $arIDS);
        $dateidsJS = implode(", ", $arDateIDs);
-    //   $SplitJS = implode(", ", $arSplit);        
-        
-       //   echo "[" . $idsJS . "]";     
+  
    
     ob_start();
       require ("../xhprof_lib/templates/chart.phtml");   
