@@ -58,7 +58,7 @@ function printSeconds($time)
 
 function showChart($rs, $flip = false)
 {
-        $count = 0;        
+
         $dataPoints = "";
         $ids = array(); 
         $arCPU = array();
@@ -69,20 +69,14 @@ function showChart($rs, $flip = false)
     
          while($row = XHProfRuns_Default::getNextAssoc($rs))
         {
-            
-            $date[] = "'" . date("Y-m-d", $row['timestamp']) . "'" ;
-            $cpu = $row['cpu'];
-            $wt = $row['wt'];
-            $pmu = $row['pmu'];                       
+            $date[] = "'" . date("Y-m-d", $row['timestamp']) . "'" ;  
            
-            $arCPU[] = $cpu;
-            $arWT[] = $wt;
-            $arPEAK[] = $pmu;
+            $arCPU[] = $row['cpu'];
+            $arWT[] = $row['wt'];
+            $arPEAK[] = $row['pmu'];  
             $arIDS[] = $row['id']; 
             
             $arDateIDs[] =  "'" . date("Y-m-d", $row['timestamp']) . " <br/> " . $row['id'] . "'"; 
-
-            $count++;             
         }
 
         $date = $flip ? array_reverse($date) : $date;
