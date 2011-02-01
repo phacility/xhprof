@@ -106,11 +106,11 @@ CREATE TABLE `details` (
   `c_url` varchar(255) default NULL,
   `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   `server name` varchar(64) default NULL,
-  `perfdata` text,
+  `perfdata` MEDIUMBLOB,
   `type` tinyint(4) default NULL,
-  `cookie` text,
-  `post` text,
-  `get` text,
+  `cookie` BLOB,
+  `post` BLOB,
+  `get` BLOB,
   `pmu` int(11) default NULL,
   `wt` int(11) default NULL,
   `cpu` int(11) default NULL,
@@ -403,7 +403,6 @@ CREATE TABLE `details` (
 	$sql['cpu'] = isset($xhprof_data['main()']['cpu']) ? $xhprof_data['main()']['cpu'] : '';        
 
 
-        //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
         $sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));

@@ -436,7 +436,6 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
 	$sql['cpu'] = isset($xhprof_data['main()']['cpu']) ? $xhprof_data['main()']['cpu'] : '';        
 
 
-        //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
         $sql['data'] = gzcompress(serialize($xhprof_data), 2);
