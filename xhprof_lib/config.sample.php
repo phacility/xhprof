@@ -40,8 +40,12 @@ $controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
 
 $otherURLS = array();
 
+//Default weight - can be overidden by an Apache environment variable 'xhprof_weight' for domain-specific values
 $weight = 100;
 
+if($domain_weight = getenv('xhprof_weight')) {
+	$weight = $domain_weight;
+}
 
   /**
   * The goal of this function is to accept the URL for a resource, and return a "simplified" version
@@ -61,6 +65,11 @@ $weight = 100;
       //This is an example 
       $url = preg_replace("!\d{4}!", "", $url);
       
+      // For domain-specific configuration, you can use Apache setEnv xhprof_urlSimilartor_include [some_php_file]
+      if($similartorinclude = getenv('xhprof_urlSimilartor_include')) {
+      	require_once($similartorinclude);
+      }
+      
       $url = preg_replace("![?&]_profile=\d!", "", $url);
       return $url;
   }
@@ -71,6 +80,13 @@ $weight = 100;
         'Loading' => 'load::',
         'mysql' => 'mysql_'
         );
+
+    // For domain-specific configuration, you can use Apache setEnv xhprof_aggregateCalls_include [some_php_file]
+  	if(isset($run_details['aggregateCalls_include']) && strlen($run_details['aggregateCalls_include']) > 1)
+		{
+    	require_once($run_details['aggregateCalls_include']);
+		}        
+        
     $addIns = array();
     foreach($calls as $index => $call)
     {
