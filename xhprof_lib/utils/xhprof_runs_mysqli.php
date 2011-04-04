@@ -115,6 +115,7 @@ CREATE TABLE `details` (
   `wt` int(11) default NULL,
   `cpu` int(11) default NULL,
   `server_id` char(3) NOT NULL default 't11',
+  `aggregateCalls_include` varchar(255) DEFAULT NULL,
   PRIMARY KEY  (`id`),
   KEY `url` (`url`),
   KEY `c_url` (`c_url`),
@@ -417,7 +418,7 @@ CREATE TABLE `details` (
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = mysqli_real_escape_string($this->linkID, $_SERVER['REQUEST_TIME']);
 		$sql['server_id'] = mysqli_real_escape_string($this->linkID, $_xhprof['servername']);
-        
+        $sql['aggregateCalls_include'] = getenv('xhprof_aggregateCalls_include') ? getenv('xhprof_aggregateCalls_include') : '';
         
         $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
         

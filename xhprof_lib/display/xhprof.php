@@ -805,7 +805,7 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
   
   //Find top $n requests
   $data_copy = $flat_data;
-  $data_copy = _aggregateCalls($data_copy);
+  $data_copy = _aggregateCalls($data_copy, null, $run2);
   usort($data_copy, 'sortWT');
   
   include( "../xhprof_lib/templates/profChart.phtml");
@@ -860,6 +860,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
   foreach ($symbol_tab as $symbol => $info) {
     $tmp = $info;
     $tmp["fn"] = $symbol;
+    
     $flat_data[] = $tmp;
   }
   usort($flat_data, 'sort_cbk');
@@ -1361,7 +1362,7 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
         list($xhprof_data, $run_details) = $xhprof_runs_impl->get_run($runs_array[0],
                                                 $source,
                                                 $description);
-        
+
     } else {
       if (!empty($wts)) {
         $wts_array  = explode(",", $wts);
