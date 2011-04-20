@@ -30,11 +30,6 @@
  */
 require ("../xhprof_lib/config.php");
 
-if ($controlIPs !== false && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
-{
-  die();
-}
-
 // by default assume that xhprof_html & xhprof_lib directories
 // are at the same level.
 if (!defined('XHPROF_LIB_ROOT')) {

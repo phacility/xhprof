@@ -64,7 +64,7 @@
     </thead>
    <tbody>
   <?php
-    $cookieArr =  unserialize($xhprof_runs_impl->run_details['cookie']);
+    $cookieArr =  json_decode($xhprof_runs_impl->run_details['cookie'], true);
  // echo '<pre>'.print_r($cookieArr, true).'</pre>';        
     foreach($cookieArr as $key=>$value){
         if (is_array($value))
@@ -90,7 +90,7 @@
     </thead>
    <tbody>
   <?php
-    $getArr =  unserialize($xhprof_runs_impl->run_details['get']);
+    $getArr =  json_decode($xhprof_runs_impl->run_details['get'], true);
  // echo '<pre>'.print_r($getArr, true).'</pre>';         
     foreach($getArr as $key=>$value)
     {  
@@ -117,7 +117,7 @@
      </thead>
     <tbody>
   <?php
-     $postArr =  unserialize($xhprof_runs_impl->run_details['post']);
+     $postArr =  json_decode($xhprof_runs_impl->run_details['post'], true);
   // echo '<pre>'.print_r($postArr, true).'</pre>';       
     foreach($postArr as $key=>$value){
         if (is_array($value))

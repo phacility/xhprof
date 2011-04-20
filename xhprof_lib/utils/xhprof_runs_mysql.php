@@ -84,7 +84,6 @@ class XHProfRuns_Default implements iXHProfRuns {
   {
 	global $_xhprof;
 
-	
     $linkid = mysql_connect($_xhprof['dbhost'], $_xhprof['dbuser'], $_xhprof['dbpass']);
     if ($linkid === FALSE)
     {
@@ -93,6 +92,7 @@ class XHProfRuns_Default implements iXHProfRuns {
       throw new Exception("Unable to connect to database");
       return false;
     }
+    mysql_query("SET NAMES utf8");
     mysql_select_db($_xhprof['dbname'], $linkid);
     $this->linkID = $linkid; 
   }
@@ -258,7 +258,7 @@ CREATE TABLE `details` (
     $data = mysql_fetch_assoc($resultSet);
     
     //The Performance data is compressed lightly to avoid max row length
-    $contents = unserialize(gzuncompress($data['perfdata']));
+    $contents = json_decode(gzuncompress(base64_decode($data['perfdata'])), true);
     
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
@@ -386,16 +386,16 @@ CREATE TABLE `details` (
 		
 		*/
 
-        $sql['get'] = mysql_real_escape_string(serialize($_GET), $this->linkID);
-        $sql['cookie'] = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
+        $sql['get'] = mysql_real_escape_string(json_encode($_GET), $this->linkID);
+        $sql['cookie'] = mysql_real_escape_string(json_encode($_COOKIE), $this->linkID);
         
         //This code has not been tested
         if ($_xhprof['savepost'])
         {
-        	$sql['post'] = mysql_real_escape_string(serialize($_POST), $this->linkID);    
+        	$sql['post'] = mysql_real_escape_string(json_encode($_POST), $this->linkID);    
         }else
         {
-        	$sql['post'] = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule")), $this->linkID);
+        	$sql['post'] = mysql_real_escape_string(json_encode(array("Skipped" => "Post data omitted by rule")), $this->linkID);
         }
         
         
@@ -406,7 +406,7 @@ CREATE TABLE `details` (
 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-        $sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
+        $sql['data'] = mysql_real_escape_string(base64_encode(gzcompress(json_encode($xhprof_data), 9)));
         
 	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
@@ -431,8 +431,6 @@ CREATE TABLE `details` (
             if ($_xhprof['display'] === true)
             {
                 echo "Failed to insert: $query <br>\n";
-                var_dump(mysql_error($this->linkID));
-                var_dump(mysql_errno($this->linkID));
             }
             return -1;
         }
@@ -440,4 +438,9 @@ CREATE TABLE `details` (
   
   
 
+}
+
+function noop(&$arg)
+{
+	return $arg;
 }

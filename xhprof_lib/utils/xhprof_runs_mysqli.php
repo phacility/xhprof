@@ -431,8 +431,6 @@ CREATE TABLE `details` (
             if ($_xhprof['display'] === true)
             {
                 echo "Failed to insert: $query <br>\n";
-                var_dump(mysqli_error($this->linkID));
-                var_dump(mysqli_errno($this->linkID));
             }
             return -1;
         }
