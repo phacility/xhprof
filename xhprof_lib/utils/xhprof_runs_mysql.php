@@ -65,15 +65,6 @@ interface iXHProfRuns {
  * itself (beyond simply the run id) to make comparisons and run
  * location easier
  * 
- * Configuration steps:
- *  1 - Set the database credentials in the class properties
- *  2 - Create the database, create table syntax provided below
- *  3 - Set the prefix for this server or application
- *  4 - Configure the urlSimilator method (bottom of this file)
- *  5 - Ensure you're using the callgraph_utils.php and xprof_runs.php 
- * files from this repo, as they've been updated to deal with get_run() returning
- * an array.
- *
  * @author Kannan
  * @author Paul Reinheimer (http://blog.preinheimer.com)
  */

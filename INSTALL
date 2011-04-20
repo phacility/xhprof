@@ -12,3 +12,5 @@ php_admin_value auto_prepend_file="<path>/external/header.php"
 php_admin_value auto_append_file="<path>/external/footer.php"
 7. Bump your server, hope for the best
 8. Hitting a file with ?_profile=1 should profile the page and give you a link at the bottom
+
+There's a decent blog post on setting this up, as well as tips on how to use it at: http://phpadvent.org/2010/profiling-with-xhgui-by-paul-reinheimer

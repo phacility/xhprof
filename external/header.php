@@ -1,6 +1,30 @@
 <?php
 include(dirname(__FILE__) . '/..//xhprof_lib/config.php');
 
+//I'm Magic :)
+class visibilitator
+{
+	public static function __callstatic($name, $arguments)
+	{
+		$func_name = array_shift($arguments);
+		//var_dump($name);
+		//var_dump("arguments" ,$arguments);
+		//var_dump($func_name);
+		if (is_array($func_name))
+		{
+			list($a, $b) = $func_name;
+			if (count($arguments) == 0)
+			{
+				$arguments = $arguments[0];
+			}
+			return call_user_func_array(array($a, $b), $arguments);
+			//echo "array call  -> $b ($arguments)";
+		}else {
+			call_user_func_array($func_name, $arguments);
+		}
+	}
+}
+
 //User has control, and is attempting to modify profiling parameters
 if(in_array($_SERVER['REMOTE_ADDR'], $controlIPs) && isset($_GET['_profile']))
 {
