@@ -83,6 +83,16 @@ if ($_xhprof['doprofile'] === false)
 }
 unset($weight);
 
+// Certian URLS should never be profiled.
+foreach($ignoreURLs as $url){
+    if (stripos($_SERVER['REQUEST_URI'], $url) !== FALSE)
+    {
+        $_xhprof['doprofile'] = false;
+        break;
+    }
+}
+unset($ignoreURLs);
+
 //Display warning if extension not available
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_lib.php';

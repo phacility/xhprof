@@ -27,6 +27,8 @@ $_xhprof['dot_tempdir'] = '/tmp';
 $_xhprof['dot_errfile'] = '/tmp/xh_dot.err';
 */
 
+$ignoreURLs = array();
+
 $exceptionURLs = array();
 
 $exceptionPostURLs = array();
