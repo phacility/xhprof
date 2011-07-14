@@ -258,7 +258,7 @@ CREATE TABLE `details` (
     $data = mysql_fetch_assoc($resultSet);
     
     //The Performance data is compressed lightly to avoid max row length
-    $contents = json_decode(gzuncompress(base64_decode($data['perfdata'])), true);
+    $contents = json_decode(gzuncompress($data['perfdata']), true);
     
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
@@ -406,7 +406,7 @@ CREATE TABLE `details` (
 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-        $sql['data'] = mysql_real_escape_string(base64_encode(gzcompress(json_encode($xhprof_data), 9)));
+        $sql['data'] = mysql_real_escape_string(gzcompress(json_encode($xhprof_data), 2));
         
 	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
