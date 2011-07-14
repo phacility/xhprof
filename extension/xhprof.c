@@ -47,7 +47,7 @@
 #elif __APPLE__
 /*
  * Patch for compiling in Mac OS X Leopard
- * @author Svilen Spasov <s.spasov@gmail.com> 
+ * @author Svilen Spasov <s.spasov@gmail.com>
  */
 #    include <mach/mach_init.h>
 #    include <mach/thread_policy.h>
@@ -108,6 +108,7 @@
 #define XHPROF_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
 #define XHPROF_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
 #define XHPROF_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
+#define XHPROF_FLAGS_LONGNAMES     0x0008   /* use long filenames in reports */
 
 /* Constants for XHPROF_MODE_SAMPLED        */
 #define XHPROF_SAMPLING_INTERVAL       100000      /* In microsecs        */
@@ -554,6 +555,10 @@ static void hp_register_constants(INIT_FUNC_ARGS) {
   REGISTER_LONG_CONSTANT("XHPROF_FLAGS_MEMORY",
                          XHPROF_FLAGS_MEMORY,
                          CONST_CS | CONST_PERSISTENT);
+
+  REGISTER_LONG_CONSTANT("XHPROF_FLAGS_LONGNAMES",
+                         XHPROF_FLAGS_LONGNAMES,
+                         CONST_CS | CONST_PERSISTENT);
 }
 
 /**
@@ -793,7 +798,7 @@ size_t hp_get_entry_name(hp_entry_t  *entry,
 /**
  * Check if this entry should be ignored, first with a conservative Bloomish
  * filter then with an exact check against the function names.
- * 
+ *
  * @author mpal
  */
 int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
@@ -814,7 +819,7 @@ int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
 
 inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
   /* First check if ignoring functions is enabled */
-  return hp_globals.ignored_function_names != NULL && 
+  return hp_globals.ignored_function_names != NULL &&
          hp_ignore_entry_work(hash_code, curr_func);
 }
 
@@ -885,9 +890,13 @@ static char *hp_get_base_filename(char *filename) {
   char *ptr;
   int   found = 0;
 
+
   if (!filename)
     return "";
 
+  if(hp_globals.xhprof_flags & XHPROF_FLAGS_LONGNAMES) {
+	  return filename;
+  }
   /* reverse search for "/" and return a ptr to the next char */
   for (ptr = filename + strlen(filename) - 1; ptr >= filename; ptr--) {
     if (*ptr == '/') {
@@ -1851,8 +1860,8 @@ static void hp_stop(TSRMLS_D) {
  */
 
 /** Look in the PHP assoc array to find a key and return the zval associated
- *  with it.  
- *  
+ *  with it.
+ *
  *  @author mpal
  **/
 static zval *hp_zval_at_key(char  *key,

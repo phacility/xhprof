@@ -106,15 +106,16 @@ CREATE TABLE `details` (
   `c_url` varchar(255) default NULL,
   `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   `server name` varchar(64) default NULL,
-  `perfdata` text,
+  `perfdata` MEDIUMBLOB,
   `type` tinyint(4) default NULL,
-  `cookie` text,
-  `post` text,
-  `get` text,
+  `cookie` BLOB,
+  `post` BLOB,
+  `get` BLOB,
   `pmu` int(11) default NULL,
   `wt` int(11) default NULL,
   `cpu` int(11) default NULL,
   `server_id` char(3) NOT NULL default 't11',
+  `aggregateCalls_include` varchar(255) DEFAULT NULL,
   PRIMARY KEY  (`id`),
   KEY `url` (`url`),
   KEY `c_url` (`c_url`),
@@ -403,7 +404,6 @@ CREATE TABLE `details` (
 	$sql['cpu'] = isset($xhprof_data['main()']['cpu']) ? $xhprof_data['main()']['cpu'] : '';        
 
 
-        //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
         $sql['data'] = mysqli_real_escape_string($this->linkID, gzcompress(serialize($xhprof_data), 2));
@@ -417,9 +417,9 @@ CREATE TABLE `details` (
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = mysqli_real_escape_string($this->linkID, $_SERVER['REQUEST_TIME']);
 		$sql['server_id'] = mysqli_real_escape_string($this->linkID, $_xhprof['servername']);
+        $sql['aggregateCalls_include'] = getenv('xhprof_aggregateCalls_include') ? getenv('xhprof_aggregateCalls_include') : '';
         
-        
-        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
+        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`, `aggregateCalls_include`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}', '{$sql['aggregateCalls_include']}')";
         
         mysqli_query($this->linkID, $query);
         if (mysqli_affected_rows($this->linkID) == 1)
