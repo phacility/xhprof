@@ -439,8 +439,3 @@ CREATE TABLE `details` (
   
 
 }
-
-function noop(&$arg)
-{
-	return $arg;
-}
