@@ -30,7 +30,7 @@
  */
 require ("../xhprof_lib/config.php");
 
-if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+if ($controlIPs !== false && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
   die();
 }
