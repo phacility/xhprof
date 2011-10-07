@@ -6,7 +6,7 @@ require (XHPROF_LIB_ROOT . "/config.php");
 include_once XHPROF_LIB_ROOT . '/display/xhprof.php';
 include (XHPROF_LIB_ROOT . "/utils/common.php");
 
-if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+if ($controlIPs !== false && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
   die("You do not have permission to view this page.");
 }
@@ -164,12 +164,8 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     echo "<tbody>\n";
     while ($row = XHProfRuns_Default::getNextAssoc($resultSet))
     {
-        $c_url = urlencode($row['c_url']);
         $url = urlencode($row['url']);
         $html['url'] = htmlentities($row['url'], ENT_QUOTES, 'UTF-8');
-        $html['c_url'] = htmlentities($row['c_url'], ENT_QUOTES, 'UTF-8');
-        $date = strtotime($row['timestamp']);
-        $date = date('M d H:i:s', $date);
         echo "\t<tr><td><a href=\"?geturl={$url}\">{$html['url']}</a></td><td>{$row['count']}</td><td>" . number_format($row['total_wall']) . " ms</td><td>" . number_format($row['avg_wall']) . " ms</td></tr>\n";
     }
     echo "</tbody>\n";
