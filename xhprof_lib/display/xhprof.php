@@ -821,7 +821,6 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
     }
   }
 
-  _getAggregatedCalls($flat_data);
   include( "../xhprof_lib/templates/profChart.phtml");
   include( "../xhprof_lib/templates/profTable.phtml");
 
