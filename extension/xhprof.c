@@ -28,6 +28,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_xhprof.h"
+#include "Zend/zend_extensions.h"
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdlib.h>
@@ -61,7 +62,7 @@
                           THREAD_AFFINITY_POLICY_COUNT)
 #elif PHP_WIN32
 /*
- * Patch for compiling in Windows (i've used MS VC++ 6)
+ * patch to make sourcs compatible with win-os (tested with VC6, VC9)
  * @author Benjamin Carl <opensource@clickalicious.de>
  */
 #    define CPU_SET(cpu_id, new_mask) (*(new_mask)) = (cpu_id + 1)
@@ -85,7 +86,7 @@
  */
 
 /* XHProf version                           */
-#define XHPROF_VERSION       "0.10.0"
+#define XHPROF_VERSION       "0.10.1"
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
@@ -293,6 +294,21 @@ static inline void   hp_array_del(char **name_array);
 static int restore_cpu_affinity(cpu_set_t * prev_mask);
 static int bind_to_cpu(uint32 cpu_id);
 
+/* {{{ arginfo */
+ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprof_enable, 0, 0, 0)
+  ZEND_ARG_INFO(0, flags)
+  ZEND_ARG_INFO(0, options)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_disable, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_enable, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_disable, 0)
+ZEND_END_ARG_INFO()
+
 /**
  * *********************
  * PHP EXTENSION GLOBALS
@@ -300,10 +316,10 @@ static int bind_to_cpu(uint32 cpu_id);
  */
 /* List of functions implemented/exposed by xhprof */
 zend_function_entry xhprof_functions[] = {
-  PHP_FE(xhprof_enable, NULL)
-  PHP_FE(xhprof_disable, NULL)
-  PHP_FE(xhprof_sample_enable, NULL)
-  PHP_FE(xhprof_sample_disable, NULL)
+  PHP_FE(xhprof_enable, arginfo_xhprof_enable)
+  PHP_FE(xhprof_disable, arginfo_xhprof_disable)
+  PHP_FE(xhprof_sample_enable, arginfo_xhprof_sample_enable)
+  PHP_FE(xhprof_sample_disable, arginfo_xhprof_sample_disable)
   {NULL, NULL, NULL}
 };
 
@@ -948,12 +964,19 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       }
     } else {
       long     curr_op;
+      int      desc_len;
+      char    *desc;
       int      add_filename = 0;
 
       /* we are dealing with a special directive/function like
        * include, eval, etc.
        */
+#if ZEND_EXTENSION_API_NO >= 220100525
+      curr_op = data->opline->extended_value;
+#else
       curr_op = data->opline->op2.u.constant.value.lval;
+#endif
+
       switch (curr_op) {
         case ZEND_EVAL:
           func = "eval";
@@ -1686,6 +1709,15 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
     zend_op *opline = EX(opline);
+#if ZEND_EXTENSION_API_NO >= 220100525
+    temp_variable *retvar = &EX_T(opline->result.var);
+    ((zend_internal_function *) EX(function_state).function)->handler(
+                       opline->extended_value,
+                       retvar->var.ptr,
+                       (EX(function_state).function->common.fn_flags & ZEND_ACC_RETURN_REFERENCE) ?
+                       &retvar->var.ptr:NULL,
+                       EX(object), ret TSRMLS_CC);
+#else
     ((zend_internal_function *) EX(function_state).function)->handler(
                        opline->extended_value,
                        EX_T(opline->result.u.var).var.ptr,
@@ -1693,6 +1725,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
                        &EX_T(opline->result.u.var).var.ptr:NULL,
                        EX(object), ret TSRMLS_CC);
 
+#endif
   } else {
     /* call the old override */
     _zend_execute_internal(execute_data, ret TSRMLS_CC);
@@ -1824,6 +1857,8 @@ static void hp_end(TSRMLS_D) {
  * hp_begin() and restores the original values.
  */
 static void hp_stop(TSRMLS_D) {
+  zval *ret;
+  char *out_url;
   int   hp_profile_flag = 1;
 
   /* End any unfinished calls */
