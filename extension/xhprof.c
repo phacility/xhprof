@@ -86,7 +86,7 @@
  */
 
 /* XHProf version                           */
-#define XHPROF_VERSION       "0.10.1"
+#define XHPROF_VERSION       "0.10.2"
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
@@ -109,6 +109,7 @@
 #define XHPROF_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
 #define XHPROF_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
 #define XHPROF_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
+#define XHPROF_FLAGS_LONGNAMES     0x0008   /* use long filenames in reports */
 
 /* Constants for XHPROF_MODE_SAMPLED        */
 #define XHPROF_SAMPLING_INTERVAL       100000      /* In microsecs        */
@@ -570,6 +571,9 @@ static void hp_register_constants(INIT_FUNC_ARGS) {
   REGISTER_LONG_CONSTANT("XHPROF_FLAGS_MEMORY",
                          XHPROF_FLAGS_MEMORY,
                          CONST_CS | CONST_PERSISTENT);
+  REGISTER_LONG_CONSTANT("XHPROF_FLAGS_LONGNAMES",
+                         XHPROF_FLAGS_LONGNAMES,
+                         CONST_CS | CONST_PERSISTENT);
 }
 
 /**
@@ -904,6 +908,10 @@ static char *hp_get_base_filename(char *filename) {
   if (!filename)
     return "";
 
+  /* return complete filename if requested */
+  if (hp_globals.xhprof_flags & XHPROF_FLAGS_LONGNAMES) {
+	  return filename;
+  }
   /* reverse search for "/" and return a ptr to the next char */
   for (ptr = filename + strlen(filename) - 1; ptr >= filename; ptr--) {
     if (*ptr == '/') {

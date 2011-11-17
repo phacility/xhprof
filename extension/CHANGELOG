@@ -1,4 +1,8 @@
 
+0.10.2
+merged changes (add option to display full filenames) of mfonda (Matthew Fonda) [https://github.com/mfonda/xhprof]
+into clickalicious git - this gives you the possibility to display full filenames
+
 0.10.1
 merged changes (Fixed PHP 5.4 building) of scottmac (Scott MacVicar) [https://github.com/facebook/xhprof]
 to make the extension compatible for win32/64 PHP 5.4 building/compiling
