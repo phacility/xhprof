@@ -26,12 +26,21 @@ print('<div id="view-diff-tables">');
          
       print('<div class="colone">');          
          //   cookie diff data from array position 0 
-       $cookieArr0 =  json_decode($xhprof_runs_impl->run_details[0]['cookie'], true);
+	  if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer']) == 'php') {
+       $cookieArr0 =  unserialize($xhprof_runs_impl->run_details[0]['cookie']);
+       $cookieArr1 =  unserialize($xhprof_runs_impl->run_details[1]['cookie']);
+       $getArr0 =  unserialize($xhprof_runs_impl->run_details[0]['get']);
+       $getArr1 =  unserialize($xhprof_runs_impl->run_details[1]['get']);     
+       $postArr0 =  unserialize($xhprof_runs_impl->run_details[0]['post']); 
+       $postArr1 =  unserialize($xhprof_runs_impl->run_details[1]['post']);    
+	  } else {
+	   $cookieArr0 =  json_decode($xhprof_runs_impl->run_details[0]['cookie'], true);
        $cookieArr1 =  json_decode($xhprof_runs_impl->run_details[1]['cookie'], true);
        $getArr0 =  json_decode($xhprof_runs_impl->run_details[0]['get'], true);
        $getArr1 =  json_decode($xhprof_runs_impl->run_details[1]['get'], true);     
        $postArr0 =  json_decode($xhprof_runs_impl->run_details[0]['post'], true); 
        $postArr1 =  json_decode($xhprof_runs_impl->run_details[1]['post'], true);    
+	  }
        
        
         print ('<div class="box-fix-small">');

@@ -258,7 +258,12 @@ CREATE TABLE `details` (
     $data = mysqli_fetch_assoc($resultSet);
     
     //The Performance data is compressed lightly to avoid max row length
-    $contents = unserialize(gzuncompress($data['perfdata']));
+	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		$contents = unserialize(gzuncompress($data['perfdata']));
+	} else {
+		$contents = json_decode(gzuncompress($data['perfdata']), true);
+	}
+		
     
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
@@ -386,17 +391,31 @@ CREATE TABLE `details` (
 		
 		*/
 
-        $sql['get'] = mysqli_real_escape_string($this->linkID, serialize($_GET));
-        $sql['cookie'] = mysqli_real_escape_string($this->linkID, serialize($_COOKIE));
-        
-        //This code has not been tested
-        if ($_xhprof['savepost'])
-        {
-        	$sql['post'] = mysqli_real_escape_string($this->linkID, serialize($_POST));    
-        }else
-        {
-        	$sql['post'] = mysqli_real_escape_string($this->linkID, serialize(array("Skipped" => "Post data omitted by rule")));
-        }
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+			$sql['get'] = mysqli_real_escape_string($this->linkID, serialize($_GET));
+			$sql['cookie'] = mysqli_real_escape_string($this->linkID, serialize($_COOKIE));
+
+			//This code has not been tested
+			if ($_xhprof['savepost'])
+			{
+				$sql['post'] = mysqli_real_escape_string($this->linkID, serialize($_POST));    
+			}else
+			{
+				$sql['post'] = mysqli_real_escape_string($this->linkID, serialize(array("Skipped" => "Post data omitted by rule")));
+			}
+		} else {
+			$sql['get'] = mysqli_real_escape_string($this->linkID, json_encode($_GET));
+			$sql['cookie'] = mysqli_real_escape_string($this->linkID, json_encode($_COOKIE));
+
+			//This code has not been tested
+			if ($_xhprof['savepost'])
+			{
+				$sql['post'] = mysqli_real_escape_string($this->linkID, json_encode($_POST));    
+			}else
+			{
+				$sql['post'] = mysqli_real_escape_string($this->linkID, json_encode(array("Skipped" => "Post data omitted by rule")));
+			}
+		}
         
         
 	$sql['pmu'] = isset($xhprof_data['main()']['pmu']) ? $xhprof_data['main()']['pmu'] : '';
@@ -406,7 +425,11 @@ CREATE TABLE `details` (
 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-        $sql['data'] = mysqli_real_escape_string($this->linkID, gzcompress(serialize($xhprof_data), 2));
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+			$sql['data'] = mysqli_real_escape_string($this->linkID, gzcompress(serialize($xhprof_data), 2));
+		} else {
+			$sql['data'] = mysqli_real_escape_string($this->linkID, gzcompress(json_encode($xhprof_data), 2));
+		}
         
 	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
