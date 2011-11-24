@@ -258,7 +258,7 @@ CREATE TABLE `details` (
     $data = mysql_fetch_assoc($resultSet);
     
     //The Performance data is compressed lightly to avoid max row length
-	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 		$contents = unserialize(gzuncompress($data['perfdata']));
 	} else {
 		$contents = json_decode(gzuncompress($data['perfdata']), true);
@@ -390,7 +390,7 @@ CREATE TABLE `details` (
 		
 		*/
 
-		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 			$sql['get'] = mysql_real_escape_string(serialize($_GET), $this->linkID);
 			$sql['cookie'] = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
         
