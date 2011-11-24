@@ -808,6 +808,19 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
   $data_copy = _aggregateCalls($data_copy, null, $run2);
   usort($data_copy, 'sortWT');
   
+  $iterations = 0;
+  $colors = array('#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92', '#EAFEBB', '#FEB4B1', '#2B6979', '#E9D6FE', '#FECDA3', '#FED980');
+  foreach($data_copy as $datapoint)
+  {
+    if (++$iterations > 14)
+    {
+        $function_color[$datapoint['fn']] = $colors[14];
+    }else
+    {
+        $function_color[$datapoint['fn']] = $colors[$iterations-1];
+    }
+  }
+
   include( "../xhprof_lib/templates/profChart.phtml");
   include( "../xhprof_lib/templates/profTable.phtml");
 
@@ -1362,7 +1375,6 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
         list($xhprof_data, $run_details) = $xhprof_runs_impl->get_run($runs_array[0],
                                                 $source,
                                                 $description);
-
     } else {
       if (!empty($wts)) {
         $wts_array  = explode(",", $wts);

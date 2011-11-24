@@ -6,11 +6,10 @@ require (XHPROF_LIB_ROOT . "/config.php");
 include_once XHPROF_LIB_ROOT . '/display/xhprof.php';
 include (XHPROF_LIB_ROOT . "/utils/common.php");
 
-if ($controlIPs !== false && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
   die("You do not have permission to view this page.");
 }
-
 
 // param name, its type, and default value
 $params = array('run'        => array(XHPROF_STRING_PARAM, ''),

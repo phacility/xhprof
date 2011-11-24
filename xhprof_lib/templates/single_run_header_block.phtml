@@ -11,6 +11,16 @@
         if ($display_calls) {
             $format_total= number_format($totals['ct']);
         }
+		
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+			$cookieArr =  unserialize($xhprof_runs_impl->run_details['cookie']);
+			$getArr =  unserialize($xhprof_runs_impl->run_details['get']);
+			$postArr =  unserialize($xhprof_runs_impl->run_details['post']);
+		} else {
+			$cookieArr =  json_decode($xhprof_runs_impl->run_details['cookie'], true);
+			$getArr =  json_decode($xhprof_runs_impl->run_details['get'], true);
+			$postArr =  json_decode($xhprof_runs_impl->run_details['post'], true);
+		}
         
     //TODO This is lame
     global $comparative;   
@@ -64,7 +74,6 @@
     </thead>
    <tbody>
   <?php
-    $cookieArr =  unserialize($xhprof_runs_impl->run_details['cookie']);
  // echo '<pre>'.print_r($cookieArr, true).'</pre>';        
     foreach($cookieArr as $key=>$value){
         if (is_array($value))
@@ -90,7 +99,6 @@
     </thead>
    <tbody>
   <?php
-    $getArr =  unserialize($xhprof_runs_impl->run_details['get']);
  // echo '<pre>'.print_r($getArr, true).'</pre>';         
     foreach($getArr as $key=>$value)
     {  
@@ -117,7 +125,6 @@
      </thead>
     <tbody>
   <?php
-     $postArr =  unserialize($xhprof_runs_impl->run_details['post']);
   // echo '<pre>'.print_r($postArr, true).'</pre>';       
     foreach($postArr as $key=>$value){
         if (is_array($value))
