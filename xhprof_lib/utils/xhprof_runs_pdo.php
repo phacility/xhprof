@@ -259,7 +259,12 @@ CREATE TABLE `details` (
     $data = $resultSet->fetch(); 
     
     //The Performance data is compressed lightly to avoid max row length
-    $contents = unserialize(gzuncompress($data['perfdata']));
+	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		$contents = unserialize(gzuncompress($data['perfdata']));
+	} else {
+		$contents = json_decode(gzuncompress($data['perfdata']), true);
+	}
+
     
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
@@ -386,18 +391,34 @@ CREATE TABLE `details` (
 		
 		*/
 
-        $sql['get'] = $this->db->quote(serialize($_GET));
-        $sql['cookie'] = $this->db->quote(serialize($_COOKIE));
-        
-		global $_xhprof;
-        //This code has not been tested
-        if (isset($_xhprof['savepost']) && $_xhprof['savepost'])
-        {
-        	$sql['post'] = $this->db->quote(serialize($_POST));    
-        }else
-        {
-        	$sql['post'] = $this->db->quote(serialize(array("Skipped" => "Post data omitted by rule")));
-        }
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+			$sql['get'] = $this->db->quote(serialize($_GET));
+			$sql['cookie'] = $this->db->quote(serialize($_COOKIE));
+
+			global $_xhprof;
+			//This code has not been tested
+			if (isset($_xhprof['savepost']) && $_xhprof['savepost'])
+			{
+				$sql['post'] = $this->db->quote(serialize($_POST));    
+			}else
+			{
+				$sql['post'] = $this->db->quote(serialize(array("Skipped" => "Post data omitted by rule")));
+			}
+		} else {
+			$sql['get'] = $this->db->quote(json_encode($_GET));
+			$sql['cookie'] = $this->db->quote(json_encode($_COOKIE));
+
+			global $_xhprof;
+			//This code has not been tested
+			if (isset($_xhprof['savepost']) && $_xhprof['savepost'])
+			{
+				$sql['post'] = $this->db->quote(json_encode($_POST));    
+			}else
+			{
+				$sql['post'] = $this->db->quote(json_encode(array("Skipped" => "Post data omitted by rule")));
+			}
+		}
+			
         
         
 	$sql['pmu'] = isset($xhprof_data['main()']['pmu']) ? $xhprof_data['main()']['pmu'] : '';
@@ -407,7 +428,12 @@ CREATE TABLE `details` (
 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-        $sql['data'] = $this->db->quote(gzcompress(serialize($xhprof_data), 2));
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+			$sql['data'] = $this->db->quote(gzcompress(serialize($xhprof_data), 2));
+		} else {
+			$sql['data'] = $this->db->quote(gzcompress(json_encode($xhprof_data), 2));
+		}
+			
         
 	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
