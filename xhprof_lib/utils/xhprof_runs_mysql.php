@@ -422,7 +422,7 @@ CREATE TABLE `details` (
 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 			$sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
 		} else {
 			$sql['data'] = mysql_real_escape_string(gzcompress(json_encode($xhprof_data), 2));
