@@ -1,4 +1,9 @@
 <?php
+if (PHP_SAPI == 'cli') {
+  $_SERVER['REMOTE_ADDR'] = null;
+  $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
+}
+
 include(dirname(__FILE__) . '/..//xhprof_lib/config.php');
 
 //I'm Magic :)
@@ -26,7 +31,7 @@ class visibilitator
 }
 
 // Only users from authorized IP addresses may control Profiling
-if ($controlIPs === false || in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+if ($controlIPs === false || in_array($_SERVER['REMOTE_ADDR'], $controlIPs) || PHP_SAPI == 'cli')
 {
   if (isset($_GET['_profile']))
   {
@@ -37,7 +42,7 @@ if ($controlIPs === false || in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
     exit;
   }
 
-  if (isset($_COOKIE['_profile']) && $_COOKIE['_profile'])
+  if (isset($_COOKIE['_profile']) && $_COOKIE['_profile'] || PHP_SAPI == 'cli' && ((isset($_SERVER['XHPROF_PROFILE']) && $_SERVER['XHPROF_PROFILE']) || (isset($_ENV['XHPROF_PROFILE']) && $_ENV['XHPROF_PROFILE'])))
   {
       $_xhprof['display'] = true;
       $_xhprof['doprofile'] = true;
