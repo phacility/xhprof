@@ -20,9 +20,11 @@
     {
     	if (isset($element['group'])) {
 	  $color = $function_color[$element['group']];
-	} else {
+	} elseif (isset($function_color[$element['fn']])) {
 	  $color = $function_color[$element['fn']];
-	}
+	} else {
+          $color = 'inherit';
+        }
     ?>
     
     <tr>
