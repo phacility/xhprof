@@ -258,7 +258,7 @@ CREATE TABLE `details` (
     $data = mysqli_fetch_assoc($resultSet);
     
     //The Performance data is compressed lightly to avoid max row length
-	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 		$contents = unserialize(gzuncompress($data['perfdata']));
 	} else {
 		$contents = json_decode(gzuncompress($data['perfdata']), true);
@@ -391,7 +391,7 @@ CREATE TABLE `details` (
 		
 		*/
 
-		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 			$sql['get'] = mysqli_real_escape_string($this->linkID, serialize($_GET));
 			$sql['cookie'] = mysqli_real_escape_string($this->linkID, serialize($_COOKIE));
 
@@ -425,7 +425,7 @@ CREATE TABLE `details` (
 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 			$sql['data'] = mysqli_real_escape_string($this->linkID, gzcompress(serialize($xhprof_data), 2));
 		} else {
 			$sql['data'] = mysqli_real_escape_string($this->linkID, gzcompress(json_encode($xhprof_data), 2));
