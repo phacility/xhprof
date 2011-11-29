@@ -12,7 +12,7 @@
             $format_total= number_format($totals['ct']);
         }
 		
-		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_zhprof']['serializer'] == 'php')) {
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 			$cookieArr =  unserialize($xhprof_runs_impl->run_details['cookie']);
 			$getArr =  unserialize($xhprof_runs_impl->run_details['get']);
 			$postArr =  unserialize($xhprof_runs_impl->run_details['post']);
