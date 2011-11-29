@@ -4,7 +4,7 @@ if (PHP_SAPI == 'cli') {
   $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
 }
 
-include(dirname(__FILE__) . '/..//xhprof_lib/config.php');
+include(dirname(__FILE__) . '/../xhprof_lib/config.php');
 
 //I'm Magic :)
 class visibilitator
@@ -105,5 +105,6 @@ if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 }elseif(!extension_loaded('xhprof') && $_xhprof['display'] === true)
 {
-	echo "Warning! Unable to profile run, xhprof extension not loaded\n";
+    $message = 'Warning! Unable to profile run, xhprof extension not loaded';
+    trigger_error($message, E_WARNING);
 }
