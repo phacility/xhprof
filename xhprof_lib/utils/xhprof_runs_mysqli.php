@@ -435,7 +435,7 @@ CREATE TABLE `details` (
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
 	
         $sql['url'] = mysqli_real_escape_string($this->linkID, $url);
-        $sql['c_url'] = mysqli_real_escape_string($this->linkID, _urlSimilartor($_SERVER['REQUEST_URI']));
+        $sql['c_url'] = mysqli_real_escape_string($this->linkID, _urlSimilartor($url));
         $sql['servername'] = mysqli_real_escape_string($this->linkID, $sname);
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = mysqli_real_escape_string($this->linkID, $_SERVER['REQUEST_TIME']);
