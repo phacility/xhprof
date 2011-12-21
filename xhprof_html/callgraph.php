@@ -28,7 +28,7 @@
  *
  * @author Changhao Jiang (cjiang@facebook.com)
  */
-require ("../xhprof_lib/config.php");
+require_once ("../xhprof_lib/config.php");
 
 if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
