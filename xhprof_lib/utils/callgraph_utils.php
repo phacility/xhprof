@@ -25,6 +25,7 @@ $xhprof_legal_image_types = array(
     "jpg" => 1,
     "gif" => 1,
     "png" => 1,
+    "svg" => 1, // support scalable vector graphic
     "ps"  => 1,
     );
 
@@ -67,6 +68,9 @@ function xhprof_generate_mime_header($type, $length) {
       break;
     case 'png':
       $mime = 'image/png';
+      break;
+    case 'svg':
+      $mime = 'image/svg+xml'; // content type for scalable vector graphic
       break;
     case 'ps':
       $mime = 'application/postscript';
