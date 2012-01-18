@@ -28,6 +28,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_xhprof.h"
+#include "Zend/zend_extensions.h"
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdlib.h>
@@ -920,7 +921,7 @@ static char *hp_get_base_filename(char *filename) {
 static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
   zend_execute_data *data;
   char              *func = NULL;
-  char              *cls = NULL;
+  const char        *cls = NULL;
   char              *ret = NULL;
   int                len;
   zend_function      *curr_func;
@@ -962,7 +963,12 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       /* we are dealing with a special directive/function like
        * include, eval, etc.
        */
+#if ZEND_EXTENSION_API_NO >= 220100525
+      curr_op = data->opline->extended_value;
+#else
       curr_op = data->opline->op2.u.constant.value.lval;
+#endif
+
       switch (curr_op) {
         case ZEND_EVAL:
           func = "eval";
@@ -1354,21 +1360,13 @@ static void get_all_cpu_frequencies() {
   /* Iterate over all cpus found on the machine. */
   for (id = 0; id < hp_globals.cpu_num; ++id) {
     /* Only get the previous cpu affinity mask for the first call. */
-    if (bind_to_cpu(id)) {
-      clear_frequencies();
-      return;
-    }
+    bind_to_cpu(id);
 
     /* Make sure the current process gets scheduled to the target cpu. This
      * might not be necessary though. */
     usleep(0);
 
-    frequency = get_cpu_frequency();
-    if (frequency == 0.0) {
-      clear_frequencies();
-      return;
-    }
-    hp_globals.cpu_frequencies[id] = frequency;
+    hp_globals.cpu_frequencies[id] = get_cpu_frequency();
   }
 }
 
@@ -1489,6 +1487,12 @@ void hp_mode_sampled_init_cb(TSRMLS_D) {
   uint64 truncated_tsc;
   double cpu_freq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
+  if (cpu_freq == 0.0) {
+    /* There is an insignificant chance that cpu_freq equals 0 
+       and we cannot do anything in this case */
+    return;
+  }
+  
   /* Init the last_sample in tsc */
   hp_globals.last_sample_tsc = cycle_timer();
 
@@ -1695,13 +1699,22 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
     zend_op *opline = EX(opline);
+#if ZEND_EXTENSION_API_NO >= 220100525
+    temp_variable *retvar = &EX_T(opline->result.var);
+    ((zend_internal_function *) EX(function_state).function)->handler(
+                       opline->extended_value,
+                       retvar->var.ptr,
+                       (EX(function_state).function->common.fn_flags & ZEND_ACC_RETURN_REFERENCE) ?
+                       &retvar->var.ptr:NULL,
+                       EX(object), ret TSRMLS_CC);
+#else
     ((zend_internal_function *) EX(function_state).function)->handler(
                        opline->extended_value,
                        EX_T(opline->result.u.var).var.ptr,
                        EX(function_state).function->common.return_reference ?
                        &EX_T(opline->result.u.var).var.ptr:NULL,
                        EX(object), ret TSRMLS_CC);
-
+#endif
   } else {
     /* call the old override */
     _zend_execute_internal(execute_data, ret TSRMLS_CC);
