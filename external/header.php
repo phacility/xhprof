@@ -108,3 +108,10 @@ if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     $message = 'Warning! Unable to profile run, xhprof extension not loaded';
     trigger_error($message, E_WARNING);
 }
+
+function xhprof_shutdown_function() {
+    global $_xhprof;
+    require dirname(__FILE__).'/footer.php';
+}
+
+register_shutdown_function('xhprof_shutdown_function');
