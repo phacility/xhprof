@@ -244,6 +244,9 @@ static ZEND_DLEXPORT void (*_zend_execute_internal) (zend_execute_data *data,
 static zend_op_array * (*_zend_compile_file) (zend_file_handle *file_handle,
                                               int type TSRMLS_DC);
 
+/* Pointer to the original compile string function (used by eval) */
+static zend_op_array * (*_zend_compile_string) (zval *source_string, char *filename TSRMLS_DC);
+
 /* Bloom filter for function names to be ignored */
 #define INDEX_2_BYTE(index)  (index >> 3)
 #define INDEX_2_BIT(index)   (1 << (index & 0x7));
@@ -1729,6 +1732,29 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
   return ret;
 }
 
+/**
+ * Proxy for zend_compile_string(). Used to profile PHP eval compilation time.
+ */
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename TSRMLS_DC) {
+
+    char          *func;
+    int            len;
+    zend_op_array *ret;
+    int            hp_profile_flag = 1;
+
+    len  = strlen("eval") + strlen(filename) + 3;
+    func = (char *)emalloc(len);
+    snprintf(func, len, "eval::%s", filename);
+
+    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
+    ret = _zend_compile_string(source_string, filename TSRMLS_CC);
+    if (hp_globals.entries) {
+        END_PROFILING(&hp_globals.entries, hp_profile_flag);
+    }
+
+    efree(func);
+    return ret;
+}
 
 /**
  * **************************
@@ -1751,6 +1777,10 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     /* Replace zend_compile with our proxy */
     _zend_compile_file = zend_compile_file;
     zend_compile_file  = hp_compile_file;
+
+    /* Replace zend_compile_string with our proxy */
+    _zend_compile_string = zend_compile_string;
+    zend_compile_string = hp_compile_string;
 
     /* Replace zend_execute with our proxy */
     _zend_execute = zend_execute;
