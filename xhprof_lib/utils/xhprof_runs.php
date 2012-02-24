@@ -79,7 +79,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     $file = "$run_id.$type." . $this->suffix;
 
     if (!empty($this->dir)) {
-      $file = $this->dir . "/" . $file;
+      $file = $this->dir . "/" . $file . '.gz';
     }
     return $file;
   }
@@ -117,7 +117,8 @@ class XHProfRuns_Default implements iXHProfRuns {
       return null;
     }
 
-    $contents = file_get_contents($file_name);
+    $data = gzfile($file_name);
+    $contents = implode($data);
     $run_desc = "XHProf Run (Namespace=$type)";
     return unserialize($contents);
   }
@@ -133,11 +134,11 @@ class XHProfRuns_Default implements iXHProfRuns {
     }
 
     $file_name = $this->file_name($run_id, $type);
-    $file = fopen($file_name, 'w');
+    $file = gzopen($file_name, 'w');
 
     if ($file) {
-      fwrite($file, $xhprof_data);
-      fclose($file);
+      gzwrite($file, $xhprof_data);
+      gzclose($file);
     } else {
       xhprof_error("Could not open $file_name\n");
     }
@@ -149,7 +150,7 @@ class XHProfRuns_Default implements iXHProfRuns {
   function list_runs() {
     if (is_dir($this->dir)) {
         echo "<hr/>Existing runs:\n<ul>\n";
-        $files = glob("{$this->dir}/*.{$this->suffix}");
+        $files = glob("{$this->dir}/*.{$this->suffix}.gz");
         usort($files, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
         foreach ($files as $file) {
             list($run,$source) = explode('.', basename($file));
