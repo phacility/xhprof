@@ -861,6 +861,19 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2) {
     }
 
     if ($display_calls) {
+      $time = 0;
+      foreach ( $symbol_tab as $k => $sym ) {
+           if (0 === strpos ( $k, 'load::' )) {
+              $time += floatval ( $sym ['wt'] );
+           }
+      }
+      echo "<tr>";
+      echo "<td style='text-align:right; font-weight:bold'>Compilation Time:</td>";
+      echo "<td>" . number_format ( $time ) . " microsecs</td>";
+      echo "</tr>";
+    } 
+	
+    if ($display_calls) {
       echo "<tr>";
       echo "<td style='text-align:right; font-weight:bold'>Number of Function Calls:</td>";
       echo "<td>" . number_format($totals['ct']) . "</td>";
