@@ -23,7 +23,6 @@
 6. Load up index.php, ensure happiness
 7. Edit the virtual host configuration for the site you'd like to profile to 
     php_admin_value auto_prepend_file "<path>/external/header.php"
-    php_admin_value auto_append_file "<path>/external/footer.php"
 8. Bump your server, hope for the best
 9. Hitting a file with ?_profile=1 should profile the page, refresh XHGui to see it.
 
