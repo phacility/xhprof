@@ -50,7 +50,7 @@ if ($controlIPs === false || in_array($_SERVER['REMOTE_ADDR'], $controlIPs) || P
   }
 }
 
-
+unset($controlIPs);
 
 //Certain URLs should never have a link displayed. Think images, xml, etc. 
 foreach($exceptionURLs as $url)
@@ -88,7 +88,7 @@ if ($_xhprof['doprofile'] === false)
 }
 unset($weight);
 
-// Certian URLS should never be profiled.
+// Certain URLS should never be profiled.
 foreach($ignoreURLs as $url){
     if (stripos($_SERVER['REQUEST_URI'], $url) !== FALSE)
     {
@@ -97,6 +97,8 @@ foreach($ignoreURLs as $url){
     }
 }
 unset($ignoreURLs);
+
+unset($url);
 
 //Display warning if extension not available
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {

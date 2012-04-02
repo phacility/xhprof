@@ -47,7 +47,7 @@ $_xhprof['doprofile'] = false;
 $controlIPs = array();
 $controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
 
-$otherURLS = array();
+//$otherURLS = array();
 
 //Default weight - can be overidden by an Apache environment variable 'xhprof_weight' for domain-specific values
 $weight = 100;
@@ -55,6 +55,8 @@ $weight = 100;
 if($domain_weight = getenv('xhprof_weight')) {
 	$weight = $domain_weight;
 }
+
+unset($domain_weight);
 
   /**
   * The goal of this function is to accept the URL for a resource, and return a "simplified" version
