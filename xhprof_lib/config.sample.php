@@ -45,7 +45,8 @@ $_xhprof['display'] = false;
 $_xhprof['doprofile'] = false;
 
 $controlIPs = array();
-$controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
+$controlIPs[] = "127.0.0.1";   // localhost, you'll want to add your own ip here
+$controlIPs[] = "::1";         // localhost IP v6
 
 //$otherURLS = array();
 
