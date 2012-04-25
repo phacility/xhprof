@@ -41,6 +41,14 @@ interface iXHProfRuns {
   public function get_run($run_id, $type, &$run_desc);
 
   /**
+   * Returns meta data associated with a given XHPRof run id ($run) of 
+   * a given type ($type).
+   *
+   */
+  public function get_metadata($run_id, $type);
+
+
+  /**
    * Save XHProf data for a profiler run of specified type
    * ($type).
    *
@@ -52,7 +60,7 @@ interface iXHProfRuns {
    * Returns the run id for the saved XHProf run.
    *
    */
-  public function save_run($xhprof_data, $type, $run_id = null, $meta_data = null );
+  public function save_run($xhprof_data, $type, $run_id = null, $metadata = null );
 }
 
 
@@ -125,31 +133,29 @@ class XHProfRuns_Default implements iXHProfRuns {
     #if the unserialized data is an arrray, the data is using the metadata format
     #we only return the xhprof_data to maintains api compatibility
     if ( gettype( $unserialized ) == 'array' ) {
-      return $unserialized['xhprof_data']
+      return $unserialized['xhprof_data'];
     }
     else {
       return $unserialized;
     }
   }
 
-  public function get_meta_data($run_id, $type, &$run_desc) {
+  public function get_metadata( $run_id, $type ) {
     $file_name = $this->file_name($run_id, $type);
 
     if (!file_exists($file_name)) {
       xhprof_error("Could not find file $file_name");
-      $run_desc = "Invalid Run Id = $run_id";
       return null;
     }
 
     $data = gzfile($file_name);
     $contents = implode($data);
-    $run_desc = "XHProf Run (Namespace=$type)";
     $unserialized = unserialize($contents);
     
     #if the unserialized data is an arrray, the data is using the metadata format
     #we only return the xhprof_data to maintains api compatibility
     if ( gettype( $unserialized ) == 'array' ) {
-      return $unserialized['meta_data']
+      return $unserialized['metadata'];
     }
     else {
       return null;
@@ -162,13 +168,14 @@ class XHProfRuns_Default implements iXHProfRuns {
     // raw profiler data.
     $all_data = array(
 		      "xhprof_data" => $xhprof_data,
-		      "meta_data" => $meta_data,
+		      "metadata" => $metadata,
 		   );
+    $all_data = serialize($all_data);
 
     if ($run_id === null) {
       $run_id = $this->gen_run_id($type);
     }
-
+    
     $file_name = $this->file_name($run_id, $type);
     $file = gzopen($file_name, 'w');
 
