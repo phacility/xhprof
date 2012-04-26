@@ -151,9 +151,6 @@ class XHProfRuns_Default implements iXHProfRuns {
     
     $contents = implode($data);   
     $run_desc = "XHProf Run (Namespace=$type)";
-<<<<<<< HEAD
-    return unserialize($contents);
-=======
     $unserialized = unserialize($contents);
     
     //if the unserialized data is an arrray, the data is using the metadata format
@@ -203,22 +200,17 @@ class XHProfRuns_Default implements iXHProfRuns {
     else {
       return null;
     }
->>>>>>> metadata
   }
 
-  public function save_run($xhprof_data, $type, $run_id = null) {
+  public function save_run($xhprof_data, $type, $run_id = null, $metadata = null ) {
 
     // Use PHP serialize function to store the XHProf's
     // raw profiler data.
-<<<<<<< HEAD
-    $xhprof_data = serialize($xhprof_data);
-=======
     $all_data = array(
 		      "xhprof_data" => $xhprof_data,
 		      "metadata" => $metadata,
 		   );
     $all_data = serialize($all_data);
->>>>>>> metadata
 
     if ($run_id === null) {
       $run_id = $this->gen_run_id($type);
@@ -229,7 +221,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     $file = gzopen($file_name, 'w');
 
     if ($file) {
-      gzwrite($file, $xhprof_data);
+      gzwrite($file, $all_data);
       gzclose($file);
     } else {
       xhprof_error("Could not open $file_name\n");
