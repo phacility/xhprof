@@ -57,6 +57,10 @@ interface iXHProfRuns {
    * the implementation of this method must generated a
    * unique run id for this saved XHProf run.
    *
+   * The Caller may also optionally pass in metadata, which 
+   * is an array containing metadata to included ( and displayed )
+   * along with this run.
+   *
    * Returns the run id for the saved XHProf run.
    *
    */
