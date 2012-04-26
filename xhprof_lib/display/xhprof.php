@@ -1445,7 +1445,7 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
       $xhprof_data = $xhprof_runs_impl->get_run($runs_array[0],
                                                 $source,
                                                 $description);
-      $metdata = $xhprof_runs_impl->get_metadata( $runs_array[0],
+      $metadata = $xhprof_runs_impl->get_metadata( $runs_array[0],
 					     $source );
       
     } else {
@@ -1471,7 +1471,7 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
                                $symbol,
                                $sort,
                                $run,
-			       $metdata);
+			       $metadata);
 
   } else if ($run1 && $run2) {                  // diff report for two runs
 
