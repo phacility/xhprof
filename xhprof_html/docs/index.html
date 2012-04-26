@@ -21,6 +21,8 @@ XHProf Documentation (Draft)
 
 <li><a href="#sampling_mode">Lightweight Sampling Mode</a>
 
+<li><a href="#metadata">Including Metadata</a></li>
+
 <li><a href="#misc">Additional features</a></li>
 
 <li><a href="#dependencies">Dependencies</a></li>
@@ -763,6 +765,25 @@ sampling mode are <code><b>xhprof_sample_enable()</b></code> and
 
 <p>[<b>TBD</b>: more detailed documentation on sampling mode.]
 
+
+<li><a name="metadata"><h2>Including Metadata</h2></a></li>
+
+<p>It is also possible to include metadata that is associated with a given run.
+For instance you might want to include the URI that was requested, or the 
+IP of the remote machine. This is simple to do:
+
+<p><pre><code>
+    //create your metadata array, it will be recurisively turned into a table
+    $metadata = array();
+    $metadata['REQUEST_URI'] = $_SERVER['REQUEST_URI'];
+    $metadata['HTTP_X_FORWARDED_FOR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    $metadata['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
+
+    //save the run, note the last param is the  metadata from above, it is optional
+    $xhprof_data = xhprof_disable();
+    $xhprof_runs = new XHProfRuns_Default();
+    $XHPROF_WELL_RUN_ID = $xhprof_runs->save_run($xhprof_data, $XHPROF_WELL_PROFILER_NAMESPACE, null, $metadata);
+</code></pre></p>
 
 <li><a name="misc"><h2>Additional Features</h2></a></li>
 
