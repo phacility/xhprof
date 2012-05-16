@@ -204,6 +204,11 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     }); 
     </script>
 CODESE;
+}elseif(isset($_GET['import'])) {
+    include ("../xhprof_lib/templates/header.phtml");
+    include ("../xhprof_lib/utils/import.php");
+    $import = new Import();
+    $import->importFunctions();
 }else 
 {
     include ("../xhprof_lib/templates/header.phtml");
