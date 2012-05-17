@@ -2,15 +2,14 @@
 if (!defined('XHPROF_LIB_ROOT')) {
   define('XHPROF_LIB_ROOT', dirname(dirname(__FILE__)) . '/xhprof_lib');
 }
-require (XHPROF_LIB_ROOT . "/config.php");
+require_once (XHPROF_LIB_ROOT . "/config.php");
 include_once XHPROF_LIB_ROOT . '/display/xhprof.php';
 include (XHPROF_LIB_ROOT . "/utils/common.php");
 
-if (!in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
+if (false !== $controlIPs && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
 {
   die("You do not have permission to view this page.");
 }
-
 
 // param name, its type, and default value
 $params = array('run'        => array(XHPROF_STRING_PARAM, ''),
@@ -90,7 +89,7 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     $criteria['limit'] = $last;
     $criteria['order by'] = 'timestamp';
     $rs = $xhprof_runs_impl->getUrlStats($criteria);
-    list($header, $body) = showChart($rs);
+    list($header, $body) = showChart($rs, true);
     $_xh_header .= $header;
     
     include ("../xhprof_lib/templates/header.phtml");
@@ -108,7 +107,7 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     $criteria['order by'] = 'timestamp';
     
     $rs = $xhprof_runs_impl->getUrlStats($criteria);
-    list($header, $body) = showChart($rs);
+    list($header, $body) = showChart($rs, true);
     $_xh_header .= $header;
     include ("../xhprof_lib/templates/header.phtml");
     
@@ -164,12 +163,8 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     echo "<tbody>\n";
     while ($row = XHProfRuns_Default::getNextAssoc($resultSet))
     {
-        $c_url = urlencode($row['c_url']);
         $url = urlencode($row['url']);
         $html['url'] = htmlentities($row['url'], ENT_QUOTES, 'UTF-8');
-        $html['c_url'] = htmlentities($row['c_url'], ENT_QUOTES, 'UTF-8');
-        $date = strtotime($row['timestamp']);
-        $date = date('M d H:i:s', $date);
         echo "\t<tr><td><a href=\"?geturl={$url}\">{$html['url']}</a></td><td>{$row['count']}</td><td>" . number_format($row['total_wall']) . " ms</td><td>" . number_format($row['avg_wall']) . " ms</td></tr>\n";
     }
     echo "</tbody>\n";

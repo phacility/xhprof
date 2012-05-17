@@ -1,16 +1,29 @@
 -- This document is as yet incomplete --
 
 0. Install the XHProf extension for PHP
-1. Extract everything into a directory somewhere
-2. Create a symlink from xhprof_runs.php to the xprof_runs_<database of your choice>.php directory in xhprof_lib\utils\
-3. Create the table required for xhprof_runs.php, there should be sample instructions inside that document alongside
-the constructor.
-4. Edit xhprof_lib/config.php with your database credentials, control IPs, and other fun stuff
-5. Load up index.php, ensure happiness
-6. Edit the virtual host configuration for the site you'd like to profile to 
-php_admin_value auto_prepend_file="<path>/external/header.php"
-php_admin_value auto_append_file="<path>/external/footer.php"
-7. Bump your server, hope for the best
-8. Hitting a file with ?_profile=1 should profile the page and give you a link at the bottom
+
+  cd ./xhprof/extension/
+  phpize
+  ./configure --with-php-config=/usr/bin/php-config
+  make
+  make test
+  make install
+
+1. Once you have XHProf installed, you should enable it. Open your php.ini and add
+
+  [xhprof]
+  extension=xhprof.so
+  xhprof.output_dir="/var/tmp/xhprof"
+
+2. Extract everything into a directory somewhere
+3. Create a symlink from xhprof_runs.php to the xprof_runs_<database of your choice>.php directory in xhprof_lib\utils\
+4. Create the table required for xhprof_runs.php, there should be sample instructions inside that document alongside
+    the constructor.
+5. Edit xhprof_lib/config.php with your database credentials, control IPs, and other fun stuff
+6. Load up index.php, ensure happiness
+7. Edit the virtual host configuration for the site you'd like to profile to 
+    php_admin_value auto_prepend_file "<path>/external/header.php"
+8. Bump your server, hope for the best
+9. Hitting a file with ?_profile=1 should profile the page, refresh XHGui to see it.
 
 There's a decent blog post on setting this up, as well as tips on how to use it at: http://phpadvent.org/2010/profiling-with-xhgui-by-paul-reinheimer

@@ -84,7 +84,6 @@ class XHProfRuns_Default implements iXHProfRuns {
   {
 	global $_xhprof;
 
-	
     $linkid = mysql_connect($_xhprof['dbhost'], $_xhprof['dbuser'], $_xhprof['dbpass']);
     if ($linkid === FALSE)
     {
@@ -93,6 +92,7 @@ class XHProfRuns_Default implements iXHProfRuns {
       throw new Exception("Unable to connect to database");
       return false;
     }
+    mysql_query("SET NAMES utf8");
     mysql_select_db($_xhprof['dbname'], $linkid);
     $this->linkID = $linkid; 
   }
@@ -106,15 +106,16 @@ CREATE TABLE `details` (
   `c_url` varchar(255) default NULL,
   `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   `server name` varchar(64) default NULL,
-  `perfdata` text,
+  `perfdata` MEDIUMBLOB,
   `type` tinyint(4) default NULL,
-  `cookie` text,
-  `post` text,
-  `get` text,
-  `pmu` int(11) default NULL,
-  `wt` int(11) default NULL,
-  `cpu` int(11) default NULL,
+  `cookie` BLOB,
+  `post` BLOB,
+  `get` BLOB,
+  `pmu` int(11) unsigned default NULL,
+  `wt` int(11) unsigned default NULL,
+  `cpu` int(11) unsigned default NULL,
   `server_id` char(3) NOT NULL default 't11',
+  `aggregateCalls_include` varchar(255) DEFAULT NULL,
   PRIMARY KEY  (`id`),
   KEY `url` (`url`),
   KEY `c_url` (`c_url`),
@@ -385,17 +386,29 @@ CREATE TABLE `details` (
 		
 		*/
 
-        $sql['get'] = mysql_real_escape_string(serialize($_GET), $this->linkID);
-        $sql['cookie'] = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
+			$sql['get'] = mysql_real_escape_string(serialize($_GET), $this->linkID);
+			$sql['cookie'] = mysql_real_escape_string(serialize($_COOKIE), $this->linkID);
         
-        //This code has not been tested
-        if ($_xhprof['savepost'])
-        {
-        	$sql['post'] = mysql_real_escape_string(serialize($_POST), $this->linkID);    
-        }else
-        {
-        	$sql['post'] = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule")), $this->linkID);
-        }
+	        //This code has not been tested
+		    if ($_xhprof['savepost'])
+			{
+				$sql['post'] = mysql_real_escape_string(serialize($_POST), $this->linkID);
+			} else {
+				$sql['post'] = mysql_real_escape_string(serialize(array("Skipped" => "Post data omitted by rule")), $this->linkID);
+			}
+		} else {
+			$sql['get'] = mysql_real_escape_string(json_encode($_GET), $this->linkID);
+			$sql['cookie'] = mysql_real_escape_string(json_encode($_COOKIE), $this->linkID);
+        
+	        //This code has not been tested
+		    if ($_xhprof['savepost'])
+			{
+				$sql['post'] = mysql_real_escape_string(json_encode($_POST), $this->linkID);
+			} else {
+				$sql['post'] = mysql_real_escape_string(json_encode(array("Skipped" => "Post data omitted by rule")), $this->linkID);
+			}
+		}
         
         
 	$sql['pmu'] = isset($xhprof_data['main()']['pmu']) ? $xhprof_data['main()']['pmu'] : '';
@@ -403,10 +416,14 @@ CREATE TABLE `details` (
 	$sql['cpu'] = isset($xhprof_data['main()']['cpu']) ? $xhprof_data['main()']['cpu'] : '';        
 
 
-        //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
-        $sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
+		if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
+			$sql['data'] = mysql_real_escape_string(gzcompress(serialize($xhprof_data), 2));
+		} else {
+			$sql['data'] = mysql_real_escape_string(gzcompress(json_encode($xhprof_data), 2));
+		}
+			
         
 	$url   = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
  	$sname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
@@ -417,9 +434,9 @@ CREATE TABLE `details` (
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = mysql_real_escape_string($_SERVER['REQUEST_TIME']);
 		$sql['server_id'] = mysql_real_escape_string($_xhprof['servername']);
+        $sql['aggregateCalls_include'] = getenv('xhprof_aggregateCalls_include') ? getenv('xhprof_aggregateCalls_include') : '';
         
-        
-        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
+        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`, `aggregateCalls_include`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}', '{$sql['aggregateCalls_include']}')";
         
         mysql_query($query, $this->linkID);
         if (mysql_affected_rows($this->linkID) == 1)
@@ -431,8 +448,6 @@ CREATE TABLE `details` (
             if ($_xhprof['display'] === true)
             {
                 echo "Failed to insert: $query <br>\n";
-                var_dump(mysql_error($this->linkID));
-                var_dump(mysql_errno($this->linkID));
             }
             return -1;
         }

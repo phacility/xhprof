@@ -18,6 +18,15 @@ GPL: http://www.opensource.org/licenses/gpl-license.php
 You may obtain Table Sorter directly: http://tablesorter.com/docs/
 
 
+This software uses the StickyTableHeaders utility, which is provided under the MIT 
+license, you may obtain the terms of these licenses from:
+MIT: http://www.opensource.org/licenses/mit-license.php
+
+https://github.com/jmosbech/StickyTableHeaders/blob/master/license.txt
+
+You may obtain StickyTableHeaders directly: https://github.com/jmosbech/StickyTableHeaders
+
+
 This software uses the HighCharts graphing library which is provided under
 a commercial license. A license has been purchased for use within the GUI portion
 of XHProf.

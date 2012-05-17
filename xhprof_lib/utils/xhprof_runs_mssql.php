@@ -116,6 +116,7 @@ CREATE TABLE dbo.details
    wt int NULL DEFAULT NULL, 
    cpu int NULL DEFAULT NULL, 
    server_id nchar(3) NOT NULL DEFAULT N't11', 
+   aggregateCalls_include nvarchar(255) NULL DEFAULT NULL,
    CONSTRAINT PK_details_id PRIMARY KEY (id)
 )
 GO
@@ -415,7 +416,6 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
 	$sql['cpu'] = isset($xhprof_data['main()']['cpu']) ? $xhprof_data['main()']['cpu'] : '';        
 
 
-        //The MyISAM table type has a maxmimum row length of 65,535bytes, without compression XHProf data can exceed that. 
 		// The value of 2 seems to be light enugh that we're not killing the server, but still gives us lots of breathing room on 
 		// full production code. 
         $sql['data'] = addslashes(gzcompress(serialize($xhprof_data), 2));
@@ -429,9 +429,9 @@ CREATE NONCLUSTERED INDEX dbo.timestamp
         $sql['type']  = (int) (isset($xhprof_details['type']) ? $xhprof_details['type'] : 0);
         $sql['timestamp'] = addslashes($_SERVER['REQUEST_TIME']);
 		$sql['server_id'] = addslashes($_xhprof['servername']);
+        $sql['aggregateCalls_include'] = getenv('xhprof_aggregateCalls_include') ? getenv('xhprof_aggregateCalls_include') : '';
         
-        
-        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}')";
+        $query = "INSERT INTO `details` (`id`, `url`, `c_url`, `timestamp`, `server name`, `perfdata`, `type`, `cookie`, `post`, `get`, `pmu`, `wt`, `cpu`, `server_id`, `aggregateCalls_include`) VALUES('$run_id', '{$sql['url']}', '{$sql['c_url']}', FROM_UNIXTIME('{$sql['timestamp']}'), '{$sql['servername']}', '{$sql['data']}', '{$sql['type']}', '{$sql['cookie']}', '{$sql['post']}', '{$sql['get']}', '{$sql['pmu']}', '{$sql['wt']}', '{$sql['cpu']}', '{$sql['server_id']}', '{$sql['aggregateCalls_include']}')";
         
         mssql_query($query, $this->linkID);
         if (mssql_rows_affected($this->linkID) == 1)

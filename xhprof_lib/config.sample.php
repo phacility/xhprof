@@ -2,6 +2,7 @@
 $_xhprof = array();
 
 // Change these:
+$_xhprof['dbtype'] = 'mysql'; // Only relevant for PDO
 $_xhprof['dbhost'] = 'localhost';
 $_xhprof['dbuser'] = 'root';
 $_xhprof['dbpass'] = 'password';
@@ -9,6 +10,12 @@ $_xhprof['dbname'] = 'xhprof';
 $_xhprof['servername'] = 'myserver';
 $_xhprof['namespace'] = 'myapp';
 $_xhprof['url'] = 'http://url/to/xhprof/xhprof_html';
+/*
+ * MySQL/MySQLi/PDO ONLY
+ * Switch to JSON for better performance and support for larger profiler data sets.
+ * WARNING: Will break with existing profile data, you will need to TRUNCATE the profile data table.
+ */
+$_xhprof['serializer'] = 'php'; 
 
 //Uncomment one of these, platform dependent. You may need to tune for your specific environment, but they're worth a try
 
@@ -26,6 +33,8 @@ $_xhprof['dot_tempdir'] = '/tmp';
 $_xhprof['dot_errfile'] = '/tmp/xh_dot.err';
 */
 
+$ignoreURLs = array();
+
 $exceptionURLs = array();
 
 $exceptionPostURLs = array();
@@ -36,12 +45,19 @@ $_xhprof['display'] = false;
 $_xhprof['doprofile'] = false;
 
 $controlIPs = array();
-$controlIPs[] = "127.0.0.1";   //Localhost, you'll want to add your own ip here
+$controlIPs[] = "127.0.0.1";   // localhost, you'll want to add your own ip here
+$controlIPs[] = "::1";         // localhost IP v6
 
-$otherURLS = array();
+//$otherURLS = array();
 
+//Default weight - can be overidden by an Apache environment variable 'xhprof_weight' for domain-specific values
 $weight = 100;
 
+if($domain_weight = getenv('xhprof_weight')) {
+	$weight = $domain_weight;
+}
+
+unset($domain_weight);
 
   /**
   * The goal of this function is to accept the URL for a resource, and return a "simplified" version
@@ -61,6 +77,11 @@ $weight = 100;
       //This is an example 
       $url = preg_replace("!\d{4}!", "", $url);
       
+      // For domain-specific configuration, you can use Apache setEnv xhprof_urlSimilartor_include [some_php_file]
+      if($similartorinclude = getenv('xhprof_urlSimilartor_include')) {
+      	require_once($similartorinclude);
+      }
+      
       $url = preg_replace("![?&]_profile=\d!", "", $url);
       return $url;
   }
@@ -71,6 +92,13 @@ $weight = 100;
         'Loading' => 'load::',
         'mysql' => 'mysql_'
         );
+
+    // For domain-specific configuration, you can use Apache setEnv xhprof_aggregateCalls_include [some_php_file]
+  	if(isset($run_details['aggregateCalls_include']) && strlen($run_details['aggregateCalls_include']) > 1)
+		{
+    	require_once($run_details['aggregateCalls_include']);
+		}        
+        
     $addIns = array();
     foreach($calls as $index => $call)
     {

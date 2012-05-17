@@ -805,9 +805,22 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
   
   //Find top $n requests
   $data_copy = $flat_data;
-  $data_copy = _aggregateCalls($data_copy);
+  $data_copy = _aggregateCalls($data_copy, null, $run2);
   usort($data_copy, 'sortWT');
   
+  $iterations = 0;
+  $colors = array('#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92', '#EAFEBB', '#FEB4B1', '#2B6979', '#E9D6FE', '#FECDA3', '#FED980');
+  foreach($data_copy as $datapoint)
+  {
+    if (++$iterations > 14)
+    {
+        $function_color[$datapoint['fn']] = $colors[14];
+    }else
+    {
+        $function_color[$datapoint['fn']] = $colors[$iterations-1];
+    }
+  }
+
   include( "../xhprof_lib/templates/profChart.phtml");
   include( "../xhprof_lib/templates/profTable.phtml");
 
@@ -860,6 +873,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
   foreach ($symbol_tab as $symbol => $info) {
     $tmp = $info;
     $tmp["fn"] = $symbol;
+    
     $flat_data[] = $tmp;
   }
   usort($flat_data, 'sort_cbk');
