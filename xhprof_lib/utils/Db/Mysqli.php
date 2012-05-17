@@ -29,6 +29,20 @@
  KEY `timestamp` (`timestamp`)
  ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+CREATE TABLE `functions` (
+  `function` varchar(255) NOT NULL,
+  `runid` char(17) NOT NULL,
+  `ct` int(11) NOT NULL,
+  `wt` int(11) NOT NULL,
+  `cpu` int(11) NOT NULL,
+  `mu` int(11) NOT NULL,
+  `pmu` int(11) NOT NULL,
+  `excl_wt` int(11) NOT NULL,
+  `excl_cpu` int(11) NOT NULL,
+  `excl_mu` int(11) NOT NULL,
+  `excl_pmu` int(11) NOT NULL,
+  PRIMARY KEY (`function`,`runid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
  */
 
 require_once XHPROF_LIB_ROOT.'/utils/Db/Abstract.php';

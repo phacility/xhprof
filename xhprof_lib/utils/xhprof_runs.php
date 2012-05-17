@@ -81,17 +81,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 
   public function __construct($dir = null) 
   {
-    $this->db();
-  }
-
-  protected function db()
-  {
-	global $_xhprof;
-	require_once XHPROF_LIB_ROOT.'/utils/Db/'.$_xhprof['dbadapter'].'.php';
-	
-    $class = self::getDbClass();
-    $this->db = new $class($_xhprof);
-    $this->db->connect();
+    $this->db = Db::factory();
   }
   
   public static function getDbClass()
