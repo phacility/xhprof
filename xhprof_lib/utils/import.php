@@ -1,7 +1,6 @@
 <?php
 class Import
 {
-    private $dir = '';
     protected $linkID;
     
     public function __construct($dir = null)
@@ -36,16 +35,19 @@ class Import
         $resultSet = mysql_query($query, $this->linkID);
         $xhprof_runs_impl = new XHProfRuns_Default();
         $totals = $desc = null;
+        
         while ($run = mysql_fetch_assoc($resultSet)) {
             list($xhprof_data, $run_details) = $xhprof_runs_impl->get_run($run['id'], null, $desc);
             $symbol_tab = xhprof_compute_flat_info($xhprof_data, $totals);
+            mysql_query('LOCK TABLES `xhprof`.`functions` WRITE');
             foreach ($symbol_tab as $name=>$symbol) {
                 $query = 'INSERT INTO `xhprof`.`functions`
-                    (`function`, `runid`,`wt`,`excl_wt`)
+                    (`function`, `runid`,'.implode(',',array_keys($symbol)).')
                     VALUES 
-                    ("'.$name.'","'.$run['id'].'",'.$symbol['wt'].','.$symbol['excl_wt'].');';
+                    ("'.$name.'","'.$run['id'].'",'.implode(',', $symbol).');';
                 mysql_query($query, $this->linkID);
             }
+            mysql_query('UNLOCK TABLES');
         }
     }
     

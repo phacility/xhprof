@@ -262,7 +262,6 @@ function xhprof_aggregate_runs($xhprof_runs_impl, $runs,
   foreach($runs as $idx => $run_id) {
 
     $raw_data = $xhprof_runs_impl->get_run($run_id, $source, $description);
-
     // use the first run to derive what metrics to aggregate on.
     if ($idx == 0) {
       foreach ($raw_data["main()"] as $metric => $val) {

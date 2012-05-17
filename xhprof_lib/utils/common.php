@@ -67,7 +67,7 @@ function showChart($rs)
         $arIDS = array();
         $arDateIDs = array();
       //  $arSplit = array();
-    
+        
          while($row = XHProfRuns_Default::getNextAssoc($rs))
         {
             

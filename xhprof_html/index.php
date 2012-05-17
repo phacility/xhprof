@@ -209,6 +209,16 @@ CODESE;
     include ("../xhprof_lib/utils/import.php");
     $import = new Import();
     $import->importFunctions();
+} elseif(isset($_GET['symbolhistory'])) {
+    include ("../xhprof_lib/utils/history.php");
+    $histo = new History();
+    $histo->setSymbol($_GET['symbolhistory']);
+    list($header, $body) = showChart($histo->getResultSet());
+    
+    $_xh_header .= $header;
+    include ("../xhprof_lib/templates/header.phtml");
+    include("../xhprof_lib/templates/emptyBody.phtml");
+    $histo->getHistory();
 }else 
 {
     include ("../xhprof_lib/templates/header.phtml");

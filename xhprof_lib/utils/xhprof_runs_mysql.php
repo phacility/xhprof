@@ -257,7 +257,7 @@ CREATE TABLE `details` (
     $data = mysql_fetch_assoc($resultSet);
     
     //The Performance data is compressed lightly to avoid max row length
-    $contents = unserialize(gzuncompress($data['perfdata']));
+    $contents = unserialize(gzuncompress(base64_decode($data['perfdata'])));
     
     //This data isnt' needed for display purposes, there's no point in keeping it in this array
     unset($data['perfdata']);
