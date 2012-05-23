@@ -4,7 +4,6 @@ if (!defined('XHPROF_LIB_ROOT')) {
 }
 require_once (XHPROF_LIB_ROOT . "/config.php");
 include_once XHPROF_LIB_ROOT . '/display/xhprof.php';
-include_once XHPROF_LIB_ROOT . '/utils/Db.php';
 include (XHPROF_LIB_ROOT . "/utils/common.php");
 
 if (false !== $controlIPs && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
@@ -200,26 +199,6 @@ if(isset($_GET['run1']) || isset($_GET['run']))
     }); 
     </script>
 CODESE;
-}elseif(isset($_GET['buildSymbol'])) {
-    include ("../xhprof_lib/templates/header.phtml");
-    include ("../xhprof_lib/utils/Build/Symbol.php");
-    $bSymbol = new Build_Symbol();
-    $nb = $bSymbol->importFunctions();
-    echo $nb .' symbols added';
-} elseif(isset($_GET['symbolhistory'])) {
-    include_once '../xhprof_lib/utils/history.php';
-    
-    $histo = new History();
-    $histo->setSymbol($_GET['symbolhistory']);
-    list($header, $body) = showChart($histo->getHistory(), true);
-    
-    $_xh_header .= $header;
-    include ("../xhprof_lib/templates/header.phtml");
-    
-    $rs = $histo->getHistory();
-    
-    include '../xhprof_lib/templates/profSymbol.phtml';
-    
 }else 
 {
     include ("../xhprof_lib/templates/header.phtml");

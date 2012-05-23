@@ -531,7 +531,7 @@ function profiler_report ($url_params,
   global $pc_stats;
   global $diff_mode;
   global $base_path;
-    
+
   // if we are reporting on a specific function, we can trim down
   // the report(s) to just stuff that is relevant to this function.
   // That way compute_flat_info()/compute_diff() etc. do not have
@@ -1123,11 +1123,8 @@ function symbol_report($url_params,
   $callgraph_href = "$base_path/callgraph.php?"
     . http_build_query(xhprof_array_set($url_params, 'func', $rep_symbol));
 
-  $history_href = "$base_path/?symbolhistory=$rep_symbol";
-  
-  print(" <a href='$callgraph_href'>[View Callgraph $diff_text]</a>");
-  print(" <a href='$history_href'>[View History]</a><br />");
-  
+  print(" <a href='$callgraph_href'>[View Callgraph $diff_text]</a><br />");
+
   print("</center></h4><br />");
 
   print('<table border=1 cellpadding=2 cellspacing=1 width="90%" '
@@ -1288,6 +1285,7 @@ function profiler_single_run_report ($url_params,
                                      $run_details = null) {
 
   init_metrics($xhprof_data, $rep_symbol, $sort, false);
+
   profiler_report($url_params, $rep_symbol, $sort, $run, $run_desc,
                   $xhprof_data, $run_details);
 }
