@@ -1,4 +1,8 @@
 <?php
+if (!defined('XHPROF_LIB_ROOT')) {
+  define('XHPROF_LIB_ROOT', dirname(dirname(__FILE__)) . '/xhprof_lib');
+}
+
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     $profiler_namespace = $_xhprof['namespace'];  // namespace for your application
     $xhprof_data = xhprof_disable();
