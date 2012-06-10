@@ -2,7 +2,7 @@
 abstract class Db_Abstract
 {
     protected $config;
-    protected $linkID;
+    public $linkID;
     
     public function __construct($config)
     {
