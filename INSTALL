@@ -13,14 +13,14 @@
 
   [xhprof]
   extension=xhprof.so
-  xhprof.output_dir="/var/tmp/xhprof"
 
 2. Extract everything into a directory somewhere
-3. Create a symlink from xhprof_runs.php to the xprof_runs_<database of your choice>.php directory in xhprof_lib\utils\
-4. Create the table required for xhprof_runs.php, there should be sample instructions inside that document alongside
-    the constructor.
-5. Edit xhprof_lib/config.php with your database credentials, control IPs, and other fun stuff
-6. Load up index.php, ensure happiness
+3. Copy xhprof_lib/config.sample.php to xhprof/config.php 
+4. Edit xhprof_lib/config.php with your database type and credentials. Set control IPs, and other fun stuff
+    Control IPs allow you to specify which IPs will be shown the footer linking directly to the results, and also which IPs will be able to turn profiling on and off
+    You can set this value to FALSE, which disables that protection all togethor.
+5. Create a table as required for your database, SQL is available inside utils/Db/<database of choice>.php. If you're prefixing runs IDs, note that it will affect the length requried for the ID column.
+5. Load up index.php, ensure happiness
 7. Edit the virtual host configuration for the site you'd like to profile to 
     php_admin_value auto_prepend_file "<path>/external/header.php"
 8. Bump your server, hope for the best
