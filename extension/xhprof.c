@@ -1332,21 +1332,13 @@ static void get_all_cpu_frequencies() {
   /* Iterate over all cpus found on the machine. */
   for (id = 0; id < hp_globals.cpu_num; ++id) {
     /* Only get the previous cpu affinity mask for the first call. */
-    if (bind_to_cpu(id)) {
-      clear_frequencies();
-      return;
-    }
+    bind_to_cpu(id);
 
     /* Make sure the current process gets scheduled to the target cpu. This
      * might not be necessary though. */
     usleep(0);
 
-    frequency = get_cpu_frequency();
-    if (frequency == 0.0) {
-      clear_frequencies();
-      return;
-    }
-    hp_globals.cpu_frequencies[id] = frequency;
+    hp_globals.cpu_frequencies[id] = get_cpu_frequency();
   }
 }
 
@@ -1467,6 +1459,12 @@ void hp_mode_sampled_init_cb(TSRMLS_D) {
   uint64 truncated_tsc;
   double cpu_freq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
 
+  if (cpu_freq == 0.0) {
+    /* There is an insignificant chance that cpu_freq equals 0 
+       and we cannot do anything in this case */
+    return;
+  }
+  
   /* Init the last_sample in tsc */
   hp_globals.last_sample_tsc = cycle_timer();
 
