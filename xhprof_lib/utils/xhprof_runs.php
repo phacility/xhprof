@@ -267,7 +267,7 @@ CREATE TABLE `details` (
     
     //The Performance data is compressed lightly to avoid max row length
 	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
-		$contents = unserialize(gzuncompress(base64_decode($data['perfdata'])));
+		$contents = unserialize(gzuncompress($data['perfdata']));
 	} else {
 		$contents = json_decode(gzuncompress($data['perfdata']), true);
 	}

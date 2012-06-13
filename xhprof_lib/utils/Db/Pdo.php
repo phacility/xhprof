@@ -53,8 +53,7 @@ class Db_Pdo extends Db_Abstract
     
     public function query($sql)
     {
-        $this->curStmt = $this->db->prepare($sql);
-        $this->curStmt->execute();
+        $this->curStmt = $this->db->query($sql);
         return $this->curStmt;
     }
     
@@ -65,11 +64,19 @@ class Db_Pdo extends Db_Abstract
     
     public function escape($str)
     {
+        $str = $this->db->quote($str);
+        //Dirty trick, PDO::quote add quote around values (you're beautiful => 'you\'re beautiful')
+        // which are already added in xhprof_runs.php
+        $str = substr($str, 0, -1);
+        $str = substr($str, 1);
         return $str;
     }
     
     public function affectedRows()
     {
+        if ($this->curStmt === false) {
+            return 0;
+        }
         return $this->curStmt->rowCount();
     }
     
