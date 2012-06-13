@@ -1,7 +1,7 @@
 This branch/clone/whatever git calls it of the official Facebook GUI does a few things:
 
-* It includes a header.php and footer.php document you can use with PHP's 
-  auto\_prepend\_file and auto\_append\_file directives. They set up profiling 
+* It includes a header.php document you can use with PHP's 
+  auto\_prepend\_file directive. It sets up profiling by initilizing a few variables, and settting register_shutdown_function with the fooder. Once started profiles are done 
   when requested (?\_profile=1), or randomly. Profiled pages display a link to 
   their profile results at the bottom of the page (this can be disabled on a 
   black list bases for specific documents. e.g. pages generating XML, images, 

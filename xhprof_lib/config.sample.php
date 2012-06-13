@@ -7,6 +7,7 @@ $_xhprof['dbhost'] = 'localhost';
 $_xhprof['dbuser'] = 'root';
 $_xhprof['dbpass'] = 'password';
 $_xhprof['dbname'] = 'xhprof';
+$_xhprof['dbadapter'] = 'Pdo';
 $_xhprof['servername'] = 'myserver';
 $_xhprof['namespace'] = 'myapp';
 $_xhprof['url'] = 'http://url/to/xhprof/xhprof_html';

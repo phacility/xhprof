@@ -108,7 +108,7 @@ if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
 }elseif(!extension_loaded('xhprof') && $_xhprof['display'] === true)
 {
     $message = 'Warning! Unable to profile run, xhprof extension not loaded';
-    trigger_error($message, E_WARNING);
+    trigger_error($message, E_USER_WARNING);
 }
 
 function xhprof_shutdown_function() {
