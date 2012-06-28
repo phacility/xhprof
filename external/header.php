@@ -104,7 +104,7 @@ unset($url);
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_lib.php';
     include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_runs.php';
-    if (isset($ignoredFunctions) && is_array($ignoredFunctions) && !empty($ignoredFunctions) {
+    if (isset($ignoredFunctions) && is_array($ignoredFunctions) && !empty($ignoredFunctions)) {
         xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY, array('ignored_functions' => $ignoredFunctions));
     } else {
         xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
