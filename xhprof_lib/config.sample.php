@@ -51,6 +51,9 @@ $controlIPs[] = "::1";         // localhost IP v6
 
 //$otherURLS = array();
 
+// ignore builtin functions and call_user_func* during profiling
+//$ignoredFunctions = array('call_user_func', 'call_user_func_array', 'socket_select');
+
 //Default weight - can be overidden by an Apache environment variable 'xhprof_weight' for domain-specific values
 $weight = 100;
 
