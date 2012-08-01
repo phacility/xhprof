@@ -11,11 +11,11 @@ abstract class Db_Abstract
     
     abstract public function connect();
     abstract public function query($sql);
-    abstract public static function getNextAssoc($resultSet);
+    //abstract public static function getNextAssoc($resultSet);
     abstract public function escape($str);
     abstract public function affectedRows();
-    abstract public static function unixTimestamp($field);
-    abstract public static function dateSub($days);
+    //abstract public static function unixTimestamp($field);
+    //abstract public static function dateSub($days);
     
     
 }

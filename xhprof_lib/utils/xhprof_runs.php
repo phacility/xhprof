@@ -403,7 +403,7 @@ CREATE TABLE `details` (
 			$sql['cookie'] = $this->db->escape(serialize($_COOKIE));
         
 	        //This code has not been tested
-		    if ($_xhprof['savepost'])
+		    if (isset($_xhprof['savepost']) && $_xhprof['savepost'])
 			{
 				$sql['post'] = $this->db->escape(serialize($_POST));
 			} else {
@@ -414,7 +414,7 @@ CREATE TABLE `details` (
 			$sql['cookie'] = $this->db->escape(json_encode($_COOKIE));
         
 	        //This code has not been tested
-		    if ($_xhprof['savepost'])
+		    if (isset($_xhprof['savepost']) && $_xhprof['savepost'])
 			{
 				$sql['post'] = $this->db->escape(json_encode($_POST));
 			} else {
