@@ -2,11 +2,15 @@
 global $_xhprof;
 $_xhprof = array();
 
+// Get some local (environment) variables from our constants file
+require_once '/usr/local/viafoura/ec2metadata_constants.php';
+require_once '/usr/local/viafoura/credentials.php';
+
 // Change these:
 $_xhprof['dbtype'] = 'mysql'; // Only relevant for PDO
 $_xhprof['dbhost'] = 'master.'.EC2_AVAILABILITY_ZONE.'.'.ENVIRONMENT.'.aws.viafoura.net';
-$_xhprof['dbuser'] = DB_USER;
-$_xhprof['dbpass'] = DB_PASSWORD;
+$_xhprof['dbuser'] = $db_credentials[ENVIRONMENT]['username'];
+$_xhprof['dbpass'] = $db_credentials[ENVIRONMENT]['password'];
 $_xhprof['dbname'] = 'vf_profiling';
 $_xhprof['dbadapter'] = 'Pdo';
 $_xhprof['servername'] = (ENVIRONMENT == 'live')?'admin.viafoura.com':'staging.viafoura.com';
