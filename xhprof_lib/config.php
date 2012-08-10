@@ -1,5 +1,4 @@
 <?php
-require_once '/home/ubuntu/git/vf/include/systemconfig.php';
 global $_xhprof;
 $_xhprof = array();
 
