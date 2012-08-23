@@ -21,7 +21,7 @@
 			$getArr =  json_decode($xhprof_runs_impl->run_details['get'], true);
 			$postArr =  json_decode($xhprof_runs_impl->run_details['post'], true);
 		}
-var_dump($arrayOfTotal);
+
     //TODO This is lame
     global $comparative;   
     ?>
@@ -43,17 +43,17 @@ var_dump($arrayOfTotal);
         <tr><td>Max Wall Time</td><td><?php echo printSeconds($comparative['url']['max(`wt`)']);?></td><td><?php echo printSeconds($comparative['c_url']['max(`wt`)']);?></td></tr>
         <tr><td>Avg Wall Time</td><td><?php echo printSeconds($comparative['url']['avg(`wt`)']);?></td><td><?php echo printSeconds($comparative['c_url']['avg(`wt`)']);?></td></tr>
         <tr><td>95% Wall Time</td><td><?php echo printSeconds($comparative['url']['95(`wt`)']);?></td><td><?php echo printSeconds($comparative['c_url']['95(`wt`)']);?></td></tr>
-		<tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["value"]; ?></td><td>&nbsp;</td></tr>
+        <tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[0]["value"]; ?></td><td>&nbsp;</td></tr>
         <tr><td>Min CPU Ticks</td><td><?php echo printSeconds($comparative['url']['min(`cpu`)']);?></td><td><?php echo printSeconds($comparative['c_url']['min(`cpu`)']);?></td></tr>
         <tr><td>Max CPU Ticks</td><td><?php echo printSeconds($comparative['url']['max(`cpu`)']);?></td><td><?php echo printSeconds($comparative['c_url']['max(`cpu`)']);?></td></tr>
         <tr><td>Avg CPU Ticks</td><td><?php echo printSeconds($comparative['url']['avg(`cpu`)']);?></td><td><?php echo printSeconds($comparative['c_url']['avg(`cpu`)']);?></td></tr>
         <tr><td>95% CPU Ticks</td><td><?php echo printSeconds($comparative['url']['95(`cpu`)']);?></td><td><?php echo printSeconds($comparative['c_url']['95(`cpu`)']);?></td></tr>
-		<tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["value"]; ?></td><td>&nbsp;</td></tr>
+        <tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[1]["value"]; ?></td><td>&nbsp;</td></tr>
         <tr><td>Min Peak Memory Usage</td><td><?php echo number_format($comparative['url']['min(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?php echo number_format($comparative['c_url']['min(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
         <tr><td>Max Peak Memory Usage</td><td><?php echo number_format($comparative['url']['max(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?php echo number_format($comparative['c_url']['max(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
         <tr><td>Avg Peak Memory Usage</td><td><?php echo number_format($comparative['url']['avg(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?php echo number_format($comparative['c_url']['avg(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
         <tr><td>95% Peak Memory Usage</td><td><?php echo number_format($comparative['url']['95(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td><td><?php echo number_format($comparative['c_url']['95(`pmu`)']) . " " . $arrayOfTotal[3]["metric"];?></td></tr>
-		<tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["value"]; ?></td><td>&nbsp;</td></tr>
+        <tr><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["label"]; ?></td><td style="font-weight: bold;"><?php echo $arrayOfTotal[3]["value"]; ?></td><td>&nbsp;</td></tr>
         <tr><td style="font-weight: bold;">Number of Function Calls:</td><td style="font-weight: bold;"><?php echo $format_total; ?></td><td>&nbsp;</td></tr>
         <tr>
             <td style="font-weight: bold;">Perform Delta:</td>
