@@ -6,6 +6,8 @@ $_xhprof = array();
 require_once '/usr/local/viafoura/ec2metadata_constants.php';
 require_once '/usr/local/viafoura/credentials.php';
 
+global $db_credentials;
+
 // Change these:
 $_xhprof['dbtype'] = 'mysql'; // Only relevant for PDO
 $_xhprof['dbhost'] = 'master.'.EC2_AVAILABILITY_ZONE.'.'.ENVIRONMENT.'.aws.viafoura.net';
