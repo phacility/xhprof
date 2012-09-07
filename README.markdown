@@ -6,6 +6,7 @@ This branch/clone/whatever git calls it of the official Facebook GUI does a few 
   their profile results at the bottom of the page (this can be disabled on a 
   black list bases for specific documents. e.g. pages generating XML, images, 
   etc.).
+* For tips on including header.php on an nginx + php-fpm install take a look at: http://www.justincarmony.com/blog/2012/04/23/php-fpm-nginx-php_value-and-multiple-values/
 * The GUI is a bit prettier (Thanks to Graham Slater)
 * It uses a MySQL backend, the database schema is stored in xhprof\_runs.php 
 * There's a front end to view different runs, compare runs to the same url, etc.
