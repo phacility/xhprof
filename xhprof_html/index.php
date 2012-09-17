@@ -11,6 +11,8 @@ if (false !== $controlIPs && !in_array($_SERVER['REMOTE_ADDR'], $controlIPs))
   die("You do not have permission to view this page.");
 }
 
+unset($controlIPs);
+
 // param name, its type, and default value
 $params = array('run'        => array(XHPROF_STRING_PARAM, ''),
                 'wts'        => array(XHPROF_STRING_PARAM, ''),

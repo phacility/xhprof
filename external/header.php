@@ -50,7 +50,6 @@ if ($controlIPs === false || in_array($_SERVER['REMOTE_ADDR'], $controlIPs) || P
   }
 }
 
-unset($controlIPs);
 
 //Certain URLs should never have a link displayed. Think images, xml, etc. 
 foreach($exceptionURLs as $url)
