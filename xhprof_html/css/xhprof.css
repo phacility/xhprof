@@ -78,10 +78,10 @@ ul.xhprof_actions li a:hover {
 h1.xh-title {width:225px;font-family:"Lucida Grande", Sans-Serif;font-size:30px;font-weight:bold;color:#333333;margin-left:20px;}
 .form-button {border:1px solid #999999;cursor:pointer;background-color:#b9c9fe;-webkit-border-radius: 4px;-moz-border-radius: 4px;} 
 .form-button:hover {border:1px solid #999999;cursor:pointer;background-color:#e8edff;-webkit-border-radius: 4px;-moz-border-radius: 4px;}
-.runTitle {font-family:"Lucida Grande", Sans-Serif;font-size:18px;margin-left:auto;margin-right:auto;color:#333333;text-align:center;margin-top:25px;border: 2px solid #b9c9fe;padding:4px;}             
+.runTitle {font-family:"Lucida Grande", Sans-Serif;font-size:18px;margin-left:auto;margin-right:auto;color:#333333;text-align:center;margin-top:25px;border: 2px solid #b9c9fe;padding:4px; word-wrap:break-word;}             
 #box-table-a {width:100%;font-family:  Monospace,"Courier New";font-size:12px;margin:20px auto 45px auto;text-align: left;border-collapse:collapse;}
 #box-table-a th {font-size:13px;font-weight:normal;padding: 8px 8px 8px 20px;background-color:#b9c9fe;border-top:4px solid #aabcfe;border-bottom: 1px solid #ffffff;color: #333333;}
-#box-table-a td {padding:8px;background:#e8edff;border-bottom:1px solid #ffffff;color:#333333;border-top: 1px solid transparent;}
+#box-table-a td {padding:8px;background:#e8edff;border-bottom:1px solid #ffffff;color:#333333;border-top: 1px solid transparent; max-width:300px; word-wrap:break-word;}
 #box-table-a tr:hover td {background:#d0dafd;color:#339;}
 #box-table-a, .link-options a:link {color:#0066ff;}
 #box-table-a, .link-options a:hover {color:#0066ff;}
