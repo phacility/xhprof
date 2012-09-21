@@ -24,6 +24,7 @@
 7. Edit the virtual host configuration for the site you'd like to profile to 
     php_admin_value auto_prepend_file "<path>/external/header.php"
     Note for nginx users: http://www.justincarmony.com/blog/2012/04/23/php-fpm-nginx-php_value-and-multiple-values/
+    You may add the auto_prepend_file directive to your php.ini file if you're interested in profiling every request the server handles. You may want to explicitly disable it for the XHGui system unless you're interested in profiling the profiler. 
 8. Bump your server, hope for the best
 9. Hitting a file with ?_profile=1 should profile the page, refresh XHGui to see it.
 
