@@ -48,7 +48,7 @@
 #elif __APPLE__
 /*
  * Patch for compiling in Mac OS X Leopard
- * @author Svilen Spasov <s.spasov@gmail.com> 
+ * @author Svilen Spasov <s.spasov@gmail.com>
  */
 #    include <mach/mach_init.h>
 #    include <mach/thread_policy.h>
@@ -244,6 +244,9 @@ static ZEND_DLEXPORT void (*_zend_execute_internal) (zend_execute_data *data,
 static zend_op_array * (*_zend_compile_file) (zend_file_handle *file_handle,
                                               int type TSRMLS_DC);
 
+/* Pointer to the original compile string function (used by eval) */
+static zend_op_array * (*_zend_compile_string) (zval *source_string, char *filename TSRMLS_DC);
+
 /* Bloom filter for function names to be ignored */
 #define INDEX_2_BYTE(index)  (index >> 3)
 #define INDEX_2_BIT(index)   (1 << (index & 0x7));
@@ -295,6 +298,15 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_disable, 0)
 ZEND_END_ARG_INFO()
+/* }}} */
+
+/**
+ * *********************
+ * FUNCTION PROTOTYPES
+ * *********************
+ */
+int restore_cpu_affinity(cpu_set_t * prev_mask);
+int bind_to_cpu(uint32 cpu_id);
 
 /**
  * *********************
@@ -751,7 +763,6 @@ void hp_clean_profiler_state(TSRMLS_D) {
 size_t hp_get_entry_name(hp_entry_t  *entry,
                          char           *result_buf,
                          size_t          result_len) {
-  size_t    len = 0;
 
   /* Validate result_len */
   if (result_len <= 1) {
@@ -781,7 +792,7 @@ size_t hp_get_entry_name(hp_entry_t  *entry,
 /**
  * Check if this entry should be ignored, first with a conservative Bloomish
  * filter then with an exact check against the function names.
- * 
+ *
  * @author mpal
  */
 int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
@@ -802,7 +813,7 @@ int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
 
 inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
   /* First check if ignoring functions is enabled */
-  return hp_globals.ignored_function_names != NULL && 
+  return hp_globals.ignored_function_names != NULL &&
          hp_ignore_entry_work(hash_code, curr_func);
 }
 
@@ -936,8 +947,6 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       }
     } else {
       long     curr_op;
-      int      desc_len;
-      char    *desc;
       int      add_filename = 0;
 
       /* we are dealing with a special directive/function like
@@ -1537,8 +1546,6 @@ zval * hp_mode_shared_endfn_cb(hp_entry_t *top,
   zval    *counts;
   uint64   tsc_end;
 
-  double gtod_value, rdtsc_value;
-
   /* Get end tsc counter */
   tsc_end = cycle_timer();
 
@@ -1725,6 +1732,29 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
   return ret;
 }
 
+/**
+ * Proxy for zend_compile_string(). Used to profile PHP eval compilation time.
+ */
+ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filename TSRMLS_DC) {
+
+    char          *func;
+    int            len;
+    zend_op_array *ret;
+    int            hp_profile_flag = 1;
+
+    len  = strlen("eval") + strlen(filename) + 3;
+    func = (char *)emalloc(len);
+    snprintf(func, len, "eval::%s", filename);
+
+    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
+    ret = _zend_compile_string(source_string, filename TSRMLS_CC);
+    if (hp_globals.entries) {
+        END_PROFILING(&hp_globals.entries, hp_profile_flag);
+    }
+
+    efree(func);
+    return ret;
+}
 
 /**
  * **************************
@@ -1747,6 +1777,10 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     /* Replace zend_compile with our proxy */
     _zend_compile_file = zend_compile_file;
     zend_compile_file  = hp_compile_file;
+
+    /* Replace zend_compile_string with our proxy */
+    _zend_compile_string = zend_compile_string;
+    zend_compile_string = hp_compile_string;
 
     /* Replace zend_execute with our proxy */
     _zend_execute = zend_execute;
@@ -1813,8 +1847,6 @@ static void hp_end(TSRMLS_D) {
  * hp_begin() and restores the original values.
  */
 static void hp_stop(TSRMLS_D) {
-  zval *ret;
-  char *out_url;
   int   hp_profile_flag = 1;
 
   /* End any unfinished calls */
@@ -1842,8 +1874,8 @@ static void hp_stop(TSRMLS_D) {
  */
 
 /** Look in the PHP assoc array to find a key and return the zval associated
- *  with it.  
- *  
+ *  with it.
+ *
  *  @author mpal
  **/
 static zval *hp_zval_at_key(char  *key,
