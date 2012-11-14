@@ -913,6 +913,8 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
   const char        *cls = NULL;
   char              *ret = NULL;
   int                len;
+  int                arg_count = 0;
+  void             **p;
   zend_function      *curr_func;
 
   data = EG(current_execute_data);
@@ -942,6 +944,30 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         len = strlen(cls) + strlen(func) + 10;
         ret = (char*)emalloc(len);
         snprintf(ret, len, "%s::%s", cls, func);
+      } else if (strncmp(func, "mysql_query", 10) == 0) {
+        void **p;
+        int arg_count = 0;
+        zval *query_element;
+        len = strlen(func);
+
+        p = data->function_state.arguments;
+        arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to func_get_args(); */
+        if (arg_count > 0) {
+            // we only want the first argument - copied from func_get_arg / func_get_args
+            query_element = *(p-(arg_count));
+            if (query_element->type != IS_STRING) {
+                // function without arguments
+                ret = estrdup(func);
+            } else {
+                // why the fuck + 10 :)
+                len = len + query_element->value.str.len + 10;
+                ret = (char*)emalloc(len);
+                snprintf(ret, len, "%s(%s)", func, query_element->value.str.val);
+            }
+        } else {
+            // function without arguments
+            ret = estrdup(func);
+        }
       } else {
         ret = estrdup(func);
       }
