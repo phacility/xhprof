@@ -107,6 +107,7 @@
 #define XHPROF_MAX_IGNORED_FUNCTIONS  256
 #define XHPROF_IGNORED_FUNCTION_FILTER_SIZE                           \
                ((XHPROF_MAX_IGNORED_FUNCTIONS + 7)/8)
+#define XHPROF_MAX_ARGUMENT_LEN 256
 
 #if !defined(uint64)
 typedef unsigned long long uint64;
@@ -964,27 +965,37 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       } else if (hp_argument_entry(hash_code, func)) {
         void **p;
         int arg_count = 0;
+        int i;
         zval *query_element;
-        len = strlen(func);
 
         p = data->function_state.arguments;
         arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to func_get_args(); */
-        if (arg_count > 0) {
-            // we only want the first argument - copied from func_get_arg / func_get_args
-            query_element = *(p-(arg_count));
-            if (query_element->type != IS_STRING) {
-                // function without arguments
-                ret = estrdup(func);
-            } else {
-                // why the fuck + 10 :)
-                len = len + query_element->value.str.len + 10;
-                ret = (char*)emalloc(len);
-                snprintf(ret, len, "%s(%s)", func, query_element->value.str.val);
-            }
-        } else {
-            // function without arguments
-            ret = estrdup(func);
+        len = XHPROF_MAX_ARGUMENT_LEN;
+        ret = emalloc(len);
+        snprintf(ret, len, "%s(", func);
+        for (i=0; i < arg_count; i++) {
+          query_element = *(p-(arg_count-i));
+          switch(query_element->type) {
+            case IS_STRING:
+              snprintf(ret, len, "%s%s, ", ret, query_element->value.str.val);
+              break;
+            case IS_LONG:
+            case IS_BOOL:
+              snprintf(ret, len, "%s%ld, ", ret, query_element->value.lval);
+              break;
+            case IS_DOUBLE:
+              snprintf(ret, len, "%s%f, ", ret, query_element->value.str.val);
+              break;
+            case IS_ARRAY:
+              snprintf(ret, len, "%s%s, ", ret, "[...]");
+              break;
+            case IS_NULL:
+              snprintf(ret, len, "%s%s, ", ret, "NULL");
+            default:
+              snprintf(ret, len, "%s%s, ", ret, "object");
+          }
         }
+        snprintf(ret, len, "%s%s, )", ret, "object");
       } else {
         ret = estrdup(func);
       }
