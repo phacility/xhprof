@@ -966,25 +966,25 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         void **p;
         int arg_count = 0;
         int i;
-        zval *query_element;
+        zval *argument_element;
 
         p = data->function_state.arguments;
-        arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to func_get_args(); */
+        arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to function */
         len = XHPROF_MAX_ARGUMENT_LEN;
         ret = emalloc(len);
         snprintf(ret, len, "%s(", func);
         for (i=0; i < arg_count; i++) {
-          query_element = *(p-(arg_count-i));
-          switch(query_element->type) {
+          argument_element = *(p-(arg_count-i));
+          switch(argument_element->type) {
             case IS_STRING:
-              snprintf(ret, len, "%s%s, ", ret, query_element->value.str.val);
+              snprintf(ret, len, "%s%s, ", ret, argument_element->value.str.val);
               break;
             case IS_LONG:
             case IS_BOOL:
-              snprintf(ret, len, "%s%ld, ", ret, query_element->value.lval);
+              snprintf(ret, len, "%s%ld, ", ret, argument_element->value.lval);
               break;
             case IS_DOUBLE:
-              snprintf(ret, len, "%s%f, ", ret, query_element->value.str.val);
+              snprintf(ret, len, "%s%f, ", ret, argument_element->value.str.val);
               break;
             case IS_ARRAY:
               snprintf(ret, len, "%s%s, ", ret, "[...]");
