@@ -1858,6 +1858,7 @@ static void hp_stop(TSRMLS_D) {
   zend_execute          = _zend_execute;
   zend_execute_internal = _zend_execute_internal;
   zend_compile_file     = _zend_compile_file;
+  zend_compile_string   = _zend_compile_string;
 
   /* Resore cpu affinity. */
   restore_cpu_affinity(&hp_globals.prev_mask);
