@@ -65,8 +65,11 @@ SYSTEM_INFO sysinfo;
 	rusage
 
 ****************************************************************************/
-#include <sys/time.h>			/* for struct timeval */
+#ifdef WIN32
+#include <time.h>               /* for struct timeval */
+#endif
 #ifndef WIN32
+#include <sys/time.h>			/* for struct timeval */
 #include <sys/times.h>			/* for struct tms */
 #endif
 #include <limits.h>				/* for CLK_TCK */
