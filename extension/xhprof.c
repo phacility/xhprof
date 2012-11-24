@@ -20,7 +20,7 @@
 #endif
 
 #ifdef linux
-/* To enable CPU_ZERO and CPU_SET, etc.     */
+/* To enable CPU_ZERO and CPU_SET, etc. */
 # define _GNU_SOURCE
 #endif
 
@@ -85,14 +85,14 @@
  * **********************
  */
 
-/* XHProf version                           */
-#define XHPROF_VERSION       "0.10.3"
+/* XHProf version */
+#define XHPROF_VERSION             "0.10.3"
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
 #define ROOT_SYMBOL                "main()"
 
-/* Size of a temp scratch buffer            */
+/* Size of a temp scratch buffer */
 #define SCRATCH_BUF_LEN            512
 
 /* Various XHPROF modes. If you are adding a new mode, register the appropriate
@@ -106,13 +106,13 @@
  * The following optional flags can be used to control other aspects of
  * profiling.
  */
-#define XHPROF_FLAGS_NO_BUILTINS   0x0001         /* do not profile builtins */
-#define XHPROF_FLAGS_CPU           0x0002      /* gather CPU times for funcs */
+#define XHPROF_FLAGS_NO_BUILTINS   0x0001   /* do not profile builtins */
+#define XHPROF_FLAGS_CPU           0x0002   /* gather CPU times for funcs */
 #define XHPROF_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
 #define XHPROF_FLAGS_LONGNAMES     0x0008   /* use long filenames in reports */
 
-/* Constants for XHPROF_MODE_SAMPLED        */
-#define XHPROF_SAMPLING_INTERVAL       100000      /* In microsecs        */
+/* Constants for XHPROF_MODE_SAMPLED */
+#define XHPROF_SAMPLING_INTERVAL       100000      /* In microsecs */
 
 /* Constant for ignoring functions, transparent to hierarchical profile */
 #define XHPROF_MAX_IGNORED_FUNCTIONS  256
@@ -932,7 +932,7 @@ static char *hp_get_base_filename(char *filename) {
 
   /* return complete filename if requested */
   if (hp_globals.xhprof_flags & XHPROF_FLAGS_LONGNAMES) {
-	  return filename;
+      return filename;
   }
   /* reverse search for "/" and return a ptr to the next char */
   for (ptr = filename + strlen(filename) - 1; ptr >= filename; ptr--) {
@@ -1265,7 +1265,7 @@ inline uint64 cycle_timer() {
 #ifdef PHP_WIN32
   __asm {
     cpuid
-	rdtsc
+    rdtsc
     mov __a, eax
     mov __d, edx
   }
