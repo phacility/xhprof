@@ -47,8 +47,9 @@ PHP_MINFO_FUNCTION(xhprof);
  */
 PHP_FUNCTION(xhprof_enable);
 PHP_FUNCTION(xhprof_disable);
+PHP_FUNCTION(xhprof_debug);
 PHP_FUNCTION(xhprof_sample_enable);
 PHP_FUNCTION(xhprof_sample_disable);
 
-#endif	/* PHP_XHPROF_H */
+#endif  /* PHP_XHPROF_H */
 
