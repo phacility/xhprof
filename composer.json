@@ -1,4 +1,10 @@
 {
     "name": "facebook/xhprof",
-    "description": "XHProf: A Hierarchical Profiler for PHP"
+    "description": "XHProf: A Hierarchical Profiler for PHP",
+    "autoload": {
+        "files": [
+            "xhprof_lib/utils/xhprof_lib.php",
+            "xhprof_lib/utils/xhprof_runs.php"
+        ]
+    }
 }
