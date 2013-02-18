@@ -139,6 +139,12 @@ function xhprof_generate_image_by_dot($dot_script, $type) {
     return $output;
   }
   print "failed to shell execute cmd=\"$cmd\"\n";
+
+  $error = error_get_last();
+  if (isset($error['message'])) {
+    print($error['message'] . "\n");
+  }
+
   exit();
 }
 
