@@ -15,7 +15,7 @@
   extension=xhprof.so
 
 2. Extract everything into a directory somewhere
-3. Copy xhprof_lib/config.sample.php to xhprof/config.php 
+3. Copy xhprof_lib/config.sample.php to xhprof_lib/config.php 
 4. Edit xhprof_lib/config.php with your database type and credentials. Set control IPs, and other fun stuff
     Control IPs allow you to specify which IPs will be shown the footer linking directly to the results, and also which IPs will be able to turn profiling on and off
     You can set this value to FALSE, which disables that protection all togethor.
