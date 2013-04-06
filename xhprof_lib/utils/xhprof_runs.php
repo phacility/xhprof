@@ -146,20 +146,92 @@ class XHProfRuns_Default implements iXHProfRuns {
     return $run_id;
   }
 
-  function list_runs() {
-    if (is_dir($this->dir)) {
-        echo "<hr/>Existing runs:\n<ul>\n";
-        $files = glob("{$this->dir}/*.{$this->suffix}");
-        usort($files, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
-        foreach ($files as $file) {
-            list($run,$source) = explode('.', basename($file));
-            echo '<li><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
-                . '?run=' . htmlentities($run) . '&source='
-                . htmlentities($source) . '">'
-                . htmlentities(basename($file)) . "</a><small> "
-                . date("Y-m-d H:i:s", filemtime($file)) . "</small></li>\n";
-        }
-        echo "</ul>\n";
+  public function get_run_files() {
+    $files = glob("{$this->dir}/*.{$this->suffix}");
+    usort($files, function($a,$b) {
+        return filemtime($b) - filemtime($a);
+    });
+    return $files;
+  }
+
+  public function get_run_list() {
+    $files = $this->get_run_files();
+    $list = array();
+    foreach ($files as $file) {
+      list($run,$source) = explode('.', basename($file));
+      $list[] = array( 'run' => $run , 'source' => $source , 'file' => $file );
     }
+    return $list;
+  }
+
+
+  public function get_run_files_by_source() {
+    $files = $this->get_run_files();
+    $sources = array();
+    foreach( $files as $file ) {
+      list($run,$source) = explode('.', basename($file));
+      $sources[$source][] = array( 'run' => $run , 'file' => $file, 'source' => $source );
+    }
+    return $sources;
+  }
+
+  public function list_sources() {
+    $sources = $this->get_run_files_by_source();
+    echo '<h3>Sources</h3>';
+    echo '<ul>';
+    foreach ($sources as $source => $runs) {
+      echo '<li><a href="?source='. $source .'">'.$source.'</a></li>';
+    }
+    echo '</ul>';
+  }
+
+  public function list_runs() {
+    if ( ! is_dir($this->dir) ) {
+      return;
+    }
+ 
+    if ( ! isset($_GET['source']) ) {
+      $this->list_sources();
+      return;
+    }
+ 
+    echo '<form method="GET">';
+
+    echo 'Source: <input type="text" name="source" value="'. $_GET['source'] .'"/>';
+
+    echo "<hr/>Existing runs:\n";
+
+    echo '<input type="submit" name="compare" value="Compare"/>';
+
+    echo "<table>\n";
+    echo '<tr>';
+    echo '<th>Run1</th>';
+    echo '<th>Run2</th>';
+    echo '<th>Source File</th>';
+    echo '<th>Time</th>';
+    echo '</tr>';
+
+    $files = $this->get_run_files();
+    foreach ($files as $file) {
+      list($run,$source) = explode('.', basename($file));
+
+      if ( $source !== $_GET['source'] ) {
+        continue;
+      }
+      $htmlized_run = htmlentities($run);
+
+      echo '<tr>';
+      echo '<td align="center"><input type="radio" name="run1" value="' . $htmlized_run . '"/></td>';
+      echo '<td align="center"><input type="radio" name="run2" value="' . $htmlized_run . '"/></td>';
+      echo '<td><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
+          . '?run=' . $htmlized_run . '&source='
+          . htmlentities($source) . '">'
+          . htmlentities(basename($file)) . "</a>"
+          . "</td>\n";
+      echo '<td><small><time>' . date("Y-m-d H:i:s", filemtime($file))  . '</time></small></td>';
+      echo '</tr>';
+    }
+    echo "</table>\n";
+    echo '</form>';
   }
 }
