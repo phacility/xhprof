@@ -621,7 +621,7 @@ function print_td_num($num, $fmt_func, $bold=false, $attributes=null) {
 
   $class = get_print_class($num, $bold);
 
-  if (!empty($fmt_func)) {
+  if (!empty($fmt_func) && !is_string($num) ) {
     $num = call_user_func($fmt_func, $num);
   }
 
