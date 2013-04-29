@@ -107,6 +107,7 @@
 #define XHPROF_MAX_IGNORED_FUNCTIONS  256
 #define XHPROF_IGNORED_FUNCTION_FILTER_SIZE                           \
                ((XHPROF_MAX_IGNORED_FUNCTIONS + 7)/8)
+#define XHPROF_MAX_ARGUMENT_LEN 256
 
 #if !defined(uint64)
 typedef unsigned long long uint64;
@@ -222,6 +223,10 @@ typedef struct hp_global_t {
   char  **ignored_function_names;
   uint8   ignored_function_filter[XHPROF_IGNORED_FUNCTION_FILTER_SIZE];
 
+  /* Table of function which get extended with their arguments */
+  char  **argument_function_names;
+  uint8   argument_function_filter[XHPROF_IGNORED_FUNCTION_FILTER_SIZE];
+
 } hp_global_t;
 
 
@@ -288,10 +293,15 @@ static void hp_get_ignored_functions_from_arg(zval *args);
 static void hp_ignored_functions_filter_clear();
 static void hp_ignored_functions_filter_init();
 
+static void hp_get_argument_functions_from_arg(zval *args);
+static void hp_argument_functions_filter_clear();
+static void hp_argument_functions_filter_init();
+
 static inline zval  *hp_zval_at_key(char  *key,
                                     zval  *values);
 static inline char **hp_strings_in_zval(zval  *values);
 static inline void   hp_array_del(char **name_array);
+static inline int  hp_argument_entry(uint8 hash_code, char *curr_func);
 
 /* {{{ arginfo */
 ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprof_enable, 0, 0, 0)
@@ -388,6 +398,7 @@ PHP_FUNCTION(xhprof_enable) {
   }
 
   hp_get_ignored_functions_from_arg(optional_array);
+  hp_get_argument_functions_from_arg(optional_array);
 
   hp_begin(XHPROF_MODE_HIERARCHICAL, xhprof_flags TSRMLS_CC);
 }
@@ -417,6 +428,7 @@ PHP_FUNCTION(xhprof_disable) {
 PHP_FUNCTION(xhprof_sample_enable) {
   long  xhprof_flags = 0;                                    /* XHProf flags */
   hp_get_ignored_functions_from_arg(NULL);
+  hp_get_argument_functions_from_arg(NULL);
   hp_begin(XHPROF_MODE_SAMPLED, xhprof_flags TSRMLS_CC);
 }
 
@@ -475,6 +487,7 @@ PHP_MINIT_FUNCTION(xhprof) {
   }
 
   hp_ignored_functions_filter_clear();
+  hp_argument_functions_filter_clear();
 
 #if defined(DEBUG)
   /* To make it random number generator repeatable to ease testing. */
@@ -680,6 +693,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
 
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
+  hp_argument_functions_filter_init();
 }
 
 /**
@@ -704,6 +718,9 @@ void hp_clean_profiler_state(TSRMLS_D) {
   /* Delete the array storing ignored function names */
   hp_array_del(hp_globals.ignored_function_names);
   hp_globals.ignored_function_names = NULL;
+
+  hp_array_del(hp_globals.argument_function_names);
+  hp_globals.argument_function_names = NULL;
 }
 
 /*
@@ -922,6 +939,8 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
   const char        *cls = NULL;
   char              *ret = NULL;
   int                len;
+  int                arg_count = 0;
+  void             **p;
   zend_function      *curr_func;
 
   data = EG(current_execute_data);
@@ -947,10 +966,45 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         cls = Z_OBJCE(*data->object)->name;
       }
 
+      uint8 hash_code  = hp_inline_hash(func);
       if (cls) {
         len = strlen(cls) + strlen(func) + 10;
         ret = (char*)emalloc(len);
         snprintf(ret, len, "%s::%s", cls, func);
+      } else if (hp_argument_entry(hash_code, func)) {
+        void **p;
+        int arg_count = 0;
+        int i;
+        zval *argument_element;
+
+        p = data->function_state.arguments;
+        arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to function */
+        len = XHPROF_MAX_ARGUMENT_LEN;
+        ret = emalloc(len);
+        snprintf(ret, len, "%s(", func);
+        for (i=0; i < arg_count; i++) {
+          argument_element = *(p-(arg_count-i));
+          switch(argument_element->type) {
+            case IS_STRING:
+              snprintf(ret, len, "%s%s, ", ret, argument_element->value.str.val);
+              break;
+            case IS_LONG:
+            case IS_BOOL:
+              snprintf(ret, len, "%s%ld, ", ret, argument_element->value.lval);
+              break;
+            case IS_DOUBLE:
+              snprintf(ret, len, "%s%f, ", ret, argument_element->value.str.val);
+              break;
+            case IS_ARRAY:
+              snprintf(ret, len, "%s%s, ", ret, "[...]");
+              break;
+            case IS_NULL:
+              snprintf(ret, len, "%s%s, ", ret, "NULL");
+            default:
+              snprintf(ret, len, "%s%s, ", ret, "object");
+          }
+        }
+        snprintf(ret, len, "%s%s, )", ret, "object");
       } else {
         ret = estrdup(func);
       }
@@ -2017,3 +2071,86 @@ static inline void hp_array_del(char **name_array) {
   }
 }
 
+/* for simpler maintainance of the code just copied these from ignored_functions */
+
+
+/**
+ * Parse the list of ignored functions from the zval argument.
+ *
+ * @author mpal
+ */
+static void hp_get_argument_functions_from_arg(zval *args) {
+  if (args != NULL) {
+    zval  *zresult = NULL;
+
+    zresult = hp_zval_at_key("argument_functions", args);
+    hp_globals.argument_function_names = hp_strings_in_zval(zresult);
+  } else {
+    hp_globals.argument_function_names = NULL;
+  }
+}
+
+/**
+ * Clear filter for functions which may be ignored during profiling.
+ *
+ * @author mpal
+ */
+static void hp_argument_functions_filter_clear() {
+  memset(hp_globals.argument_function_filter, 0,
+         XHPROF_IGNORED_FUNCTION_FILTER_SIZE);
+}
+
+/**
+ * Initialize filter for ignored functions using bit vector.
+ *
+ * @author mpal
+ */
+static void hp_argument_functions_filter_init() {
+  if (hp_globals.argument_function_names != NULL) {
+    int i = 0;
+    for(; hp_globals.argument_function_names[i] != NULL; i++) {
+      char *str  = hp_globals.argument_function_names[i];
+      uint8 hash = hp_inline_hash(str);
+      int   idx  = INDEX_2_BYTE(hash);
+      hp_globals.argument_function_filter[idx] |= INDEX_2_BIT(hash);
+    }
+  }
+}
+
+/**
+ * Check if function collides in filter of functions to be ignored.
+ *
+ * @author mpal
+ */
+static int hp_argument_functions_filter_collision(uint8 hash) {
+  uint8 mask = INDEX_2_BIT(hash);
+  return hp_globals.argument_function_filter[INDEX_2_BYTE(hash)] & mask;
+}
+
+/**
+ * Check if this entry should be ignored, first with a conservative Bloomish
+ * filter then with an exact check against the function names.
+ *
+ * @author mpal
+ */
+static int  hp_argument_entry_work(uint8 hash_code, char *curr_func) {
+  int ignore = 0;
+  if (hp_argument_functions_filter_collision(hash_code)) {
+    int i = 0;
+    for (; hp_globals.argument_function_names[i] != NULL; i++) {
+      char *name = hp_globals.argument_function_names[i];
+      if ( !strcmp(curr_func, name)) {
+        ignore++;
+        break;
+      }
+    }
+  }
+
+  return ignore;
+}
+
+static inline int  hp_argument_entry(uint8 hash_code, char *curr_func) {
+  /* First check if argument functions is enabled */
+  return hp_globals.argument_function_names != NULL &&
+         hp_argument_entry_work(hash_code, curr_func);
+}
