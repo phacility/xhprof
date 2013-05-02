@@ -1,0 +1,3 @@
+extension/*
+!extension/php_xhprof.h
+!extension/xhprof.c
