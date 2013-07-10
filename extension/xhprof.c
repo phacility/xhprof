@@ -971,17 +971,25 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         len = strlen(cls) + strlen(func) + 10;
         ret = (char*)emalloc(len);
         snprintf(ret, len, "%s::%s", cls, func);
-      } else if (hp_argument_entry(hash_code, func)) {
+      }  else {
+        ret = estrdup(func);
+      }
+
+      uint8 class_hash_code  = hp_inline_hash(ret);
+      if (hp_argument_entry(class_hash_code, ret)) {
         void **p;
         int arg_count = 0;
         int i;
         zval *argument_element;
+        /* oldret holding function name or class::function. We will reuse the string and free it after */
+        char *oldret = ret;
 
         p = data->function_state.arguments;
         arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to function */
         len = XHPROF_MAX_ARGUMENT_LEN;
         ret = emalloc(len);
-        snprintf(ret, len, "%s(", func);
+        snprintf(ret, len, "%s(", oldret);
+        efree(oldret);
         for (i=0; i < arg_count; i++) {
           argument_element = *(p-(arg_count-i));
           switch(argument_element->type) {
@@ -1005,8 +1013,6 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
           }
         }
         snprintf(ret, len, "%s%s, )", ret, "object");
-      } else {
-        ret = estrdup(func);
       }
     } else {
       long     curr_op;

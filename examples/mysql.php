@@ -1,7 +1,15 @@
 <?php
 $xhprof_arg = array( 'argument_functions' =>
-                                      array('mysql_query'));
+                                      array('mysql_query', 'kuchen', 'Backen::doBacken'));
 
+class Backen {
+    function doBacken($x) {
+        sleep(1);
+    }
+}
+function kuchen($x) {
+    sleep(1);
+}
 
 function bar($x) {
   if ($x > 0) {
@@ -31,7 +39,10 @@ return $row;
 
 // start profiling
 xhprof_enable(XHPROF_FLAGS_MEMORY, $xhprof_arg);
-
+kuchen(1);
+$bcken = new Backen;
+$bcken->doBacken(1);
+$bcken->doBacken('kuchen');
 // run program
 foo();
 testdbconn();
