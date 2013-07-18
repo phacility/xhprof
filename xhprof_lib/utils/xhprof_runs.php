@@ -148,7 +148,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 
   function list_runs() {
     if (is_dir($this->dir)) {
-        echo "<hr/>Existing runs:\n";
+        echo "<hr/>Existing runs:<br />\n";
         $files = glob("{$this->dir}/*.{$this->suffix}");
         usort($files, create_function('$a,$b', '
             list($tmp,$sourceA) = explode(\'.\', basename($a));
@@ -166,9 +166,9 @@ class XHProfRuns_Default implements iXHProfRuns {
             list($run,$source) = explode('.', basename($file));
             if ($oldSource != $source) {
                 if (null !== $oldSource) {
-                    echo "</ul>\n";
+                    echo "</ul><hr />\n";
                 }
-                echo "<hr /><b>$source</b><ul>";
+                echo "<b>$source</b><ul>";
                 $oldSource = $source;
             }
             echo '<li><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
