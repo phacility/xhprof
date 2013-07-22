@@ -906,7 +906,7 @@ function xhprof_param_init($params) {
     }
 
     if ($k === 'run') {
-      $p = implode(',', array_filter(explode(',', $p), 'is_numeric'));
+      $p = implode(',', array_filter(explode(',', $p), 'ctype_xdigit'));
     }
 
     // create a global variable using the parameter name.
