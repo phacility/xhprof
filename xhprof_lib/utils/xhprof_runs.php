@@ -150,15 +150,19 @@ class XHProfRuns_Default implements iXHProfRuns {
     if (is_dir($this->dir)) {
         echo "<hr/>Existing runs:<br />\n";
         $files = glob("{$this->dir}/*.{$this->suffix}");
-        usort($files, create_function('$a,$b', '
-            list($tmp,$sourceA) = explode(\'.\', basename($a));
-            list($tmp,$sourceB) = explode(\'.\', basename($b));
 
-            if ($sourceA == $sourceB)
+        $sort_function = function($a, $b){
+            list($tmp,$source_a) = explode('.', basename($a));
+            list($tmp,$source_b) = explode('.', basename($b));
+
+            if ($source_a == $source_b) {
                 return filemtime($b) - filemtime($a);
+            }
 
-            return $sourceA > $sourceB;
-        '));
+            return $source_a > $source_b;
+        };
+
+        usort($files, $sort_function);
 
         $oldSource=null;
 
