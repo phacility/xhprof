@@ -36,6 +36,8 @@ $_xhprof['dot_errfile'] = '/tmp/xh_dot.err';
 
 $ignoreURLs = array();
 
+$ignoreDomains = array();
+
 $exceptionURLs = array();
 
 $exceptionPostURLs = array();
