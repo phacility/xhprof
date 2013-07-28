@@ -99,6 +99,17 @@ unset($ignoreURLs);
 
 unset($url);
 
+// Certain domains should never be profiled.
+foreach($ignoreDomains as $domain){
+    if (stripos($_SERVER['HTTP_HOST'], $domain) !== FALSE)
+    {
+        $_xhprof['doprofile'] = false;
+        break;
+    }
+}
+unset($ignoreDomains);
+unset($domain);
+
 //Display warning if extension not available
 if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
     include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_lib.php';
