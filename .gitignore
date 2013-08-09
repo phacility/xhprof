@@ -1,0 +1,5 @@
+extension/*
+!extension/config.m4
+!extension/php_xhprof.h
+!extension/tests/
+!extension/xhprof.c
