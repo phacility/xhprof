@@ -378,7 +378,7 @@ function xhprof_generate_dot_script($raw_data, $threshold, $source, $page,
 
       $result .= "N" . $sym_table[$parent]["id"] . " -> N"
                  . $sym_table[$child]["id"];
-      $result .= "[arrowsize=$arrow_size, style=\"setlinewidth($linewidth)\","
+      $result .= "[arrowsize=$arrow_size, color=grey, style=\"setlinewidth($linewidth)\","
                  ." label=\""
                  .$label."\", headlabel=\"".$headlabel
                  ."\", taillabel=\"".$taillabel."\" ]";
