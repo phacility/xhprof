@@ -23,6 +23,8 @@ extern zend_module_entry xhprof_module_entry;
 
 #ifdef PHP_WIN32
 #define PHP_XHPROF_API __declspec(dllexport)
+#include "win32/php_xhprof_win32.h"
+#include "win32/php_xhprof_win32.c"
 #else
 #define PHP_XHPROF_API
 #endif
@@ -31,15 +33,23 @@ extern zend_module_entry xhprof_module_entry;
 #include "TSRM.h"
 #endif
 
+/**
+ * PHP default module methods
+ */
 PHP_MINIT_FUNCTION(xhprof);
 PHP_MSHUTDOWN_FUNCTION(xhprof);
 PHP_RINIT_FUNCTION(xhprof);
 PHP_RSHUTDOWN_FUNCTION(xhprof);
 PHP_MINFO_FUNCTION(xhprof);
 
+/**
+ * declare methods available in PHP
+ */
 PHP_FUNCTION(xhprof_enable);
 PHP_FUNCTION(xhprof_disable);
+PHP_FUNCTION(xhprof_debug);
 PHP_FUNCTION(xhprof_sample_enable);
 PHP_FUNCTION(xhprof_sample_disable);
 
-#endif	/* PHP_XHPROF_H */
+#endif  /* PHP_XHPROF_H */
+
