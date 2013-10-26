@@ -37,21 +37,20 @@ class Db_Mysql extends Db_Abstract
     
     public function connect()
     {
-        $linkid = mysql_connect($this->config['dbhost'], $this->config['dbuser'], $this->config['dbpass']);
-        if ($linkid === FALSE)
+        $this->linkID = mysql_connect($this->config['dbhost'], $this->config['dbuser'], $this->config['dbpass']);
+        if ($this->linkID === FALSE)
         {
             xhprof_error("Could not connect to db");
             throw new Exception("Unable to connect to database");
             return false;
         }
         $this->query("SET NAMES utf8");
-        mysql_select_db($this->config['dbname'], $linkid);
-        $this->linkID = $linkid;
+        mysql_select_db($this->config['dbname'], $this->linkID);
     }
     
     public function query($sql)
     {
-        return mysql_query($sql);
+        return mysql_query($sql, $this->linkID);
     }
     
     public static function getNextAssoc($resultSet)
@@ -61,7 +60,7 @@ class Db_Mysql extends Db_Abstract
     
     public function escape($str)
     {
-        return mysql_real_escape_string($str);
+        return mysql_real_escape_string($str, $this->linkID);
     }
     
     public function affectedRows()
