@@ -7,7 +7,7 @@ This is a graphical front end designed to store and present the profiling inform
 Related Tools:
 
 * [XHGui](https://github.com/perftools/xhgui) - Uses MongoDB as a backend (rather than MySQL)
-* [XHProf UI](http://xhprof.io/) - Uses MySQL backend, more normalized storage schema 
+* [XHProf.io](http://xhprof.io/) - Uses MySQL backend, more normalized storage schema 
 
 
 This branch/clone/whatever git calls it of the official Facebook GUI does a few things:
