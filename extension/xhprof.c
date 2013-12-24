@@ -1360,23 +1360,24 @@ static double get_cpu_frequency() {
   struct timeval end;
   uint64 tsc_start;
   uint64 tsc_end;
+  volatile int i;
 
   if (gettimeofday(&start, 0)) {
     perror("gettimeofday");
     return 0.0;
   }
-  
-  tsc_start = cycle_timer();
 
-  /* Sleep for 5 miliseconds. Comparaing with gettimeofday's few microseconds
-   * execution time, this should be enough. */
-  usleep(5000);
-  if (gettimeofday(&end, 0)) {
-    perror("gettimeofday");
-    return 0.0;
-  }
+  tsc_start = cycle_timer();
   
-  tsc_end = cycle_timer();
+  /* Busy loop for 5 miliseconds. */
+  do {
+    for (i = 0; i < 1000000; i++);
+    if (gettimeofday(&end, 0)) {
+      perror("gettimeofday");
+      return 0.0;
+    }
+    tsc_end = cycle_timer();
+  } while (get_us_interval(&start, &end) < 5000);
 
   return (tsc_end - tsc_start) * 1.0 / (get_us_interval(&start, &end));
 }
