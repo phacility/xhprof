@@ -300,7 +300,7 @@ CREATE TABLE `details` (
   */
   public function getUrlStats($data)
   {
-      $data['select'] = '`id`, '.$this->db->unixTimestamp(`timestamp`).' as `timestamp`, `pmu`, `wt`, `cpu`';   
+      $data['select'] = '`id`, '.$this->db->unixTimestamp('timestamp').' as `timestamp`, `pmu`, `wt`, `cpu`';
       $rs = $this->getRuns($data);
       return $rs;
   }
