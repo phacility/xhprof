@@ -1,0 +1,23 @@
+language: php
+
+notifications:
+  email: false
+
+php:
+  - 5.5
+  - 5.4
+  - 5.3
+  - 5.3.3
+
+env:
+  global:
+    - TEST_PHP_ARGS="-q"
+    - REPORT_EXIT_STATUS=1
+
+before_script:
+  - cd extension
+  - phpize
+  - ./configure
+  - make -j4
+
+script: make -f Makefile.local test_with_exit_status
