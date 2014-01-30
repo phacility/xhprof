@@ -1,6 +1,7 @@
 <?php
 if (PHP_SAPI == 'cli') {
   $_SERVER['REMOTE_ADDR'] = null;
+  $_SERVER['HTTP_HOST'] = null;
   $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
 }
 
