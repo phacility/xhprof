@@ -194,7 +194,7 @@ typedef struct hp_global_t {
   /* Global to track the time of the last sample in time and ticks */
   struct timeval   last_sample_time;
   uint64           last_sample_tsc;
-  uint64           sampling_interval;
+  long             sampling_interval;
   /* sampling_interval in ticks */
   uint64           sampling_interval_tsc;
   int              sampling_depth;
