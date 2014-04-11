@@ -1,5 +1,6 @@
 extension/*
 !extension/config.m4
+!extension/Makefile.local
 !extension/php_xhprof.h
 !extension/tests/
 !extension/xhprof.c
