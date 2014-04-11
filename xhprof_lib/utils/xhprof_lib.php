@@ -98,7 +98,7 @@ function init_metrics($xhprof_data, $rep_symbol, $sort, $diff_report = false) {
 
   $pc_stats = $stats;
 
-  $possible_metrics = xhprof_get_possible_metrics($xhprof_data);
+  $possible_metrics = xhprof_get_possible_metrics();
   foreach ($possible_metrics as $metric => $desc) {
     if (isset($xhprof_data["main()"][$metric])) {
       $metrics[] = $metric;
