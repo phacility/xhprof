@@ -109,7 +109,7 @@ function xhprof_generate_image_by_dot($dot_script, $type) {
 
   $cmd = " dot -T".$type;
 
-  $process = proc_open( $cmd, $descriptorspec, $pipes, sys_get_temp_dir() );
+  $process = proc_open( $cmd, $descriptorspec, $pipes, sys_get_temp_dir(), array( 'PATH' => getenv( 'PATH' ) ) );
   if (is_resource($process)) {
     fwrite($pipes[0], $dot_script);
     fclose($pipes[0]);
