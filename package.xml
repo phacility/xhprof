@@ -13,24 +13,42 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
   <name>Kannan Muthukkaruppan</name>
   <user>kannan</user>
   <email>kannan@php.net</email>
-  <active>yes</active>
+  <active>no</active>
  </lead>
  <developer>
   <name>Venkat Venkataramani</name>
   <user>veeve</user>
   <email>veeve@php.net</email>
-  <active>yes</active>
+  <active>no</active>
  </developer>
  <lead>
   <name>Changhao Jiang</name>
   <user>cjiang</user>
   <email>cjiang@php.net</email>
-  <active>yes</active>
+  <active>no</active>
  </lead>
  <developer>
   <name>Haiping Zhao</name>
   <user>haiping</user>
   <email>haiping@php.net</email>
+  <active>no</active>
+ </developer>
+ <lead>
+  <name>Carlos Bueno</name>
+  <user>aristus</user>
+  <email>cmb@fb.com</email>
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Bill Fumerola</name>
+  <user>billf</user>
+  <email>bill@fb.com</email>
+  <active>yes</active>
+ </lead>
+ <lead>
+  <name>Scott MacVicar</name>
+  <user>macvicar</user>
+  <email>scott@fb.com</email>
   <active>yes</active>
  </developer>
  <date>2009-03-28</date>
