@@ -1725,8 +1725,8 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
-#if ZEND_EXTENSION_API_NO >= 220100525
     zend_op *opline = EX(opline);
+#if ZEND_EXTENSION_API_NO >= 220100525
     temp_variable *retvar = &EX_T(opline->result.var);
     ((zend_internal_function *) EX(function_state).function)->handler(
                        opline->extended_value,
@@ -1735,7 +1735,6 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
                        &retvar->var.ptr:NULL,
                        EX(object), ret TSRMLS_CC);
 #else
-    zend_op *opline = EX(opline);
     ((zend_internal_function *) EX(function_state).function)->handler(
                        opline->extended_value,
                        EX_T(opline->result.u.var).var.ptr,
