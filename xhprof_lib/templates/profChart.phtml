@@ -68,7 +68,7 @@
                     $other+= $dataPoint['excl_wt'];
                 }else
                 {
-                    echo "['{$dataPoint['fn']}', {$dataPoint['excl_wt']}],\n";
+                    echo "['" . addslashes($dataPoint['fn']) . "', {$dataPoint['excl_wt']}],\n";
                 }
             }
             echo "['Other', $other]";
