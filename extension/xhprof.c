@@ -945,16 +945,16 @@ static char *hp_get_function_argument_info(char *ret, int len, zend_execute_data
     arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to function */
     len = XHPROF_MAX_ARGUMENT_LEN;
     ret = emalloc(len);
-    snprintf(ret, len, "%s(", oldret);
+    snprintf(ret, len, "%s#", oldret);
     efree(oldret);
 
-    if (strcmp(ret, "fgets(") == 0 ||
-        strcmp(ret, "fgetcsv(") == 0 ||
-        strcmp(ret, "fread(") == 0 ||
-        strcmp(ret, "fwrite(") == 0 ||
-        strcmp(ret, "fputs(") == 0 ||
-        strcmp(ret, "fputcsv(") == 0 ||
-        strcmp(ret, "stream_get_contents(") == 0
+    if (strcmp(ret, "fgets#") == 0 ||
+        strcmp(ret, "fgetcsv#") == 0 ||
+        strcmp(ret, "fread#") == 0 ||
+        strcmp(ret, "fwrite#") == 0 ||
+        strcmp(ret, "fputs#") == 0 ||
+        strcmp(ret, "fputcsv#") == 0 ||
+        strcmp(ret, "stream_get_contents#") == 0
     ) {
 
         php_stream *stream;
@@ -964,10 +964,10 @@ static char *hp_get_function_argument_info(char *ret, int len, zend_execute_data
         php_stream_from_zval_no_verify(stream, &argument_element);
 
         if (stream != NULL && stream->orig_path) {
-            snprintf(ret, len, "%s\"%s\"", ret, stream->orig_path);
+            snprintf(ret, len, "%s%s", ret, stream->orig_path);
         }
 
-    } else if (strcmp(ret, "curl_exec(") == 0) {
+    } else if (strcmp(ret, "curl_exec#") == 0) {
         php_curl *ch;
         int  le_curl;
         char *s_code;
@@ -979,19 +979,19 @@ static char *hp_get_function_argument_info(char *ret, int len, zend_execute_data
         ZEND_FETCH_RESOURCE_NO_RETURN(ch, php_curl *, &argument_element, -1, "cURL handle", le_curl);
 
         if (ch && curl_easy_getinfo(ch->cp, CURLINFO_EFFECTIVE_URL, &s_code) == CURLE_OK) {
-            snprintf(ret, len, "%s\"%s\"", ret, s_code);
+            snprintf(ret, len, "%s%s", ret, s_code);
         }
 
-    } else if (strcmp(ret, "PDOStatement::execute(") == 0) {
+    } else if (strcmp(ret, "PDOStatement::execute#") == 0) {
         pdo_stmt_t *stmt = (pdo_stmt_t*)zend_object_store_get_object_by_handle( (((*((*data).object)).value).obj).handle TSRMLS_CC);
 
-        snprintf(ret, len, "%s\"%s\"", ret, stmt->query_string);
+        snprintf(ret, len, "%s%s", ret, stmt->query_string);
     } else {
         for (i=0; i < arg_count; i++) {
           argument_element = *(p-(arg_count-i));
           switch(argument_element->type) {
             case IS_STRING:
-              snprintf(ret, len, "%s\"%s\"", ret, argument_element->value.str.val);
+              snprintf(ret, len, "%s%s", ret, argument_element->value.str.val);
               break;
 
             case IS_LONG:
@@ -1020,8 +1020,6 @@ static char *hp_get_function_argument_info(char *ret, int len, zend_execute_data
           }
         }
     }
-
-    snprintf(ret, len, "%s)", ret);
 
     return ret;
 }
