@@ -976,6 +976,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       }
 
       uint8 class_hash_code  = hp_inline_hash(ret);
+
       if (hp_argument_entry(class_hash_code, ret)) {
         void **p;
         int arg_count = 0;
@@ -1024,6 +1025,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         }
         snprintf(ret, len, "%s)", ret);
       }
+
     } else {
       long     curr_op;
       int      add_filename = 0;
