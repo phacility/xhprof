@@ -994,25 +994,35 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
           argument_element = *(p-(arg_count-i));
           switch(argument_element->type) {
             case IS_STRING:
-              snprintf(ret, len, "%s%s, ", ret, argument_element->value.str.val);
+              snprintf(ret, len, "%s\"%s\"", ret, argument_element->value.str.val);
               break;
+
             case IS_LONG:
             case IS_BOOL:
-              snprintf(ret, len, "%s%ld, ", ret, argument_element->value.lval);
+              snprintf(ret, len, "%s%ld", ret, argument_element->value.lval);
               break;
+
             case IS_DOUBLE:
-              snprintf(ret, len, "%s%f, ", ret, argument_element->value.str.val);
+              snprintf(ret, len, "%s%f", ret, argument_element->value.str.val);
               break;
+
             case IS_ARRAY:
-              snprintf(ret, len, "%s%s, ", ret, "[...]");
+              snprintf(ret, len, "%s%s", ret, "[...]");
               break;
+
             case IS_NULL:
-              snprintf(ret, len, "%s%s, ", ret, "NULL");
+              snprintf(ret, len, "%s%s", ret, "NULL");
+              break;
+
             default:
-              snprintf(ret, len, "%s%s, ", ret, "object");
+              snprintf(ret, len, "%s%s", ret, "object");
+          }
+
+          if (i < arg_count-1) {
+              snprintf(ret, len, ", ", ret);
           }
         }
-        snprintf(ret, len, "%s%s, )", ret, "object");
+        snprintf(ret, len, "%s)", ret);
       }
     } else {
       long     curr_op;

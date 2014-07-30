@@ -1,0 +1,11 @@
+extension/*
+extension/tests/*.diff
+extension/tests/*.exp
+extension/tests/*.out
+extension/tests/*.log
+extension/tests/*.php
+extension/tests/*.sh
+!extension/config.m4
+!extension/php_xhprof.h
+!extension/tests/
+!extension/xhprof.c

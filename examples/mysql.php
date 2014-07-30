@@ -1,6 +1,6 @@
 <?php
-$xhprof_arg = array( 'argument_functions' =>
-                                      array('mysql_query', 'kuchen', 'Backen::doBacken'));
+
+$xhprof_arg = array( 'argument_functions' => array('mysql_query', 'kuchen', 'Backen::doBacken'));
 
 class Backen {
     function doBacken($x) {
