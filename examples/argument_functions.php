@@ -1,6 +1,6 @@
 <?php
 
-$options = array( 'argument_functions' => array('file_get_contents', 'strlen', 'curl_exec', 'fgets', 'fputs', 'fread', 'fgetcsv', 'stream_get_contents'));
+$options = array('argument_functions' => array('file_get_contents', 'curl_exec', 'fgets', 'fputs', 'fread', 'fgetcsv', 'stream_get_contents', 'PDOStatement::execute', 'PDO::query'));
 
 xhprof_enable(0, $options);
 
@@ -33,6 +33,12 @@ fclose($fh);
 $fh = fopen(__FILE__, 'r');
 stripos(stream_get_contents($fh), 1);
 
-curl_exec("/tmp/foo");
+$pdo = new PDO('sqlite:memory:', 'root', '');
+
+$stmt = $pdo->prepare("SELECT 1");
+$stmt->execute();
+
+$stmt = $pdo->query("SELECT 1");
+$stmt->execute();
 
 var_dump(xhprof_disable());
