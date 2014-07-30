@@ -1036,8 +1036,6 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
   const char        *cls = NULL;
   char              *ret = NULL;
   int                len;
-  int                arg_count = 0;
-  void             **p;
   zend_function      *curr_func;
 
   data = EG(current_execute_data);
@@ -1068,7 +1066,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         len = strlen(cls) + strlen(func) + 10;
         ret = (char*)emalloc(len);
         snprintf(ret, len, "%s::%s", cls, func);
-      }  else {
+      } else {
         ret = estrdup(func);
       }
 
