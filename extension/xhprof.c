@@ -24,11 +24,17 @@
 # define _GNU_SOURCE
 #endif
 
+#include <curl/curl.h>
+#include <curl/easy.h>
+#include "ext/curl/php_curl.h"
+
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include "ext/standard/file.h"
 #include "php_xhprof.h"
 #include "zend_extensions.h"
+#include "ext/pdo/php_pdo_driver.h"
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdlib.h>
@@ -76,7 +82,7 @@
  */
 
 /* XHProf version                           */
-#define XHPROF_VERSION       "0.9.2"
+#define XHPROF_VERSION       "0.9.6"
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
@@ -107,6 +113,7 @@
 #define XHPROF_MAX_IGNORED_FUNCTIONS  256
 #define XHPROF_IGNORED_FUNCTION_FILTER_SIZE                           \
                ((XHPROF_MAX_IGNORED_FUNCTIONS + 7)/8)
+#define XHPROF_MAX_ARGUMENT_LEN 256
 
 #if !defined(uint64)
 typedef unsigned long long uint64;
@@ -222,6 +229,10 @@ typedef struct hp_global_t {
   char  **ignored_function_names;
   uint8   ignored_function_filter[XHPROF_IGNORED_FUNCTION_FILTER_SIZE];
 
+  /* Table of function which get extended with their arguments */
+  char  **argument_function_names;
+  uint8   argument_function_filter[XHPROF_IGNORED_FUNCTION_FILTER_SIZE];
+
 } hp_global_t;
 
 
@@ -288,10 +299,15 @@ static void hp_get_ignored_functions_from_arg(zval *args);
 static void hp_ignored_functions_filter_clear();
 static void hp_ignored_functions_filter_init();
 
+static void hp_get_argument_functions_from_arg(zval *args);
+static void hp_argument_functions_filter_clear();
+static void hp_argument_functions_filter_init();
+
 static inline zval  *hp_zval_at_key(char  *key,
                                     zval  *values);
 static inline char **hp_strings_in_zval(zval  *values);
 static inline void   hp_array_del(char **name_array);
+static inline int  hp_argument_entry(uint8 hash_code, char *curr_func);
 
 /* {{{ arginfo */
 ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprof_enable, 0, 0, 0)
@@ -388,6 +404,7 @@ PHP_FUNCTION(xhprof_enable) {
   }
 
   hp_get_ignored_functions_from_arg(optional_array);
+  hp_get_argument_functions_from_arg(optional_array);
 
   hp_begin(XHPROF_MODE_HIERARCHICAL, xhprof_flags TSRMLS_CC);
 }
@@ -417,6 +434,7 @@ PHP_FUNCTION(xhprof_disable) {
 PHP_FUNCTION(xhprof_sample_enable) {
   long  xhprof_flags = 0;                                    /* XHProf flags */
   hp_get_ignored_functions_from_arg(NULL);
+  hp_get_argument_functions_from_arg(NULL);
   hp_begin(XHPROF_MODE_SAMPLED, xhprof_flags TSRMLS_CC);
 }
 
@@ -475,6 +493,7 @@ PHP_MINIT_FUNCTION(xhprof) {
   }
 
   hp_ignored_functions_filter_clear();
+  hp_argument_functions_filter_clear();
 
 #if defined(DEBUG)
   /* To make it random number generator repeatable to ease testing. */
@@ -680,6 +699,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
 
   /* Set up filter of functions which may be ignored during profiling */
   hp_ignored_functions_filter_init();
+  hp_argument_functions_filter_init();
 }
 
 /**
@@ -704,6 +724,9 @@ void hp_clean_profiler_state(TSRMLS_D) {
   /* Delete the array storing ignored function names */
   hp_array_del(hp_globals.ignored_function_names);
   hp_globals.ignored_function_names = NULL;
+
+  hp_array_del(hp_globals.argument_function_names);
+  hp_globals.argument_function_names = NULL;
 }
 
 /*
@@ -910,6 +933,97 @@ static const char *hp_get_base_filename(const char *filename) {
   return filename;
 }
 
+static char *hp_get_function_argument_info(char *ret, int len, zend_execute_data *data) {
+    void **p;
+    int arg_count = 0;
+    int i;
+    zval *argument_element;
+    /* oldret holding function name or class::function. We will reuse the string and free it after */
+    char *oldret = ret;
+
+    p = data->function_state.arguments;
+    arg_count = (int)(zend_uintptr_t) *p;       /* this is the amount of arguments passed to function */
+    len = XHPROF_MAX_ARGUMENT_LEN;
+    ret = emalloc(len);
+    snprintf(ret, len, "%s#", oldret);
+    efree(oldret);
+
+    if (strcmp(ret, "fgets#") == 0 ||
+        strcmp(ret, "fgetcsv#") == 0 ||
+        strcmp(ret, "fread#") == 0 ||
+        strcmp(ret, "fwrite#") == 0 ||
+        strcmp(ret, "fputs#") == 0 ||
+        strcmp(ret, "fputcsv#") == 0 ||
+        strcmp(ret, "stream_get_contents#") == 0
+    ) {
+
+        php_stream *stream;
+
+        argument_element = *(p-arg_count);
+
+        php_stream_from_zval_no_verify(stream, &argument_element);
+
+        if (stream != NULL && stream->orig_path) {
+            snprintf(ret, len, "%s%s", ret, stream->orig_path);
+        }
+
+    } else if (strcmp(ret, "curl_exec#") == 0) {
+        php_curl *ch;
+        int  le_curl;
+        char *s_code;
+
+        le_curl = zend_fetch_list_dtor_id("curl");
+
+        argument_element = *(p-arg_count);
+
+        ZEND_FETCH_RESOURCE_NO_RETURN(ch, php_curl *, &argument_element, -1, "cURL handle", le_curl);
+
+        if (ch && curl_easy_getinfo(ch->cp, CURLINFO_EFFECTIVE_URL, &s_code) == CURLE_OK) {
+            snprintf(ret, len, "%s%s", ret, s_code);
+        }
+
+    } else if (strcmp(ret, "PDOStatement::execute#") == 0) {
+        pdo_stmt_t *stmt = (pdo_stmt_t*)zend_object_store_get_object_by_handle( (((*((*data).object)).value).obj).handle TSRMLS_CC);
+
+        snprintf(ret, len, "%s%s", ret, stmt->query_string);
+    } else {
+        for (i=0; i < arg_count; i++) {
+          argument_element = *(p-(arg_count-i));
+          switch(argument_element->type) {
+            case IS_STRING:
+              snprintf(ret, len, "%s%s", ret, argument_element->value.str.val);
+              break;
+
+            case IS_LONG:
+            case IS_BOOL:
+              snprintf(ret, len, "%s%ld", ret, argument_element->value.lval);
+              break;
+
+            case IS_DOUBLE:
+              snprintf(ret, len, "%s%f", ret, argument_element->value.str.val);
+              break;
+
+            case IS_ARRAY:
+              snprintf(ret, len, "%s%s", ret, "[...]");
+              break;
+
+            case IS_NULL:
+              snprintf(ret, len, "%s%s", ret, "NULL");
+              break;
+
+            default:
+              snprintf(ret, len, "%s%s", ret, "object");
+          }
+
+          if (i < arg_count-1) {
+              snprintf(ret, len, ", ", ret);
+          }
+        }
+    }
+
+    return ret;
+}
+
 /**
  * Get the name of the current function. The name is qualified with
  * the class name if the function is in a class.
@@ -947,6 +1061,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
         cls = Z_OBJCE(*data->object)->name;
       }
 
+      uint8 hash_code  = hp_inline_hash(func);
       if (cls) {
         len = strlen(cls) + strlen(func) + 10;
         ret = (char*)emalloc(len);
@@ -954,6 +1069,13 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       } else {
         ret = estrdup(func);
       }
+
+      uint8 class_hash_code  = hp_inline_hash(ret);
+
+      if (hp_argument_entry(class_hash_code, ret)) {
+        ret = hp_get_function_argument_info(ret, len, data);
+      }
+
     } else {
       long     curr_op;
       int      add_filename = 0;
@@ -2017,3 +2139,86 @@ static inline void hp_array_del(char **name_array) {
   }
 }
 
+/* for simpler maintainance of the code just copied these from ignored_functions */
+
+
+/**
+ * Parse the list of ignored functions from the zval argument.
+ *
+ * @author mpal
+ */
+static void hp_get_argument_functions_from_arg(zval *args) {
+  if (args != NULL) {
+    zval  *zresult = NULL;
+
+    zresult = hp_zval_at_key("argument_functions", args);
+    hp_globals.argument_function_names = hp_strings_in_zval(zresult);
+  } else {
+    hp_globals.argument_function_names = NULL;
+  }
+}
+
+/**
+ * Clear filter for functions which may be ignored during profiling.
+ *
+ * @author mpal
+ */
+static void hp_argument_functions_filter_clear() {
+  memset(hp_globals.argument_function_filter, 0,
+         XHPROF_IGNORED_FUNCTION_FILTER_SIZE);
+}
+
+/**
+ * Initialize filter for ignored functions using bit vector.
+ *
+ * @author mpal
+ */
+static void hp_argument_functions_filter_init() {
+  if (hp_globals.argument_function_names != NULL) {
+    int i = 0;
+    for(; hp_globals.argument_function_names[i] != NULL; i++) {
+      char *str  = hp_globals.argument_function_names[i];
+      uint8 hash = hp_inline_hash(str);
+      int   idx  = INDEX_2_BYTE(hash);
+      hp_globals.argument_function_filter[idx] |= INDEX_2_BIT(hash);
+    }
+  }
+}
+
+/**
+ * Check if function collides in filter of functions to be ignored.
+ *
+ * @author mpal
+ */
+static int hp_argument_functions_filter_collision(uint8 hash) {
+  uint8 mask = INDEX_2_BIT(hash);
+  return hp_globals.argument_function_filter[INDEX_2_BYTE(hash)] & mask;
+}
+
+/**
+ * Check if this entry should be ignored, first with a conservative Bloomish
+ * filter then with an exact check against the function names.
+ *
+ * @author mpal
+ */
+static int  hp_argument_entry_work(uint8 hash_code, char *curr_func) {
+  int ignore = 0;
+  if (hp_argument_functions_filter_collision(hash_code)) {
+    int i = 0;
+    for (; hp_globals.argument_function_names[i] != NULL; i++) {
+      char *name = hp_globals.argument_function_names[i];
+      if ( !strcmp(curr_func, name)) {
+        ignore++;
+        break;
+      }
+    }
+  }
+
+  return ignore;
+}
+
+static inline int  hp_argument_entry(uint8 hash_code, char *curr_func) {
+  /* First check if argument functions is enabled */
+  return hp_globals.argument_function_names != NULL &&
+         hp_argument_entry_work(hash_code, curr_func);
+}
