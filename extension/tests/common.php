@@ -32,4 +32,3 @@ function print_canonical($xhprof_data) {
     echo "\n";
   }
 }
-

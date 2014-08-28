@@ -2016,4 +2016,3 @@ static inline void hp_array_del(char **name_array) {
     efree(name_array);
   }
 }
-

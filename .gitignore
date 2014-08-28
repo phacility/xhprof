@@ -4,3 +4,10 @@ extension/*
 !extension/php_xhprof.h
 !extension/tests/
 !extension/xhprof.c
+
+extension/tests/*.sh
+extension/tests/*.exp
+extension/tests/*.out
+extension/tests/*.diff
+extension/tests/*.log
+extension/tests/*.php

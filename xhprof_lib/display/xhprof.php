@@ -1003,7 +1003,7 @@ function print_pc_array($url_params, $results, $base_ct, $base_info, $parent,
 
 function print_source_link($info) {
   if (strncmp($info['fn'], 'run_init', 8) && $info['fn'] !== 'main()') {
-	if (defined('XHPROF_SYMBOL_LOOKUP_URL')) {
+    if (defined('XHPROF_SYMBOL_LOOKUP_URL')) {
       $link = xhprof_render_link(
         'source',
         XHPROF_SYMBOL_LOOKUP_URL . '?symbol='.rawurlencode($info["fn"]));

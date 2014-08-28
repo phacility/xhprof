@@ -1,4 +1,3 @@
-
 PHP_ARG_ENABLE(xhprof, whether to enable xhprof support,
 [ --enable-xhprof      Enable xhprof support])
 
