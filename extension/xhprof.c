@@ -961,7 +961,9 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       /* we are dealing with a special directive/function like
        * include, eval, etc.
        */
-#if ZEND_EXTENSION_API_NO >= 220100525
+#if ZEND_EXTENSION_API_NO >= 220121212
+      curr_op = data->prev_execute_data->opline->extended_value;
+#elif ZEND_EXTENSION_API_NO >= 220100525
       curr_op = data->opline->extended_value;
 #else
       curr_op = data->opline->op2.u.constant.value.lval;

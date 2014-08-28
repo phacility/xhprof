@@ -6,7 +6,7 @@ Author: mpal
 
 include_once dirname(__FILE__).'/common.php';
 
-$xhprof_ignored_functions = array( 'ignored_functions' => 
+$xhprof_ignored_functions = array( 'ignored_functions' =>
                                       array('call_user_func',
                                             'call_user_func_array',
                                             'my_call_user_func_safe',
@@ -20,8 +20,8 @@ function foo($x) {
   for ($idx = 0; $idx < 2; $idx++) {
      $sum += bar();
   }
-  echo "hello: {$x}\n" ;
-  return strlen("hello: {$x}");
+  echo @"hello: {$x}\n" ;
+  return @strlen("hello: {$x}");
 }
 
 function foo_array($x1, $x2 = 'test') {
@@ -30,8 +30,8 @@ function foo_array($x1, $x2 = 'test') {
   foreach ($x as $idx) {
      $sum += bar();
   }
-  echo "hello: " . $x[0] . $x[1] . "\n";
-  return strlen("hello: {$x[0]} {$x[1]}");
+  echo @"hello: {$x[0]}{$x[1]}\n";
+  return @strlen("hello: {$x[0]} {$x[1]}");
 }
 
 function my_call_user_func_safe($function, $args = 'my_safe') {
@@ -161,7 +161,7 @@ echo "\n";
 
 // 5c: Sanity test to only ignore my_call_user_func_array_safe
 echo "Part 5c: Only ignore call_user_func_array\n";
-$xhprof_ignored_functions = array('ignored_functions' => 
+$xhprof_ignored_functions = array('ignored_functions' =>
                                   'my_call_user_func_array_safe');
 xhprof_enable(XHPROF_FLAGS_MEMORY, $xhprof_ignored_functions);
 test_my_call_user_func_array_safe('foo_array');
