@@ -50,7 +50,7 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
   <user>macvicar</user>
   <email>scott@fb.com</email>
   <active>yes</active>
- </developer>
+ </lead>
  <date>2009-03-28</date>
  <version>
   <release>0.9.2</release>
