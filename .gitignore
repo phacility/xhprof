@@ -11,3 +11,5 @@ extension/tests/*.out
 extension/tests/*.diff
 extension/tests/*.log
 extension/tests/*.php
+
+support/libxhprof/.phutil_module_cache
