@@ -76,7 +76,7 @@
  */
 
 /* XHProf version                           */
-#define XHPROF_VERSION       "0.9.2"
+#define XHPROF_VERSION       "0.9.5"
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
@@ -962,7 +962,11 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
        * include, eval, etc.
        */
 #if ZEND_EXTENSION_API_NO >= 220121212
-      curr_op = data->prev_execute_data->opline->extended_value;
+	  if (data->prev_execute_data) {
+      	curr_op = data->prev_execute_data->opline->extended_value;
+      } else {
+      	curr_op = data->opline->extended_value;
+      }
 #elif ZEND_EXTENSION_API_NO >= 220100525
       curr_op = data->opline->extended_value;
 #else
@@ -991,6 +995,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
           break;
         default:
           func = "???_op";
+          add_filename = 1;
           break;
       }
 
