@@ -271,6 +271,10 @@ static void hp_register_constants(INIT_FUNC_ARGS);
 static void hp_begin(long level, long xhprof_flags TSRMLS_DC);
 static void hp_stop(TSRMLS_D);
 static void hp_end(TSRMLS_D);
+static void hp_frame_begin(const char *name, const int len,
+                           const zend_bool wrapped TSRMLS_DC);
+static void hp_frame_end(TSRMLS_D);
+static inline void hp_swap_frames();
 
 static inline uint64 cycle_timer();
 static double get_cpu_frequency();
@@ -307,6 +311,18 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_disable, 0)
 ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprof_frame_begin, 0, 0, 1)
+  ZEND_ARG_INFO(0, name)
+  ZEND_ARG_INFO(0, wrapped)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_xhprof_frame_end, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprofframe_constructor, 0, 0, 1)
+  ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
 /* }}} */
 
 /**
@@ -328,6 +344,8 @@ zend_function_entry xhprof_functions[] = {
   PHP_FE(xhprof_disable, arginfo_xhprof_disable)
   PHP_FE(xhprof_sample_enable, arginfo_xhprof_sample_enable)
   PHP_FE(xhprof_sample_disable, arginfo_xhprof_sample_disable)
+  PHP_FE(xhprof_frame_begin, arginfo_xhprof_frame_begin)
+  PHP_FE(xhprof_frame_end, arginfo_xhprof_frame_end)
   {NULL, NULL, NULL}
 };
 
@@ -360,6 +378,16 @@ PHP_INI_BEGIN()
 PHP_INI_ENTRY("xhprof.output_dir", "", PHP_INI_ALL, NULL)
 
 PHP_INI_END()
+
+/* XhprofFrame object */
+zend_class_entry *xhprofframe_class_entry;
+
+zend_function_entry frame_methods[] = {
+  PHP_ME(XhprofFrame, __construct, arginfo_xhprofframe_constructor,
+         ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+  PHP_ME(XhprofFrame, __destruct,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+  {NULL, NULL, NULL}
+};
 
 /* Init module */
 ZEND_GET_MODULE(xhprof)
@@ -437,16 +465,97 @@ PHP_FUNCTION(xhprof_sample_disable) {
 }
 
 /**
+ * Starts an artificial frame. Together with xhprof_frame_end(), this times
+ * one block of code execution as if it were a function call, allowing people
+ * to define arbitrary function boundaries.
+ *
+ * @param string name The "virtual" function's name.
+ * @param bool wrapped Is this call being made from a helper function/method
+ *   that should not end the frame when the function ends? (eg XhprofFrame's
+ *   constructor)
+ * @return void
+ */
+PHP_FUNCTION(xhprof_frame_begin) {
+  if (hp_globals.enabled && hp_globals.entries) {
+    char *str = { 0 };
+    size_t len = 0;
+    zend_bool wrapped = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
+                              "s|b", &str, &len, &wrapped) == FAILURE) {
+      return;
+    }
+
+    hp_frame_begin(str, len, wrapped TSRMLS_CC);
+  }
+}
+
+/**
+ * Ends an artificial frame that xhprof_frame_begin() started. One has to make
+ * sure there are no exceptions in between these two calls, as otherwise, it
+ * may report incorrect timings. Also, xhprof_frame_begin() and
+ * xhprof_frame_end() have to be paired up really well, so not to interfere
+ * with regular function's profiling, unless that's the intention.
+ *
+ * @return void
+ */
+PHP_FUNCTION(xhprof_frame_end) {
+  if (hp_globals.enabled && hp_globals.entries) {
+    hp_frame_end(TSRMLS_C);
+  }
+}
+
+/**
+ * Construct an XhprofFrame object which starts an artifical frame that will
+ * end when the created object goes out of scope or is unset.
+ *
+ *
+ * @param string name The "virtual" function's name.
+ * @return XhprofFrame
+ */
+PHP_METHOD(XhprofFrame, __construct) {
+  if (hp_globals.enabled && hp_globals.entries) {
+    zval *id;
+    char  *str = { 0 };
+    size_t len = 0;
+    zend_bool wrapped = !(hp_globals.xhprof_flags & XHPROF_FLAGS_NO_BUILTINS);
+
+    if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(),
+                                     "Os", &id, xhprofframe_class_entry,
+                                     &str, &len) == FAILURE) {
+      RETURN_NULL();
+    }
+    hp_frame_begin(str, len, wrapped TSRMLS_CC);
+  }
+  RETURN_NULL();
+}
+
+/**
+ * End the artifical frame.
+ *
+ * @return void
+ */
+PHP_METHOD(XhprofFrame, __destruct) {
+  if (hp_globals.enabled && hp_globals.entries) {
+    hp_frame_end(TSRMLS_C);
+  }
+}
+
+/**
  * Module init callback.
  *
  * @author cjiang
  */
 PHP_MINIT_FUNCTION(xhprof) {
   int i;
+  zend_class_entry ce;
 
   REGISTER_INI_ENTRIES();
 
   hp_register_constants(INIT_FUNC_ARGS_PASSTHRU);
+
+  INIT_CLASS_ENTRY(ce, "XhprofFrame", frame_methods);
+  xhprofframe_class_entry = zend_register_internal_class(&ce TSRMLS_CC);
 
   /* Get the number of available logical CPUs. */
   hp_globals.cpu_num = sysconf(_SC_NPROCESSORS_CONF);
@@ -730,6 +839,10 @@ void hp_clean_profiler_state(TSRMLS_D) {
       hp_globals.mode_cb.begin_fn_cb((entries), (cur_entry) TSRMLS_CC); \
       /* Update entries linked list */                                  \
       (*(entries)) = (cur_entry);                                       \
+    } else {                                                            \
+      /* Free symbol if not used in entry */                            \
+      efree(symbol);                                                    \
+      symbol = NULL;                                                    \
     }                                                                   \
   } while (0)
 
@@ -820,10 +933,20 @@ int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
   return ignore;
 }
 
+/**
+ * Is the provided function name tne name of an xhprof artificial frame
+ * function?
+ */
+static inline int hp_is_frame_func(char *curr_func) {
+  return strcmp("xhprof_frame_begin", curr_func) == 0 ||
+         strcmp("xhprof_frame_end", curr_func) == 0;
+}
+
 static inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
-  /* First check if ignoring functions is enabled */
-  return hp_globals.ignored_function_names != NULL &&
-         hp_ignore_entry_work(hash_code, curr_func);
+  /* Check if ignoring functions is enabled before checking hash */
+  return hp_is_frame_func(curr_func) ||
+         (hp_globals.ignored_function_names != NULL &&
+           hp_ignore_entry_work(hash_code, curr_func));
 }
 
 /**
@@ -1060,6 +1183,10 @@ static void hp_fast_free_hprof_entry(hp_entry_t *p) {
   /* we use/overload the prev_hprof field in the structure to link entries in
    * the free list. */
   p->prev_hprof = hp_globals.entry_free_list;
+  if (p->name_hprof) {
+    efree(p->name_hprof);
+    p->name_hprof = NULL;
+  }
   hp_globals.entry_free_list = p;
 }
 
@@ -1665,10 +1792,9 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 #else
   _zend_execute_ex(execute_data TSRMLS_CC);
 #endif
-  if (hp_globals.entries) {
+  if (hp_globals.entries && hp_profile_flag) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
-  efree(func);
 }
 
 #undef EX
@@ -1701,6 +1827,8 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 
   if (func) {
     BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
+  } else {
+    hp_profile_flag = 0;
   }
 
   if (!_zend_execute_internal) {
@@ -1754,13 +1882,9 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
 #endif
   }
 
-  if (func) {
-    if (hp_globals.entries) {
-      END_PROFILING(&hp_globals.entries, hp_profile_flag);
-    }
-    efree(func);
+  if (hp_globals.entries && hp_profile_flag) {
+    END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
-
 }
 
 /**
@@ -1784,11 +1908,9 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
 
   BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
-  if (hp_globals.entries) {
+  if (hp_globals.entries && hp_profile_flag) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
-
-  efree(func);
   return ret;
 }
 
@@ -1808,11 +1930,10 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
 
     BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
     ret = _zend_compile_string(source_string, filename TSRMLS_CC);
-    if (hp_globals.entries) {
-        END_PROFILING(&hp_globals.entries, hp_profile_flag);
+    if (hp_globals.entries && hp_profile_flag) {
+      END_PROFILING(&hp_globals.entries, hp_profile_flag);
     }
 
-    efree(func);
     return ret;
 }
 
@@ -1830,6 +1951,7 @@ ZEND_DLEXPORT zend_op_array* hp_compile_string(zval *source_string, char *filena
 static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
   if (!hp_globals.enabled) {
     int hp_profile_flag = 1;
+    char          *func;
 
     hp_globals.enabled      = 1;
     hp_globals.xhprof_flags = (uint32)xhprof_flags;
@@ -1885,7 +2007,8 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     hp_init_profiler_state(level TSRMLS_CC);
 
     /* start profiling from fictitious main() */
-    BEGIN_PROFILING(&hp_globals.entries, ROOT_SYMBOL, hp_profile_flag);
+    func = estrdup(ROOT_SYMBOL);
+    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
   }
 }
 
@@ -1936,6 +2059,44 @@ static void hp_stop(TSRMLS_D) {
   hp_globals.enabled = 0;
 }
 
+
+/**
+ * Called from xhprof_frame_begin(). Pushes a new frame on to the stack as
+ * though a function was called.
+ */
+static void hp_frame_begin(const char *name, const int len,
+                           const zend_bool wrapped TSRMLS_DC) {
+  char        *symbol = estrndup(name, len);
+  int hp_profile_flag = 1;
+
+  BEGIN_PROFILING(&hp_globals.entries, symbol, hp_profile_flag);
+
+  // If this call was wrapped in a helper function/method, push the new entry
+  // one level down the stack so that it is not poped when the wrapper
+  // function ends.
+  if (wrapped) {
+    hp_swap_frames();
+  }
+}
+
+/**
+ * Called from xhprof_frame_end(). Ends the current frame.
+ */
+static void hp_frame_end(TSRMLS_D) {
+  END_PROFILING(&hp_globals.entries, 1);
+}
+
+/**
+ * Swap the top two frames on the hp_globals.entries stack.
+ */
+static inline void hp_swap_frames() {
+  hp_entry_t *top = hp_globals.entries;
+  hp_entry_t *next = top->prev_hprof;
+
+  top->prev_hprof = next->prev_hprof;
+  next->prev_hprof = top;
+  hp_globals.entries = next;
+}
 
 /**
  * *****************************
