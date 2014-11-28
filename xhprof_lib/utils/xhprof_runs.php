@@ -96,7 +96,7 @@ class XHProfRuns_Default implements iXHProfRuns {
       if (empty($dir)) {
 
         // some default that at least works on unix...
-        $dir = "/tmp";
+        $dir = sys_get_temp_dir();
 
         xhprof_error("Warning: Must specify directory location for XHProf runs. ".
                      "Trying {$dir} as default. You can either pass the " .
