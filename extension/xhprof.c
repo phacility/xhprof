@@ -596,6 +596,9 @@ static inline uint8 hp_inline_hash(char * str) {
  * @author mpal
  */
 static void hp_get_ignored_functions_from_arg(zval *args) {
+  /* Clean up any existing ignored function list */
+  hp_array_del(hp_globals.ignored_function_names);
+
   if (args != NULL) {
     zval  *zresult = NULL;
 
