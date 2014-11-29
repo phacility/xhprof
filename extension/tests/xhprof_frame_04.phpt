@@ -11,7 +11,8 @@ function inner() {
 }
 
 function objects() {
-  $frame1 = new XhprofFrame('frame1');                                            inner();
+  $frame1 = new XhprofFrame('frame1');
+  inner();
   $frame2 = new XhprofFrame('frame2');
   inner();
   $frame3 = new XhprofFrame('frame3');
