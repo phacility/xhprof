@@ -10,7 +10,7 @@ function inner() {
   return;
 }
 
-function prodedural() {
+function procedural() {
   xhprof_frame_begin('frame1');
   inner();
   xhprof_frame_begin('frame2');
@@ -23,7 +23,7 @@ function prodedural() {
 }
 
 xhprof_enable(XHPROF_FLAGS_NO_BUILTINS);
-prodedural();
+procedural();
 $output = xhprof_disable();
 print_canonical($output);
 echo "\n";
@@ -35,5 +35,5 @@ frame2==>frame3                         : ct=       1; wt=*;
 frame2==>inner                          : ct=       1; wt=*;
 frame3==>inner                          : ct=       1; wt=*;
 main()                                  : ct=       1; wt=*;
-main()==>prodedural                     : ct=       1; wt=*;
-prodedural==>frame1                     : ct=       1; wt=*;
+main()==>procedural                     : ct=       1; wt=*;
+procedural==>frame1                     : ct=       1; wt=*;
