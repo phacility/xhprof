@@ -1,5 +1,5 @@
 --TEST--
-XHPRrof: Timer Tests
+XHProf: Timer Tests
 Author: Kannan
 --FILE--
 <?php

@@ -1,5 +1,5 @@
 --TEST--
-XHPRrof: Test excluding call_user_func and similar functions
+XHProf: Test excluding call_user_func and similar functions
 Author: mpal
 --FILE--
 <?php

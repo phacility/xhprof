@@ -1,5 +1,5 @@
 --TEST--
-XHPRrof: Sampling Mode Test
+XHProf: Sampling Mode Test
 Author: kannan
 --FILE--
 <?php
@@ -50,7 +50,7 @@ foreach  ($output2 as $sample) {
 //
 // our default sampling frequency is 0.1 seconds. So
 // we would expect about 8 samples (given that foo()
-// sleeps for 0.8 seconds). However, we might in future 
+// sleeps for 0.8 seconds). However, we might in future
 // allow the sampling frequency to be modified. So rather
 // than depend on the absolute number of samples, we'll
 // check to see if $count2 is roughly double of $count1.

@@ -1,5 +1,5 @@
 --TEST--
-XHPRrof: Basic Profiling Test
+XHProf: Basic Profiling Test
 Author: Kannan
 --FILE--
 <?php

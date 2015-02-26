@@ -1,5 +1,5 @@
 --TEST--
-XHPRrof: Test (direct and indirect) recursive function calls.
+XHProf: Test (direct and indirect) recursive function calls.
 Author: Kannan
 --FILE--
 <?php

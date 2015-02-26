@@ -1,5 +1,5 @@
 --TEST--
-XHPRrof: Test Class Methods, Constructors, Destructors.
+XHProf: Test Class Methods, Constructors, Destructors.
 Author: Kannan
 --FILE--
 <?php
