@@ -41,5 +41,9 @@ PHP_FUNCTION(xhprof_enable);
 PHP_FUNCTION(xhprof_disable);
 PHP_FUNCTION(xhprof_sample_enable);
 PHP_FUNCTION(xhprof_sample_disable);
+PHP_FUNCTION(xhprof_frame_begin);
+PHP_FUNCTION(xhprof_frame_end);
 
+PHP_METHOD(XhprofFrame, __construct);
+PHP_METHOD(XhprofFrame, __destruct);
 #endif /* PHP_XHPROF_H */
