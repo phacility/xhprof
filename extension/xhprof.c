@@ -101,7 +101,8 @@
 #define XHPROF_FLAGS_MEMORY        0x0004   /* gather memory usage for funcs */
 
 /* Constants for XHPROF_MODE_SAMPLED        */
-#define XHPROF_SAMPLING_INTERVAL       100000      /* In microsecs        */
+#define XHPROF_DEFAULT_SAMPLING_INTERVAL       100000      /* In microsecs        */
+#define XHPROF_MINIMAL_SAMPLING_INTERVAL          100      /* In microsecs        */
 
 /* Constant for ignoring functions, transparent to hierarchical profile */
 #define XHPROF_MAX_IGNORED_FUNCTIONS  256
@@ -193,8 +194,10 @@ typedef struct hp_global_t {
   /* Global to track the time of the last sample in time and ticks */
   struct timeval   last_sample_time;
   uint64           last_sample_tsc;
-  /* XHPROF_SAMPLING_INTERVAL in ticks */
+  long             sampling_interval;
+  /* sampling_interval in ticks */
   uint64           sampling_interval_tsc;
+  int              sampling_depth;
 
   /* This array is used to store cpu frequencies for all available logical
    * cpus.  For now, we assume the cpu frequencies will not change for power
@@ -349,6 +352,9 @@ zend_module_entry xhprof_module_entry = {
   STANDARD_MODULE_PROPERTIES
 };
 
+#define STRINGIFY_(X) #X
+#define STRINGIFY(X) STRINGIFY_(X)
+
 PHP_INI_BEGIN()
 
 /* output directory:
@@ -358,6 +364,16 @@ PHP_INI_BEGIN()
  * directory specified by this ini setting.
  */
 PHP_INI_ENTRY("xhprof.output_dir", "", PHP_INI_ALL, NULL)
+
+/* sampling_interval:
+ * Sampling interval to be used by the sampling profiler
+ */
+STD_PHP_INI_ENTRY("xhprof.sampling_interval", STRINGIFY(XHPROF_DEFAULT_SAMPLING_INTERVAL), PHP_INI_ALL, OnUpdateLong, sampling_interval, hp_global_t, hp_globals)
+
+/* sampling_depth:
+ * Depth to trace call-chain by the sampling profiler
+ */
+STD_PHP_INI_ENTRY("xhprof.sampling_depth", STRINGIFY(INT_MAX), PHP_INI_ALL, OnUpdateLong, sampling_depth, hp_global_t, hp_globals)
 
 PHP_INI_END()
 
@@ -476,6 +492,10 @@ PHP_MINIT_FUNCTION(xhprof) {
 
   hp_ignored_functions_filter_clear();
 
+  if (hp_globals.sampling_interval < XHPROF_MINIMAL_SAMPLING_INTERVAL) {
+    hp_globals.sampling_interval = XHPROF_MINIMAL_SAMPLING_INTERVAL;
+  }
+
 #if defined(DEBUG)
   /* To make it random number generator repeatable to ease testing. */
   srand(0);
@@ -542,6 +562,8 @@ PHP_MINFO_FUNCTION(xhprof)
   }
 
   php_info_print_table_end();
+
+  DISPLAY_INI_ENTRIES();
 }
 
 
@@ -1171,7 +1193,7 @@ void hp_sample_stack(hp_entry_t  **entries  TSRMLS_DC) {
 
   /* Init stats in the global stats_count hashtable */
   hp_get_function_stack(*entries,
-                        INT_MAX,
+                        hp_globals.sampling_depth,
                         symbol,
                         sizeof(symbol));
 
@@ -1207,7 +1229,7 @@ void hp_sample_check(hp_entry_t **entries  TSRMLS_DC) {
     hp_globals.last_sample_tsc += hp_globals.sampling_interval_tsc;
 
     /* bump last_sample_time - HAS TO BE UPDATED BEFORE calling hp_sample_stack */
-    incr_us_interval(&hp_globals.last_sample_time, XHPROF_SAMPLING_INTERVAL);
+    incr_us_interval(&hp_globals.last_sample_time, hp_globals.sampling_interval);
 
     /* sample the stack */
     hp_sample_stack(entries  TSRMLS_CC);
@@ -1493,7 +1515,7 @@ void hp_mode_sampled_init_cb(TSRMLS_D) {
   /* Find the microseconds that need to be truncated */
   gettimeofday(&hp_globals.last_sample_time, 0);
   now = hp_globals.last_sample_time;
-  hp_trunc_time(&hp_globals.last_sample_time, XHPROF_SAMPLING_INTERVAL);
+  hp_trunc_time(&hp_globals.last_sample_time, hp_globals.sampling_interval);
 
   /* Subtract truncated time from last_sample_tsc */
   truncated_us  = get_us_interval(&hp_globals.last_sample_time, &now);
@@ -1505,7 +1527,7 @@ void hp_mode_sampled_init_cb(TSRMLS_D) {
 
   /* Convert sampling interval to ticks */
   hp_globals.sampling_interval_tsc =
-    get_tsc_from_us(XHPROF_SAMPLING_INTERVAL, cpu_freq);
+    get_tsc_from_us(hp_globals.sampling_interval, cpu_freq);
 }
 
 
