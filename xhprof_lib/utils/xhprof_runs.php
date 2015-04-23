@@ -78,6 +78,14 @@ class XHProfRuns_Default implements iXHProfRuns {
 
     $file = "$run_id.$type." . $this->suffix;
 
+    // work-around to avoid too long file names
+    $maxLength = 255;
+    if (strlen($file) > $maxLength) {
+      $md5 = md5($file);
+      $suffixLength = strlen($this->suffix) + 1;
+      $file = substr_replace($file, $md5, $maxLength - (strlen($md5) + $suffixLength), -$suffixLength);
+    }
+
     if (!empty($this->dir)) {
       $file = $this->dir . "/" . $file;
     }
