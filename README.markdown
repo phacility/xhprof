@@ -56,18 +56,21 @@ Installation
 * Install MySQL server
 * Clone the project to some folder
 * Map the sub folder `xhprof_html` to be accessible over HTTP
-* Move xhprof_lib/config.sample.php to xhprof_lib/config.php
+* Move `xhprof_lib/config.sample.php` to `xhprof_lib/config.php`
 * Edit `xhprof_lib/config.php`
- * Update the mysql connection strings
- * Update the server url
- * Update the `dot_binary` configuration
- * Update the `controlIPs` variable to enable access. For a development machine you can set this to `false` to disable IP checks.
+ * Update the SQL server configuration
+ * Update the URL of the service (should point to `xhprof_html` over HTTP)
+ * Update the `dot_binary` configuration - otherwise no call graphs!
+ * Update the `controlIPs` variable to enable access.
+  * For a development machine you can set this to `false` to disable IP checks.
 * Import the DB schema (it is just 1 table)
  * See the SQL at [xhprof_runs.php](https://github.com/toomasr/xhprof/blob/master/xhprof_lib/utils/xhprof_runs.php#L109)
-* Add a PHP configuration
+* Add a PHP configuration to enable the profiling
  * If using Apache you can edit your virtual host configuration
  * Add `php_admin_value auto_prepend_file "/path/to/xhprof/external/header.php"`
 * Visit http://your-server/xhprof/xhprof_html/ and be amazed!
+ * To get profiler information showing up there visit your page with a `GET` variable `_profile=1`.
+ * For example `http://localhost/?_profile=1`
 
 We Are Working On
 -----------------
