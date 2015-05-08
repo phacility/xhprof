@@ -55,7 +55,7 @@ Installation
 * Install your favourite mix of PHP and web server
 * Install MySQL server
 * Clone the project to some folder
-* Map the subfolder `xhprof_html` to a webroot
+* Map the sub folder `xhprof_html` to be accessible over HTTP
 * Move xhprof_lib/config.sample.php to xhprof_lib/config.php
 * Edit `xhprof_lib/config.php`
  * Update the mysql connection strings
