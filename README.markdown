@@ -58,10 +58,10 @@ Installation
 * Map the subfolder `xhprof_html` to a webroot
 * Move xhprof_lib/config.sample.php to xhprof_lib/config.php
 * Edit `xhprof_lib/config.php`
-** Update the mysql connection strings
-** Update the `dot_binary` configuration
+ * Update the mysql connection strings
+ * Update the `dot_binary` configuration
 * Import the DB schema (it is just 1 table)
-** See the SQL at [xhprof_runs.php](https://github.com/toomasr/xhprof/blob/master/xhprof_lib/utils/xhprof_runs.php#L109)
+ * See the SQL at [xhprof_runs.php](https://github.com/toomasr/xhprof/blob/master/xhprof_lib/utils/xhprof_runs.php#L109)
 
 We Are Working On
 -----------------
