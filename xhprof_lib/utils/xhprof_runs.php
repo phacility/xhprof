@@ -264,7 +264,12 @@ CREATE TABLE `details` (
     $query = "SELECT * FROM `details` WHERE `id` = '$run_id'";
     $resultSet = $this->db->query($query);
     $data = $this->db->getNextAssoc($resultSet);
-    
+
+    // can't find specified data
+    if (empty($data)) {
+        return array(null, null);
+    }
+
     //The Performance data is compressed lightly to avoid max row length
 	if (!isset($GLOBALS['_xhprof']['serializer']) || strtolower($GLOBALS['_xhprof']['serializer'] == 'php')) {
 		$contents = unserialize(gzuncompress($data['perfdata']));
