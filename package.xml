@@ -102,7 +102,7 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
       <file role="php" name="index.php"/>
       <file role="php" name="typeahead.php"/>
       <dir name="css">
-        <file role="src" name="xhprof.css"/>
+        <file role="php" name="xhprof.css"/>
       </dir>
       <dir name="docs">
         <file role="doc" name="index.html"/>
@@ -113,15 +113,15 @@ XHProf is a function-level hierarchical profiler for PHP and has a simple HTML b
         <file role="doc" name="sample-parent-child-view.jpg"/>
       </dir>
       <dir name="jquery">
-        <file role="src" name="indicator.gif"/>
-        <file role="src" name="jquery-1.2.6.js"/>
-        <file role="src" name="jquery.autocomplete.css"/>
-        <file role="src" name="jquery.autocomplete.js"/>
-        <file role="src" name="jquery.tooltip.css"/>
-        <file role="src" name="jquery.tooltip.js"/>
+        <file role="php" name="indicator.gif"/>
+        <file role="php" name="jquery-1.2.6.js"/>
+        <file role="php" name="jquery.autocomplete.css"/>
+        <file role="php" name="jquery.autocomplete.js"/>
+        <file role="php" name="jquery.tooltip.css"/>
+        <file role="php" name="jquery.tooltip.js"/>
       </dir>
       <dir name="js">
-        <file role="src" name="xhprof_report.js"/>
+        <file role="php" name="xhprof_report.js"/>
       </dir>
     </dir>
     <dir name="xhprof_lib">
