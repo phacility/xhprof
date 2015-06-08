@@ -78,7 +78,7 @@
     foreach($cookieArr as $key=>$value){
         if (is_array($value))
         {
-            $value = implode(", ", $value);
+            $value = nl2br(str_replace('  ', '&nbsp;', print_r($value, true)));
         }
         echo "<tr>\n";
         echo "\t<td>" . $key . "</td><td>" . chunk_split($value) . "</td>\n";
@@ -104,7 +104,7 @@
     {  
         if (is_array($value))
         {
-            $value = implode(", ", $value);
+            $value = nl2br(str_replace('  ', '&nbsp;', print_r($value, true)));
         }     
         echo "<tr>";
         echo "<td>" . $key . "</td><td>" . $value . "</td>";
@@ -129,7 +129,7 @@
     foreach($postArr as $key=>$value){
         if (is_array($value))
         {
-            $value = implode(", ", $value);
+            $value = nl2br(str_replace('  ', '&nbsp;', print_r($value, true)));
         }         
         echo "<tr>";
         echo "<td>" . $key . "</td><td>" . $value . "</td>";
