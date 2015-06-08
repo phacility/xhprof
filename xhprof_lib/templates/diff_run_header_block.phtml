@@ -85,7 +85,7 @@ print('<div id="view-diff-tables">');
             }
             if (is_array($value))
             {
-                $value = implode(", ", $value);
+                $value = nl2br(str_replace('  ', '&nbsp;', print_r($value, true)));
             }
             echo "<td>" . $key . "</td><td class=\"".$class."\">" . chunk_split($value) . "</td>";
             echo "</tr>";
@@ -205,7 +205,7 @@ print('<div id="view-diff-tables">');
             }
             if(is_array($value))
             {
-                $value = implode(", ", $value);
+                $value = nl2br(str_replace('  ', '&nbsp;', print_r($value, true)));
             }
             echo "<td>" . $key . "</td><td class=\"".$class."\">" . chunk_split($value) . "</td>";
             echo "</tr>";
