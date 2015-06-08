@@ -1230,10 +1230,24 @@ void hp_sample_check(hp_entry_t **entries  TSRMLS_DC) {
  * @author cjiang
  */
 static inline uint64 cycle_timer() {
-  uint32 __a,__d;
   uint64 val;
+
+#if defined(__i386__) || defined(__x86_64__)
+
+  uint32 __a,__d;
   asm volatile("rdtsc" : "=a" (__a), "=d" (__d));
   (val) = ((uint64)__a) | (((uint64)__d)<<32);
+
+/* The builtin is available starting with GCC 4.8 */
+#elif defined(__powerpc__) && \
+      ( __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
+
+  val = __builtin_ppc_get_timebase();
+
+#else
+#error Unsupported platform
+#endif
+
   return val;
 }
 
