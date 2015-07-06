@@ -1716,26 +1716,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
     /* no old override to begin with. so invoke the builtin's implementation  */
 
 #if ZEND_EXTENSION_API_NO >= 220121212
-    /* PHP 5.5. This is just inlining a copy of execute_internal(). */
-
-    if (fci != NULL) {
-      ((zend_internal_function *) execute_data->function_state.function)->handler(
-        fci->param_count,
-        *fci->retval_ptr_ptr,
-        fci->retval_ptr_ptr,
-        fci->object_ptr,
-        1 TSRMLS_CC);
-    } else {
-      zval **return_value_ptr = &EX_TMP_VAR(execute_data, execute_data->opline->result.var)->var.ptr;
-      ((zend_internal_function *) execute_data->function_state.function)->handler(
-        execute_data->opline->extended_value,
-        *return_value_ptr,
-        (execute_data->function_state.function->common.fn_flags & ZEND_ACC_RETURN_REFERENCE)
-          ? return_value_ptr
-          : NULL,
-        execute_data->object,
-        ret TSRMLS_CC);
-    }
+    execute_internal(execute_data, fci, ret TSRMLS_CC);
 #elif ZEND_EXTENSION_API_NO >= 220100525
     zend_op *opline = EX(opline);
     temp_variable *retvar = &EX_T(opline->result.var);
