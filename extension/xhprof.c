@@ -933,10 +933,10 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
 
   if (data) {
     /* shared meta data for function on the call stack */
-    curr_func = data->function_state.function;
+    curr_func = data->func;
 
     /* extract function name from the meta info */
-    func = curr_func->common.function_name;
+    func = curr_func->common.function_name->val;
 
     if (func) {
       /* previously, the order of the tests in the "if" below was
@@ -947,9 +947,9 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
        * of the object.
        */
       if (curr_func->common.scope) {
-        cls = curr_func->common.scope->name;
-      } else if (data->object) {
-        cls = Z_OBJCE(*data->object)->name;
+        cls = curr_func->common.scope->name->val;
+      } else if (data->called_scope) {
+        cls = data->called_scope->name->val;
       }
 
       if (cls) {
@@ -1010,7 +1010,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
       if (add_filename){
         const char *filename;
         int   len;
-        filename = hp_get_base_filename((curr_func->op_array).filename);
+        filename = hp_get_base_filename((curr_func->op_array).filename->val);
         len      = strlen("run_init") + strlen(filename) + 3;
         ret      = (char *)emalloc(len);
         snprintf(ret, len, "run_init::%s", filename);
@@ -1082,7 +1082,7 @@ static void hp_fast_free_hprof_entry(hp_entry_t *p) {
  * @return void
  * @author kannan
  */
-void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC) {
+void hp_inc_count(zval *counts, zend_string *name, long count TSRMLS_DC) {
   HashTable *ht;
   void *data;
 
@@ -1090,10 +1090,10 @@ void hp_inc_count(zval *counts, char *name, long count TSRMLS_DC) {
   ht = HASH_OF(counts);
   if (!ht) return;
 
-  if (zend_hash_find(ht, name, strlen(name) + 1, &data) == SUCCESS) {
+  if (zend_hash_find(ht, name) == SUCCESS) {
     ZVAL_LONG(*(zval**)data, Z_LVAL_PP((zval**)data) + count);
   } else {
-    add_assoc_long(counts, name, count);
+    add_assoc_long(counts, name->val, count);
   }
 }
 
@@ -1114,7 +1114,7 @@ zval * hp_hash_lookup(char *symbol  TSRMLS_DC) {
   }
 
   /* Lookup our hash table */
-  if (zend_hash_find(ht, symbol, strlen(symbol) + 1, &data) == SUCCESS) {
+  if (zend_hash_find(ht, zend_string_init(symbol, strlen(symbol) + 1, 0)) == SUCCESS) {
     /* Symbol already exists */
     counts = *(zval **) data;
   }
@@ -1575,9 +1575,9 @@ zval * hp_mode_shared_endfn_cb(hp_entry_t *top,
   }
 
   /* Bump stats in the counts hashtable */
-  hp_inc_count(counts, "ct", 1  TSRMLS_CC);
+  hp_inc_count(counts, zend_string_init("ct", sizeof("ct") - 1, 0), 1  TSRMLS_CC);
 
-  hp_inc_count(counts, "wt", get_us_from_tsc(tsc_end - top->tsc_start,
+  hp_inc_count(counts, zend_string_init("wt", sizeof("wt") - 1, 0), get_us_from_tsc(tsc_end - top->tsc_start,
         hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
   return counts;
 }
@@ -1607,7 +1607,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     getrusage(RUSAGE_SELF, &ru_end);
 
     /* Bump CPU stats in the counts hashtable */
-    hp_inc_count(counts, "cpu", (get_us_interval(&(top->ru_start_hprof.ru_utime),
+    hp_inc_count(counts, zend_string_init("cpu", sizeof("cpu") - 1, 0), (get_us_interval(&(top->ru_start_hprof.ru_utime),
                                               &(ru_end.ru_utime)) +
                               get_us_interval(&(top->ru_start_hprof.ru_stime),
                                               &(ru_end.ru_stime)))
@@ -1620,8 +1620,9 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     pmu_end = zend_memory_peak_usage(0 TSRMLS_CC);
 
     /* Bump Memory stats in the counts hashtable */
-    hp_inc_count(counts, "mu",  mu_end - top->mu_start_hprof    TSRMLS_CC);
-    hp_inc_count(counts, "pmu", pmu_end - top->pmu_start_hprof  TSRMLS_CC);
+
+    hp_inc_count(counts, zend_string_init("mu", sizeof("mu") - 1, 0),  mu_end - top->mu_start_hprof    TSRMLS_CC);
+    hp_inc_count(counts, zend_string_init("pmu", sizeof("pmu") - 1, 0), pmu_end - top->pmu_start_hprof  TSRMLS_CC);
   }
 }
 
@@ -1961,13 +1962,13 @@ static zval *hp_zval_at_key(char  *key,
                             zval  *values) {
   zval *result = NULL;
 
-  if (values->type == IS_ARRAY) {
+  if (Z_TYPE_P(values) == IS_ARRAY) {
     HashTable *ht;
     zval     **value;
     uint       len = strlen(key) + 1;
 
     ht = Z_ARRVAL_P(values);
-    if (zend_hash_find(ht, key, len, (void**)&value) == SUCCESS) {
+    if (zend_hash_find(ht, zend_string_init(key, len, 0)) == SUCCESS) {
       result = *value;
     }
   } else {
@@ -1991,7 +1992,7 @@ static char **hp_strings_in_zval(zval  *values) {
     return NULL;
   }
 
-  if (values->type == IS_ARRAY) {
+  if (Z_TYPE_P(values) == IS_ARRAY) {
     HashTable *ht;
 
     ht    = Z_ARRVAL_P(values);
@@ -2022,7 +2023,7 @@ static char **hp_strings_in_zval(zval  *values) {
         }
       }
     }
-  } else if(values->type == IS_STRING) {
+  } else if(Z_TYPE_P(values) == IS_STRING) {
     if((result = (char**)emalloc(sizeof(char*) * 2)) == NULL) {
       return result;
     }
