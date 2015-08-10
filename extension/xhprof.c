@@ -76,7 +76,7 @@
  */
 
 /* XHProf version                           */
-#define XHPROF_VERSION       "0.9.2"
+#define XHPROF_VERSION       "0.9.4"
 
 /* Fictitious function name to represent top of the call tree. The paranthesis
  * in the name is to ensure we don't conflict with user function names.  */
