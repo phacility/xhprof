@@ -666,7 +666,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
     zval_dtor(hp_globals.stats_count);
     FREE_ZVAL(hp_globals.stats_count);
   }
-  MAKE_STD_ZVAL(hp_globals.stats_count);
+  
+  hp_globals.stats_count = (zval *)emalloc(sizeof(zval));
   array_init(hp_globals.stats_count);
 
   /* NOTE(cjiang): some fields such as cpu_frequencies take relatively longer
@@ -1177,8 +1178,7 @@ void hp_sample_stack(hp_entry_t  **entries  TSRMLS_DC) {
 
   add_assoc_string(hp_globals.stats_count,
                    key,
-                   symbol,
-                   1);
+                   symbol);
   return;
 }
 
@@ -1654,7 +1654,7 @@ void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 ZEND_DLEXPORT void hp_execute (zend_op_array *ops TSRMLS_DC) {
 #else
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
-  zend_op_array *ops = execute_data->op_array;
+  zend_op_array *ops = &execute_data->func->op_array;
 #endif
   char          *func = NULL;
   int hp_profile_flag = 1;
@@ -1707,7 +1707,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   int    hp_profile_flag = 1;
 
   current_data = EG(current_execute_data);
-  func = hp_get_function_name(current_data->op_array TSRMLS_CC);
+  func = hp_get_function_name(&current_data->func->op_array TSRMLS_CC);
 
   if (func) {
     BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
@@ -1716,7 +1716,10 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
 
-#if ZEND_EXTENSION_API_NO >= 220121212
+#if ZEND_EXTENSION_API_NO >= 320140815
+
+
+#elif ZEND_EXTENSION_API_NO >= 220121212
     /* PHP 5.5. This is just inlining a copy of execute_internal(). */
 
     if (fci != NULL) {
@@ -2006,18 +2009,20 @@ static char **hp_strings_in_zval(zval  *values) {
     for (zend_hash_internal_pointer_reset(ht);
          zend_hash_has_more_elements(ht) == SUCCESS;
          zend_hash_move_forward(ht)) {
-      char  *str;
-      uint   len;
+      //char  *str;
+      //uint   len;
+      zend_string *key;
+
       ulong  idx;
       int    type;
       zval **data;
-
-      type = zend_hash_get_current_key_ex(ht, &str, &len, &idx, 0, NULL);
+      
+      type = zend_hash_get_current_key_ex(ht, &key, &idx, NULL);
       /* Get the names stored in a standard array */
       if(type == HASH_KEY_IS_LONG) {
-        if ((zend_hash_get_current_data(ht, (void**)&data) == SUCCESS) &&
+        if ((data = zend_hash_get_current_data(ht) != NULL) &&
             Z_TYPE_PP(data) == IS_STRING &&
-            strcmp(Z_STRVAL_PP(data), ROOT_SYMBOL)) { /* do not ignore "main" */
+            strcmp(ZSTR_VAL((*data)->value.str), ROOT_SYMBOL)) { /* do not ignore "main" */
           result[ix] = estrdup(Z_STRVAL_PP(data));
           ix++;
         }
