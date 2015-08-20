@@ -28,7 +28,9 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_xhprof.h"
-#include "zend_extensions.h"
+
+#include "zend_compile.h"
+
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdlib.h>
@@ -119,6 +121,19 @@ typedef unsigned char uint8;
 #endif
 
 
+#if PHP_VERSION_ID < 50500
+#define EX_T(offset) (*(temp_variable *)((char *) EX(Ts) + offset))
+
+ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
+                                       int ret TSRMLS_DC);
+#else
+#define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
+
+ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
+                                       struct _zend_fcall_info *fci, int ret TSRMLS_DC);
+#endif
+
+typedef int (*opcode_handler_t) (zend_execute_data *execute_data);
 /**
  * *****************************
  * GLOBAL DATATYPES AND TYPEDEFS
@@ -232,6 +247,8 @@ typedef struct hp_global_t {
  */
 /* XHProf global state */
 static hp_global_t       hp_globals;
+
+int xhprof_icall_handler(ZEND_OPCODE_HANDLER_ARGS);
 
 #if PHP_VERSION_ID < 50500
 /* Pointer to the original execute function */
@@ -480,6 +497,10 @@ PHP_MINIT_FUNCTION(xhprof) {
   /* To make it random number generator repeatable to ease testing. */
   srand(0);
 #endif
+  zend_set_user_opcode_handler(ZEND_DO_ICALL, xhprof_icall_handler);
+  
+  zend_execute_internal = hp_execute_internal;
+  _zend_execute_internal = zend_execute_internal;
   return SUCCESS;
 }
 
@@ -664,7 +685,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
   /* Init stats_count */
   if (hp_globals.stats_count) {
     zval_dtor(hp_globals.stats_count);
-    FREE_ZVAL(hp_globals.stats_count);
+    efree(hp_globals.stats_count);
+//    FREE_ZVAL(hp_globals.stats_count);
   }
   
   hp_globals.stats_count = (zval *)emalloc(sizeof(zval));
@@ -700,7 +722,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
   /* Clear globals */
   if (hp_globals.stats_count) {
     zval_dtor(hp_globals.stats_count);
-    FREE_ZVAL(hp_globals.stats_count);
+    efree(hp_globals.stats_count);
+    //FREE_ZVAL(hp_globals.stats_count);
     hp_globals.stats_count = NULL;
   }
   hp_globals.entries = NULL;
@@ -776,11 +799,13 @@ void hp_clean_profiler_state(TSRMLS_D) {
  * @author veeve
  */
 size_t hp_get_entry_name(hp_entry_t  *entry,
-                         char           *result_buf,
-                         size_t          result_len) {
+                         /*char           *result_buf,
+                         size_t          result_len*/
+                        zend_string *result
+                        ) {
 
   /* Validate result_len */
-  if (result_len <= 1) {
+  if (result->len <= 1) {
     /* Insufficient result_bug. Bail! */
     return 0;
   }
@@ -788,20 +813,21 @@ size_t hp_get_entry_name(hp_entry_t  *entry,
   /* Add '@recurse_level' if required */
   /* NOTE:  Dont use snprintf's return val as it is compiler dependent */
   if (entry->rlvl_hprof) {
-    snprintf(result_buf, result_len,
+    snprintf(result->val, result->len,
              "%s@%d",
              entry->name_hprof, entry->rlvl_hprof);
   }
   else {
-    snprintf(result_buf, result_len,
+    snprintf(result->val, result->len,
              "%s",
              entry->name_hprof);
   }
 
   /* Force null-termination at MAX */
-  result_buf[result_len - 1] = 0;
-
-  return strlen(result_buf);
+//  result_buf[result_len - 1] = 0;
+  result->val[result->len - 1] = 0;
+  return result->len;
+  //return strlen(result_buf);
 }
 
 /**
@@ -848,36 +874,38 @@ static inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
  */
 size_t hp_get_function_stack(hp_entry_t *entry,
                              int            level,
-                             char          *result_buf,
-                             size_t         result_len) {
+                             //char          *result_buf,
+                             //size_t         result_len
+                             zend_string *result
+                             ) {
   size_t         len = 0;
 
   /* End recursion if we dont need deeper levels or we dont have any deeper
    * levels */
   if (!entry->prev_hprof || (level <= 1)) {
-    return hp_get_entry_name(entry, result_buf, result_len);
+    return hp_get_entry_name(entry, result);
   }
 
   /* Take care of all ancestors first */
   len = hp_get_function_stack(entry->prev_hprof,
                               level - 1,
-                              result_buf,
-                              result_len);
+                              result
+                              );
 
   /* Append the delimiter */
 # define    HP_STACK_DELIM        "==>"
 # define    HP_STACK_DELIM_LEN    (sizeof(HP_STACK_DELIM) - 1)
 
-  if (result_len < (len + HP_STACK_DELIM_LEN)) {
+  if (result->len < (len + HP_STACK_DELIM_LEN)) {
     /* Insufficient result_buf. Bail out! */
     return len;
   }
 
   /* Add delimiter only if entry had ancestors */
   if (len) {
-    strncat(result_buf + len,
+    strncat(result->val + len,
             HP_STACK_DELIM,
-            result_len - len);
+            result->len - len);
     len += HP_STACK_DELIM_LEN;
   }
 
@@ -885,9 +913,9 @@ size_t hp_get_function_stack(hp_entry_t *entry,
 # undef     HP_STACK_DELIM
 
   /* Append the current function name */
-  return len + hp_get_entry_name(entry,
-                                 result_buf + len,
-                                 result_len - len);
+  //return len + hp_get_entry_name(entry,
+   //                              result->val + len,
+    //                             result->len - len);
 }
 
 /**
@@ -976,7 +1004,7 @@ static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
 #elif ZEND_EXTENSION_API_NO >= 220100525
       curr_op = data->opline->extended_value;
 #else
-      curr_op = data->opline->op2.u.constant.value.lval;
+      //curr_op = data->opline->op2.u.constant.value.lval;
 #endif
 
       switch (curr_op) {
@@ -1085,14 +1113,14 @@ static void hp_fast_free_hprof_entry(hp_entry_t *p) {
  */
 void hp_inc_count(zval *counts, zend_string *name, long count TSRMLS_DC) {
   HashTable *ht;
-  void *data;
+  zval *data;
 
   if (!counts) return;
   ht = HASH_OF(counts);
   if (!ht) return;
 
-  if (zend_hash_find(ht, name) == SUCCESS) {
-    ZVAL_LONG(*(zval**)data, Z_LVAL_PP((zval**)data) + count);
+  if ((data = zend_hash_find(ht, name)) != NULL) {
+    ZVAL_LONG(data, Z_LVAL_P(data) + count);
   } else {
     add_assoc_long(counts, name->val, count);
   }
@@ -1104,9 +1132,9 @@ void hp_inc_count(zval *counts, zend_string *name, long count TSRMLS_DC) {
  *
  * @author kannan, veeve
  */
-zval * hp_hash_lookup(char *symbol  TSRMLS_DC) {
+zval * hp_hash_lookup(zend_string *symbol  TSRMLS_DC) {
   HashTable   *ht;
-  void        *data;
+  zval        *data;
   zval        *counts = (zval *) 0;
 
   /* Bail if something is goofy */
@@ -1115,15 +1143,17 @@ zval * hp_hash_lookup(char *symbol  TSRMLS_DC) {
   }
 
   /* Lookup our hash table */
-  if (zend_hash_find(ht, zend_string_init(symbol, strlen(symbol) + 1, 0)) == SUCCESS) {
+  if ((data = zend_hash_find(ht, symbol)) != NULL) {
     /* Symbol already exists */
     counts = *(zval **) data;
   }
   else {
     /* Add symbol to hash table */
-    MAKE_STD_ZVAL(counts);
+   // MAKE_STD_ZVAL(counts);
+    counts = (zval *)emalloc(sizeof(zval));
     array_init(counts);
-    add_assoc_zval(hp_globals.stats_count, symbol, counts);
+    add_assoc_zval(hp_globals.stats_count, symbol->val, counts);
+    //zend_hash_update(Z_ARRVAL_P(hp_globals.stats_count), symbol, counts);
   }
 
   return counts;
@@ -1162,7 +1192,9 @@ void hp_trunc_time(struct timeval *tv,
  */
 void hp_sample_stack(hp_entry_t  **entries  TSRMLS_DC) {
   char key[SCRATCH_BUF_LEN];
-  char symbol[SCRATCH_BUF_LEN * 1000];
+  //char symbol[SCRATCH_BUF_LEN * 1000];
+  zend_string *symbol;
+  symbol = zend_string_alloc(SCRATCH_BUF_LEN * 1000, 0);
 
   /* Build key */
   snprintf(key, sizeof(key),
@@ -1173,8 +1205,8 @@ void hp_sample_stack(hp_entry_t  **entries  TSRMLS_DC) {
   /* Init stats in the global stats_count hashtable */
   hp_get_function_stack(*entries,
                         INT_MAX,
-                        symbol,
-                        sizeof(symbol));
+                        symbol
+                        );
 
   add_assoc_string(hp_globals.stats_count,
                    key,
@@ -1562,7 +1594,7 @@ void hp_mode_sampled_beginfn_cb(hp_entry_t **entries,
  * @author kannan
  */
 zval * hp_mode_shared_endfn_cb(hp_entry_t *top,
-                               char          *symbol  TSRMLS_DC) {
+                               zend_string          *symbol  TSRMLS_DC) {
   zval    *counts;
   uint64   tsc_end;
 
@@ -1591,12 +1623,14 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
   hp_entry_t   *top = (*entries);
   zval            *counts;
   struct rusage    ru_end;
-  char             symbol[SCRATCH_BUF_LEN];
+//  char             symbol[SCRATCH_BUF_LEN];
+  zend_string      *symbol;
   long int         mu_end;
   long int         pmu_end;
 
   /* Get the stat array */
-  hp_get_function_stack(top, 2, symbol, sizeof(symbol));
+  symbol = zend_string_alloc(SCRATCH_BUF_LEN, 0);
+  hp_get_function_stack(top, 2, symbol);
   if (!(counts = hp_mode_shared_endfn_cb(top,
                                          symbol  TSRMLS_CC))) {
     return;
@@ -1751,12 +1785,12 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
                        EX(object), ret TSRMLS_CC);
 #else
     zend_op *opline = EX(opline);
-    ((zend_internal_function *) EX(function_state).function)->handler(
+    /*((zend_internal_function *) EX(function_state).function)->handler(
                        opline->extended_value,
                        EX_T(opline->result.u.var).var.ptr,
                        EX(function_state).function->common.return_reference ?
                        &EX_T(opline->result.u.var).var.ptr:NULL,
-                       EX(object), ret TSRMLS_CC);
+                       EX(object), ret TSRMLS_CC);*/
 #endif
   } else {
     /* call the old override */
@@ -1856,6 +1890,7 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     zend_compile_string = hp_compile_string;
 
     /* Replace zend_execute with our proxy */
+
 #if PHP_VERSION_ID < 50500
     _zend_execute = zend_execute;
     zend_execute  = hp_execute;
@@ -2055,4 +2090,12 @@ static inline void hp_array_del(char **name_array) {
     }
     efree(name_array);
   }
+}
+inline int xhprof_icall_handler(zend_execute_data *execute_data) {
+    zend_op *opline = execute_data->opline;
+    
+    php_printf("before\n");
+//    zend_opcode_handlers[opline->opcode + 1](execute_data);
+    php_printf("after\n");
+    return ZEND_USER_OPCODE_DISPATCH;
 }
