@@ -1622,9 +1622,9 @@ zval * hp_mode_shared_endfn_cb(hp_entry_t *top,
   }
 
   /* Bump stats in the counts hashtable */
-  hp_inc_count(counts, zend_string_init("ct", sizeof("ct") - 1, 0), 1  TSRMLS_CC);
+  hp_inc_count(counts, zend_string_init("ct", sizeof("ct") - 1, 1), 1  TSRMLS_CC);
 
-  hp_inc_count(counts, zend_string_init("wt", sizeof("wt") - 1, 0), get_us_from_tsc(tsc_end - top->tsc_start,
+  hp_inc_count(counts, zend_string_init("wt", sizeof("wt") - 1, 1), get_us_from_tsc(tsc_end - top->tsc_start,
         hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
   return counts;
 }
@@ -1657,7 +1657,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     getrusage(RUSAGE_SELF, &ru_end);
 
     /* Bump CPU stats in the counts hashtable */
-    hp_inc_count(counts, zend_string_init("cpu", sizeof("cpu") - 1, 0), (get_us_interval(&(top->ru_start_hprof.ru_utime),
+    hp_inc_count(counts, zend_string_init("cpu", sizeof("cpu") - 1, 1), (get_us_interval(&(top->ru_start_hprof.ru_utime),
                                               &(ru_end.ru_utime)) +
                               get_us_interval(&(top->ru_start_hprof.ru_stime),
                                               &(ru_end.ru_stime)))
@@ -1671,8 +1671,8 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 
     /* Bump Memory stats in the counts hashtable */
 
-    hp_inc_count(counts, zend_string_init("mu", sizeof("mu") - 1, 0),  mu_end - top->mu_start_hprof    TSRMLS_CC);
-    hp_inc_count(counts, zend_string_init("pmu", sizeof("pmu") - 1, 0), pmu_end - top->pmu_start_hprof  TSRMLS_CC);
+    hp_inc_count(counts, zend_string_init("mu", sizeof("mu") - 1, 1),  mu_end - top->mu_start_hprof    TSRMLS_CC);
+    hp_inc_count(counts, zend_string_init("pmu", sizeof("pmu") - 1, 1), pmu_end - top->pmu_start_hprof  TSRMLS_CC);
   }
 
   efree(counts);
@@ -1854,7 +1854,7 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
         hp_globals.mode_cb.end_fn_cb   = hp_mode_sampled_endfn_cb;
         break;
     }
-    BEGIN_PROFILING(&hp_globals.entries, zend_string_init(ROOT_SYMBOL, sizeof(ROOT_SYMBOL) - 1, 0), hp_profile_flag);
+    BEGIN_PROFILING(&hp_globals.entries, zend_string_init(ROOT_SYMBOL, sizeof(ROOT_SYMBOL) - 1, 1), hp_profile_flag);
     /* return here or recu*/
     return;
 
