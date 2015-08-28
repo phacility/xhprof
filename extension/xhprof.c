@@ -625,19 +625,19 @@ static inline uint8 hp_inline_hash(char * str) {
  * @author mpal
  */
 static void hp_get_ignored_functions_from_arg(zval *args) {
-
-  if (hp_globals.ignored_function_names) {
-    hp_array_del(hp_globals.ignored_function_names);
-  }
-
-  if (args != NULL) {
-    zval  *zresult = NULL;
-
-    zresult = hp_zval_at_key("ignored_functions", args);
-    hp_globals.ignored_function_names = hp_strings_in_zval(zresult);
-  } else {
-    hp_globals.ignored_function_names = NULL;
-  }
+//
+//  if (hp_globals.ignored_function_names) {
+//    hp_array_del(hp_globals.ignored_function_names);
+//  }
+//
+//  if (args != NULL) {
+//    zval  *zresult = NULL;
+//
+//    zresult = hp_zval_at_key("ignored_functions", args);
+//    hp_globals.ignored_function_names = hp_strings_in_zval(zresult);
+//  } else {
+//    hp_globals.ignored_function_names = NULL;
+//  }
 }
 
 /**
@@ -646,8 +646,8 @@ static void hp_get_ignored_functions_from_arg(zval *args) {
  * @author mpal
  */
 static void hp_ignored_functions_filter_clear() {
-  memset(hp_globals.ignored_function_filter, 0,
-         XHPROF_IGNORED_FUNCTION_FILTER_SIZE);
+//  memset(hp_globals.ignored_function_filter, 0,
+//         XHPROF_IGNORED_FUNCTION_FILTER_SIZE);
 }
 
 /**
@@ -730,6 +730,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
   /* Clear globals */
   if (hp_globals.stats_count) {
     //zval_dtor(hp_globals.stats_count);
+    zend_array_destroy(Z_ARRVAL_P(hp_globals.stats_count));
     efree(hp_globals.stats_count);
     //FREE_ZVAL(hp_globals.stats_count);
     hp_globals.stats_count = NULL;
@@ -739,7 +740,7 @@ void hp_clean_profiler_state(TSRMLS_D) {
   hp_globals.ever_enabled = 0;
 
   /* Delete the array storing ignored function names */
-  hp_array_del(hp_globals.ignored_function_names);
+  //hp_array_del(hp_globals.ignored_function_names);
   hp_globals.ignored_function_names = NULL;
 }
 
@@ -1125,6 +1126,10 @@ void hp_inc_count(zval *counts, zend_string *name, long count TSRMLS_DC) {
   if ((data = zend_hash_find(ht, name)) != NULL) {
     ZVAL_LONG(data, Z_LVAL_P(data) + count);
   } else {
+     
+    //ZVAL_LONG(data, count);
+    //zend_hash_update(ht, name, data);
+
     add_assoc_long(counts, name->val, count);
   }
 }
@@ -1138,7 +1143,7 @@ void hp_inc_count(zval *counts, zend_string *name, long count TSRMLS_DC) {
 zval * hp_hash_lookup(zend_string *symbol  TSRMLS_DC) {
   HashTable   *ht;
   zval        *data;
-  zval        *counts = (zval *) 0;
+  zval        *counts;
 
   /* Bail if something is goofy */
   if (!hp_globals.stats_count || !(ht = HASH_OF(hp_globals.stats_count))) {
@@ -1155,10 +1160,15 @@ zval * hp_hash_lookup(zend_string *symbol  TSRMLS_DC) {
    // MAKE_STD_ZVAL(counts);
     counts = (zval *)emalloc(sizeof(zval));
     array_init(counts);
+    //zval_dtor(counts);
     add_assoc_zval(hp_globals.stats_count, symbol->val, counts);
-    //zend_hash_update(Z_ARRVAL_P(hp_globals.stats_count), symbol, counts);
+    /*if (Z_REFCOUNTED_P(counts)) {
+        Z_ADDREF_P(counts);
+    }    
+    //zend_hash_add_new(Z_ARRVAL_P(hp_globals.stats_count), zend_string_copy(symbol), counts); 
+    zend_hash_update(Z_ARRVAL_P(hp_globals.stats_count), zend_string_dup(symbol, 0), counts);*/
   }
-
+  
   return counts;
 }
 
@@ -1628,7 +1638,6 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
   hp_entry_t   *top = (*entries);
   zval            *counts;
   struct rusage    ru_end;
-//  char             symbol[SCRATCH_BUF_LEN];
   zend_string      *symbol;
   long int         mu_end;
   long int         pmu_end;
@@ -1639,6 +1648,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
   hp_get_function_stack(top, 2, symbol);
   if (!(counts = hp_mode_shared_endfn_cb(top,
                                          symbol  TSRMLS_CC))) {
+    efree(symbol);
     return;
   }
 
@@ -1664,6 +1674,8 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     hp_inc_count(counts, zend_string_init("mu", sizeof("mu") - 1, 0),  mu_end - top->mu_start_hprof    TSRMLS_CC);
     hp_inc_count(counts, zend_string_init("pmu", sizeof("pmu") - 1, 0), pmu_end - top->pmu_start_hprof  TSRMLS_CC);
   }
+
+  efree(counts);
   zend_string_free(symbol);
 }
 
@@ -1935,22 +1947,22 @@ static void hp_stop(TSRMLS_D) {
  **/
 static zval *hp_zval_at_key(char  *key,
                             zval  *values) {
-  zval *result = NULL;
-
-  if (Z_TYPE_P(values) == IS_ARRAY) {
-    HashTable *ht;
-    zval     **value;
-    uint       len = strlen(key) + 1;
-
-    ht = Z_ARRVAL_P(values);
-    if (zend_hash_find(ht, zend_string_init(key, len, 0)) == SUCCESS) {
-      result = *value;
-    }
-  } else {
-    result = NULL;
-  }
-
-  return result;
+//  zval *result = NULL;
+//
+//  if (Z_TYPE_P(values) == IS_ARRAY) {
+//    HashTable *ht;
+//    zval     **value;
+//    uint       len = strlen(key) + 1;
+//
+//    ht = Z_ARRVAL_P(values);
+//    if (zend_hash_find(ht, zend_string_init(key, len, 0)) == SUCCESS) {
+//      result = *value;
+//    }
+//  } else {
+//    result = NULL;
+//  }
+//
+//  return result;
 }
 
 /** Convert the PHP array of strings to an emalloced array of strings. Note,
@@ -2020,13 +2032,13 @@ static char **hp_strings_in_zval(zval  *values) {
 
 /* Free this memory at the end of profiling */
 static inline void hp_array_del(char **name_array) {
-  if (name_array != NULL) {
-    int i = 0;
-    for(; name_array[i] != NULL && i < XHPROF_MAX_IGNORED_FUNCTIONS; i++) {
-      efree(name_array[i]);
-    }
-    efree(name_array);
-  }
+//  if (name_array != NULL) {
+//    int i = 0;
+//    for(; name_array[i] != NULL && i < XHPROF_MAX_IGNORED_FUNCTIONS; i++) {
+//      efree(name_array[i]);
+//    }
+//    efree(name_array);
+//  }
 }
 /*inline int xhprof_icall_handler(zend_execute_data *execute_data) {
     zend_op *opline = execute_data->opline;
