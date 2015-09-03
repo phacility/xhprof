@@ -729,11 +729,11 @@ void hp_clean_profiler_state(TSRMLS_D) {
 
   /* Clear globals */
   if (hp_globals.stats_count) {
-    //zval_dtor(hp_globals.stats_count);
-    zend_array_destroy(Z_ARRVAL_P(hp_globals.stats_count));
-    efree(hp_globals.stats_count);
+    Z_DELREF_P(hp_globals.stats_count);
+	//zend_array_destroy(Z_ARRVAL_P(hp_globals.stats_count));
+    //efree(hp_globals.stats_count);
     //FREE_ZVAL(hp_globals.stats_count);
-    hp_globals.stats_count = NULL;
+    //hp_globals.stats_count = NULL;
   }
   hp_globals.entries = NULL;
   hp_globals.profiler_level = 1;
@@ -1151,22 +1151,17 @@ zval * hp_hash_lookup(zend_string *symbol  TSRMLS_DC) {
   }
 
   /* Lookup our hash table */
-  if ((data = zend_hash_find(ht, symbol)) != NULL) {
+  //zend_hash_str_find
+  if ((data = zend_hash_str_find(ht, symbol->val, strlen(symbol->val))) != NULL) {
     /* Symbol already exists */
-    counts = *(zval **) data;
+    counts = data;
   }
   else {
     /* Add symbol to hash table */
    // MAKE_STD_ZVAL(counts);
     counts = (zval *)emalloc(sizeof(zval));
     array_init(counts);
-    //zval_dtor(counts);
     add_assoc_zval(hp_globals.stats_count, symbol->val, counts);
-    /*if (Z_REFCOUNTED_P(counts)) {
-        Z_ADDREF_P(counts);
-    }    
-    //zend_hash_add_new(Z_ARRVAL_P(hp_globals.stats_count), zend_string_copy(symbol), counts); 
-    zend_hash_update(Z_ARRVAL_P(hp_globals.stats_count), zend_string_dup(symbol, 0), counts);*/
   }
   
   return counts;
@@ -1675,7 +1670,7 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     hp_inc_count(counts, zend_string_init("pmu", sizeof("pmu") - 1, 1), pmu_end - top->pmu_start_hprof  TSRMLS_CC);
   }
 
-  efree(counts);
+  //efree(counts);
   zend_string_free(symbol);
 }
 

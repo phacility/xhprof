@@ -17,7 +17,10 @@ function foo() {
 xhprof_enable();
 
 // run program
-foo();
+for ($i = 0; $i < 1000; $i++) {
+
+	foo();
+}
 
 // stop profiler
 $xhprof_data = xhprof_disable();
