@@ -504,11 +504,6 @@ PHP_MINIT_FUNCTION(xhprof) {
   srand(0);
 #endif
   
-  _zend_execute_internal = zend_execute_internal;
-  zend_execute_internal = hp_execute_internal;
-   
-  _zend_execute_ex = zend_execute_ex; 
-  zend_execute_ex  = hp_execute_ex;
   return SUCCESS;
 }
 
@@ -531,6 +526,12 @@ PHP_MSHUTDOWN_FUNCTION(xhprof) {
  * Request init callback. Nothing to do yet!
  */
 PHP_RINIT_FUNCTION(xhprof) {
+  _zend_execute_internal = zend_execute_internal;
+  zend_execute_internal = hp_execute_internal;
+   
+  _zend_execute_ex = zend_execute_ex; 
+  zend_execute_ex  = hp_execute_ex;
+  
   return SUCCESS;
 }
 
@@ -692,9 +693,8 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
 
   /* Init stats_count */
   if (hp_globals.stats_count) {
-    zval_dtor(hp_globals.stats_count);
+    //zval_dtor(hp_globals.stats_count);
     efree(hp_globals.stats_count);
-//    FREE_ZVAL(hp_globals.stats_count);
   }
   
   hp_globals.stats_count = (zval *)emalloc(sizeof(zval));
@@ -731,9 +731,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
   if (hp_globals.stats_count) {
     Z_DELREF_P(hp_globals.stats_count);
 	//zend_array_destroy(Z_ARRVAL_P(hp_globals.stats_count));
-    //efree(hp_globals.stats_count);
-    //FREE_ZVAL(hp_globals.stats_count);
-    //hp_globals.stats_count = NULL;
+    efree(hp_globals.stats_count);
+    hp_globals.stats_count = NULL;
   }
   hp_globals.entries = NULL;
   hp_globals.profiler_level = 1;
@@ -1140,32 +1139,32 @@ void hp_inc_count(zval *counts, zend_string *name, long count TSRMLS_DC) {
  *
  * @author kannan, veeve
  */
-zval * hp_hash_lookup(zend_string *symbol  TSRMLS_DC) {
-  HashTable   *ht;
-  zval        *data;
-  zval        *counts;
-
-  /* Bail if something is goofy */
-  if (!hp_globals.stats_count || !(ht = HASH_OF(hp_globals.stats_count))) {
-    return (zval *) 0;
-  }
-
-  /* Lookup our hash table */
-  //zend_hash_str_find
-  if ((data = zend_hash_str_find(ht, symbol->val, strlen(symbol->val))) != NULL) {
-    /* Symbol already exists */
-    counts = data;
-  }
-  else {
-    /* Add symbol to hash table */
-   // MAKE_STD_ZVAL(counts);
-    counts = (zval *)emalloc(sizeof(zval));
-    array_init(counts);
-    add_assoc_zval(hp_globals.stats_count, symbol->val, counts);
-  }
-  
-  return counts;
-}
+//zval * hp_hash_lookup(zend_string *symbol  TSRMLS_DC) {
+//  HashTable   *ht;
+//  zval        *data;
+//  zval        counts;
+//
+//  /* Bail if something is goofy */
+//  if (!hp_globals.stats_count || !(ht = HASH_OF(hp_globals.stats_count))) {
+//    return (zval *) 0;
+//  }
+//
+//  /* Lookup our hash table */
+//  //zend_hash_str_find
+//  if ((data = zend_hash_str_find(ht, symbol->val, strlen(symbol->val))) != NULL) {
+//    /* Symbol already exists */
+//    counts = data;
+//  }
+//  else {
+//    /* Add symbol to hash table */
+//   // MAKE_STD_ZVAL(counts);
+//    //counts = (zval *)emalloc(sizeof(zval));
+//    array_init(&counts);
+//    add_assoc_zval(hp_globals.stats_count, symbol->val, &counts);
+//  }
+//  
+//  return (counts);
+//}
 
 /**
  * Truncates the given timeval to the nearest slot begin, where
@@ -1605,23 +1604,34 @@ void hp_mode_sampled_beginfn_cb(hp_entry_t **entries,
  */
 zval * hp_mode_shared_endfn_cb(hp_entry_t *top,
                                zend_string          *symbol  TSRMLS_DC) {
-  zval    *counts;
+  zval counts;
+  zval *countsp;
   uint64   tsc_end;
+  HashTable *ht;
 
   /* Get end tsc counter */
   tsc_end = cycle_timer();
 
   /* Get the stat array */
-  if (!(counts = hp_hash_lookup(symbol TSRMLS_CC))) {
+  /* Bail if something is goofy */
+  if (!hp_globals.stats_count || !(ht = HASH_OF(hp_globals.stats_count))) {
     return (zval *) 0;
   }
 
-  /* Bump stats in the counts hashtable */
-  hp_inc_count(counts, zend_string_init("ct", sizeof("ct") - 1, 1), 1  TSRMLS_CC);
+  /* Lookup our hash table */
+  if ((countsp = zend_hash_str_find(ht, symbol->val, strlen(symbol->val))) == NULL) {
+    /* Add symbol to hash table */
+    countsp = &counts;
+    array_init(countsp);
+    add_assoc_zval(hp_globals.stats_count, symbol->val, countsp);
+  }
 
-  hp_inc_count(counts, zend_string_init("wt", sizeof("wt") - 1, 1), get_us_from_tsc(tsc_end - top->tsc_start,
+  /* Bump stats in the counts hashtable */
+  hp_inc_count(countsp, zend_string_init("ct", sizeof("ct") - 1, 1), 1  TSRMLS_CC);
+
+  hp_inc_count(countsp, zend_string_init("wt", sizeof("wt") - 1, 1), get_us_from_tsc(tsc_end - top->tsc_start,
         hp_globals.cpu_frequencies[hp_globals.cur_cpu_id]) TSRMLS_CC);
-  return counts;
+  return countsp;
 }
 
 /**
@@ -1646,7 +1656,8 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     efree(symbol);
     return;
   }
-
+  zend_string_free(symbol);
+  return;
   if (hp_globals.xhprof_flags & XHPROF_FLAGS_CPU) {
     /* Get CPU usage */
     getrusage(RUSAGE_SELF, &ru_end);
@@ -1670,8 +1681,6 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
     hp_inc_count(counts, zend_string_init("pmu", sizeof("pmu") - 1, 1), pmu_end - top->pmu_start_hprof  TSRMLS_CC);
   }
 
-  //efree(counts);
-  zend_string_free(symbol);
 }
 
 /**
