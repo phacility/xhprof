@@ -271,7 +271,6 @@ static void (*_zend_execute_ex) (zend_execute_data *execute_data TSRMLS_DC);
 
 /* Pointer to the origianl execute_internal function */
 static void (*_zend_execute_internal) (zend_execute_data *data, zval *ret TSRMLS_DC);
-#define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
 
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval* ret TSRMLS_DC);
 
@@ -540,6 +539,8 @@ PHP_RINIT_FUNCTION(xhprof) {
  */
 PHP_RSHUTDOWN_FUNCTION(xhprof) {
   hp_end(TSRMLS_C);
+  zend_execute_ex       = _zend_execute_ex;
+  zend_execute_internal = _zend_execute_internal;
   return SUCCESS;
 }
 
@@ -821,7 +822,7 @@ size_t hp_get_entry_name(hp_entry_t  *entry,
   /* Add '@recurse_level' if required */
   /* NOTE:  Dont use snprintf's return val as it is compiler dependent */
   if (entry->rlvl_hprof) {
-    snprintf(result->val, result->len,
+    snprintf(result->val+strlen(result->val), result->len,
              "%s@%d",
              entry->name_hprof->val, entry->rlvl_hprof);
   }
@@ -1738,7 +1739,6 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
  */
 
 
-#define EX_T(offset) (*EX_TMP_VAR(execute_data, offset))
 
 ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *ret TSRMLS_DC) {
   zend_execute_data *current_data;
@@ -1925,8 +1925,6 @@ static void hp_stop(TSRMLS_D) {
   }
 
   /* Remove proxies, restore the originals */
-  zend_execute_ex       = _zend_execute_ex;
-  zend_execute_internal = _zend_execute_internal;
   //zend_compile_file     = _zend_compile_file;
   //zend_compile_string   = _zend_compile_string;
 
