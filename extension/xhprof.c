@@ -730,7 +730,8 @@ void hp_clean_profiler_state(TSRMLS_D) {
 
   /* Clear globals */
   if (hp_globals.stats_count) {
-    Z_DELREF_P(hp_globals.stats_count);
+    //Z_DELREF_P(hp_globals.stats_count);
+	zval_ptr_dtor(hp_globals.stats_count);
 	//zend_array_destroy(Z_ARRVAL_P(hp_globals.stats_count));
     efree(hp_globals.stats_count);
     hp_globals.stats_count = NULL;
@@ -1713,8 +1714,20 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   zend_string   *func = NULL;
   int hp_profile_flag = 1;
 
-  //func = hp_get_function_name(ops TSRMLS_CC);
   func = execute_data->func->internal_function.function_name;
+  if (execute_data ->This.value.obj != NULL) {
+  	//this is a class method;
+	zend_string *class_name = execute_data->This.value.obj->ce->name;
+	zend_string *func_name = func;
+
+	int class_name_len = class_name->len;
+	func = zend_string_init(class_name->val, class_name_len + 2 + func_name->len, 0); 
+	memcpy(func->val + class_name_len, "::", 2);
+	memcpy(func->val + class_name_len + 2, func_name->val, func_name->len);
+  } else if (func) {
+	//just do the copy;
+ 	func = zend_string_init(func->val, func->len, 0); 
+  }
   if (!func) {
     _zend_execute_ex(execute_data TSRMLS_CC);
     return;
@@ -1725,7 +1738,10 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   if (hp_globals.entries) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
-  //zend_string_free(func);
+  if (func) {
+  
+  	zend_string_free(func);
+  }
 }
 
 #undef EX
