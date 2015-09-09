@@ -317,11 +317,6 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_xhprof_disable, 0)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_enable, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_xhprof_sample_disable, 0)
-ZEND_END_ARG_INFO()
 /* }}} */
 
 /**
@@ -341,8 +336,6 @@ int bind_to_cpu(uint32 cpu_id);
 zend_function_entry xhprof_functions[] = {
   PHP_FE(xhprof_enable, arginfo_xhprof_enable)
   PHP_FE(xhprof_disable, arginfo_xhprof_disable)
-  PHP_FE(xhprof_sample_enable, arginfo_xhprof_sample_enable)
-  PHP_FE(xhprof_sample_disable, arginfo_xhprof_sample_disable)
   {NULL, NULL, NULL}
 };
 
@@ -423,33 +416,7 @@ PHP_FUNCTION(xhprof_disable) {
   /* else null is returned */
 }
 
-/**
- * Start XHProf profiling in sampling mode.
- *
- * @return void
- * @author cjiang
- */
-PHP_FUNCTION(xhprof_sample_enable) {
-  long  xhprof_flags = 0;                                    /* XHProf flags */
-  hp_get_ignored_functions_from_arg(NULL);
-  hp_begin(XHPROF_MODE_SAMPLED, xhprof_flags TSRMLS_CC);
-}
 
-/**
- * Stops XHProf from profiling in sampling mode anymore and returns the profile
- * info.
- *
- * @param  void
- * @return array  hash-array of XHProf's profile info
- * @author cjiang
- */
-PHP_FUNCTION(xhprof_sample_disable) {
-  if (hp_globals.enabled) {
-    hp_stop(TSRMLS_C);
-    RETURN_ZVAL(hp_globals.stats_count, 1, 0);
-  }
-  /* else null is returned */
-}
 
 /**
  * Module init callback.
@@ -949,112 +916,6 @@ static const char *hp_get_base_filename(const char *filename) {
   return filename;
 }
 
-/**
- * Get the name of the current function. The name is qualified with
- * the class name if the function is in a class.
- *
- * @author kannan, hzhao
- */
-static char *hp_get_function_name(zend_op_array *ops TSRMLS_DC) {
-  zend_execute_data *data;
-  const char        *func = NULL;
-  const char        *cls = NULL;
-  char              *ret = NULL;
-  int                len;
-  zend_function      *curr_func;
-
-  data = EG(current_execute_data);
-
-  if (data) {
-    /* shared meta data for function on the call stack */
-    curr_func = data->func;
-
-    /* extract function name from the meta info */
-    func = curr_func->common.function_name->val;
-
-    if (func) {
-      /* previously, the order of the tests in the "if" below was
-       * flipped, leading to incorrect function names in profiler
-       * reports. When a method in a super-type is invoked the
-       * profiler should qualify the function name with the super-type
-       * class name (not the class name based on the run-time type
-       * of the object.
-       */
-      if (curr_func->common.scope) {
-        cls = curr_func->common.scope->name->val;
-      } else if (data->called_scope) {
-        cls = data->called_scope->name->val;
-      }
-
-      if (cls) {
-        len = strlen(cls) + strlen(func) + 10;
-        ret = (char*)emalloc(len);
-        snprintf(ret, len, "%s::%s", cls, func);
-      } else {
-        ret = estrdup(func);
-      }
-    } else {
-      long     curr_op;
-      int      add_filename = 0;
-
-      /* we are dealing with a special directive/function like
-       * include, eval, etc.
-       */
-#if ZEND_EXTENSION_API_NO >= 220121212
-      if (data->prev_execute_data) {
-        curr_op = data->prev_execute_data->opline->extended_value;
-      } else {
-        curr_op = data->opline->extended_value;
-      }
-#elif ZEND_EXTENSION_API_NO >= 220100525
-      curr_op = data->opline->extended_value;
-#else
-      //curr_op = data->opline->op2.u.constant.value.lval;
-#endif
-
-      switch (curr_op) {
-        case ZEND_EVAL:
-          func = "eval";
-          break;
-        case ZEND_INCLUDE:
-          func = "include";
-          add_filename = 1;
-          break;
-        case ZEND_REQUIRE:
-          func = "require";
-          add_filename = 1;
-          break;
-        case ZEND_INCLUDE_ONCE:
-          func = "include_once";
-          add_filename = 1;
-          break;
-        case ZEND_REQUIRE_ONCE:
-          func = "require_once";
-          add_filename = 1;
-          break;
-        default:
-          func = "???_op";
-          break;
-      }
-
-      /* For some operations, we'll add the filename as part of the function
-       * name to make the reports more useful. So rather than just "include"
-       * you'll see something like "run_init::foo.php" in your reports.
-       */
-      if (add_filename){
-        const char *filename;
-        int   len;
-        filename = hp_get_base_filename((curr_func->op_array).filename->val);
-        len      = strlen("run_init") + strlen(filename) + 3;
-        ret      = (char *)emalloc(len);
-        snprintf(ret, len, "run_init::%s", filename);
-      } else {
-        ret = estrdup(func);
-      }
-    }
-  }
-  return ret;
-}
 
 /**
  * Free any items in the free list.
@@ -1191,73 +1052,6 @@ void hp_trunc_time(struct timeval *tv,
   tv->tv_usec = (time_in_micro % 1000000);
 }
 
-/**
- * Sample the stack. Add it to the stats_count global.
- *
- * @param  tv            current time
- * @param  entries       func stack as linked list of hp_entry_t
- * @return void
- * @author veeve
- */
-void hp_sample_stack(hp_entry_t  **entries  TSRMLS_DC) {
-
-//  //char symbol[SCRATCH_BUF_LEN * 1000];
-//  zend_string *symbol;
-//  zend_string *key;
-//  symbol = zend_string_alloc(SCRATCH_BUF_LEN * 1000, 0);
-//  key = zend_string_alloc(SCRATCH_BUF_LEN, 0);
-//
-//  /* Build key */
-//  snprintf(key->val, key->len,
-//           "%d.%06d",
-//           hp_globals.last_sample_time.tv_sec,
-//           hp_globals.last_sample_time.tv_usec);
-//
-//  /* Init stats in the global stats_count hashtable */
-//  hp_get_function_stack(*entries,
-//                        INT_MAX,
-//                        symbol
-//                        );
-//
-//  add_assoc_string(hp_globals.stats_count,
-//                   key->val,
-//                   symbol->val);
-//  return;
-}
-
-/**
- * Checks to see if it is time to sample the stack.
- * Calls hp_sample_stack() if its time.
- *
- * @param  entries        func stack as linked list of hp_entry_t
- * @param  last_sample    time the last sample was taken
- * @param  sampling_intr  sampling interval in microsecs
- * @return void
- * @author veeve
- */
-void hp_sample_check(hp_entry_t **entries  TSRMLS_DC) {
-  /* Validate input */
-  if (!entries || !(*entries)) {
-    return;
-  }
-
-  /* See if its time to sample.  While loop is to handle a single function
-   * taking a long time and passing several sampling intervals. */
-  while ((cycle_timer() - hp_globals.last_sample_tsc)
-         > hp_globals.sampling_interval_tsc) {
-
-    /* bump last_sample_tsc */
-    hp_globals.last_sample_tsc += hp_globals.sampling_interval_tsc;
-
-    /* bump last_sample_time - HAS TO BE UPDATED BEFORE calling hp_sample_stack */
-    incr_us_interval(&hp_globals.last_sample_time, XHPROF_SAMPLING_INTERVAL);
-
-    /* sample the stack */
-    hp_sample_stack(entries  TSRMLS_CC);
-  }
-
-  return;
-}
 
 
 /**
@@ -1514,42 +1308,6 @@ void hp_mode_common_endfn(hp_entry_t **entries, hp_entry_t *current TSRMLS_DC) {
 }
 
 
-/**
- * *********************************
- * XHPROF INIT MODULE CALLBACKS
- * *********************************
- */
-/**
- * XHPROF_MODE_SAMPLED's init callback
- *
- * @author veeve
- */
-void hp_mode_sampled_init_cb(TSRMLS_D) {
-  struct timeval  now;
-  uint64 truncated_us;
-  uint64 truncated_tsc;
-  double cpu_freq = hp_globals.cpu_frequencies[hp_globals.cur_cpu_id];
-
-  /* Init the last_sample in tsc */
-  hp_globals.last_sample_tsc = cycle_timer();
-
-  /* Find the microseconds that need to be truncated */
-  gettimeofday(&hp_globals.last_sample_time, 0);
-  now = hp_globals.last_sample_time;
-  hp_trunc_time(&hp_globals.last_sample_time, XHPROF_SAMPLING_INTERVAL);
-
-  /* Subtract truncated time from last_sample_tsc */
-  truncated_us  = get_us_interval(&hp_globals.last_sample_time, &now);
-  truncated_tsc = get_tsc_from_us(truncated_us, cpu_freq);
-  if (hp_globals.last_sample_tsc > truncated_tsc) {
-    /* just to be safe while subtracting unsigned ints */
-    hp_globals.last_sample_tsc -= truncated_tsc;
-  }
-
-  /* Convert sampling interval to ticks */
-  hp_globals.sampling_interval_tsc =
-    get_tsc_from_us(XHPROF_SAMPLING_INTERVAL, cpu_freq);
-}
 
 
 /**
@@ -1581,16 +1339,6 @@ void hp_mode_hier_beginfn_cb(hp_entry_t **entries,
 }
 
 
-/**
- * XHPROF_MODE_SAMPLED's begin function callback
- *
- * @author veeve
- */
-void hp_mode_sampled_beginfn_cb(hp_entry_t **entries,
-                                hp_entry_t  *current  TSRMLS_DC) {
-  /* See if its time to take a sample */
-  hp_sample_check(entries  TSRMLS_CC);
-}
 
 
 /**
@@ -1685,16 +1433,6 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
 
 }
 
-/**
- * XHPROF_MODE_SAMPLED's end function callback
- *
- * @author veeve
- */
-void hp_mode_sampled_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
-  /* See if its time to take a sample */
-  hp_sample_check(entries  TSRMLS_CC);
-}
-
 
 /**
  * ***************************
@@ -1762,7 +1500,6 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *re
   int    hp_profile_flag = 1;
 
   current_data = EG(current_execute_data);
-  //func = hp_get_function_name(&current_data->func->op_array TSRMLS_CC);
   func = current_data->func->op_array.function_name ;
 
   if (func && strcmp("xhprof_enable", func->val) != 0) {
@@ -1867,11 +1604,6 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
       case XHPROF_MODE_HIERARCHICAL:
         hp_globals.mode_cb.begin_fn_cb = hp_mode_hier_beginfn_cb;
         hp_globals.mode_cb.end_fn_cb   = hp_mode_hier_endfn_cb;
-        break;
-      case XHPROF_MODE_SAMPLED:
-        hp_globals.mode_cb.init_cb     = hp_mode_sampled_init_cb;
-        hp_globals.mode_cb.begin_fn_cb = hp_mode_sampled_beginfn_cb;
-        hp_globals.mode_cb.end_fn_cb   = hp_mode_sampled_endfn_cb;
         break;
     }
     BEGIN_PROFILING(&hp_globals.entries, zend_string_init(ROOT_SYMBOL, sizeof(ROOT_SYMBOL) - 1, 1), hp_profile_flag);
