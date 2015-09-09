@@ -1717,7 +1717,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   func = execute_data->func->internal_function.function_name;
   if (execute_data ->This.value.obj != NULL) {
   	//this is a class method;
-	zend_string *class_name = execute_data->This.value.obj->ce->name;
+	zend_string *class_name = execute_data->func ->common.scope ->name;
 	zend_string *func_name = func;
 
 	int class_name_len = class_name->len;
