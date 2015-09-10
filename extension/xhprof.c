@@ -1672,6 +1672,8 @@ static void hp_stop(TSRMLS_D) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
 
+  zend_execute_ex       = _zend_execute_ex;
+  zend_execute_internal = _zend_execute_internal;
   /* Remove proxies, restore the originals */
   //zend_compile_file     = _zend_compile_file;
   //zend_compile_string   = _zend_compile_string;
