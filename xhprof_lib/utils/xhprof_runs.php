@@ -151,7 +151,8 @@ class XHProfRuns_Default implements iXHProfRuns {
         $files = glob("{$this->dir}/*.{$this->suffix}");
         usort($files, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
         foreach ($files as $file) {
-            list($run,$source) = explode('.', basename($file));
+            $path_parts = pathinfo($file);
+            list($run,$source) = explode('.', $path_parts["filename"], 2);
             echo '<li><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
                 . '?run=' . htmlentities($run) . '&source='
                 . htmlentities($source) . '">'
