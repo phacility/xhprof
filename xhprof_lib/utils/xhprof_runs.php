@@ -122,6 +122,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     return $this->processResult($contents);
   }
 
+  //add 'uniqkey' level to xhprof_data, for reading by other log parsers
   private function addUniqKey($xhprof_data, $run_id) {
     $result = array();
     if ($run_id) {
@@ -133,6 +134,7 @@ class XHProfRuns_Default implements iXHProfRuns {
     }
   }
 
+  //to accommodate old format
   private function processResult($result) {
     $result = json_decode($result, true);
     if (isset($result['uniqkey'])) {
@@ -147,7 +149,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 
     $xhprof_data = $this->addUniqKey($xhprof_data, $run_id);
 
-    // Use PHP json_encode function to store the XHProf's
+    // Use PHP json_encode (instead of serialize) function to store the XHProf's
     // raw profiler data.
     $xhprof_data = json_encode($xhprof_data);
 
