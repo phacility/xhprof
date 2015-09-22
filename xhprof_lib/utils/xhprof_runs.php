@@ -95,7 +95,8 @@ class XHProfRuns_Default implements iXHProfRuns {
       $dir = ini_get("xhprof.output_dir");
       if (empty($dir)) {
 
-        $dir = sys_get_temp_dir();
+        // some default that at least works on unix...
+        $dir = "/tmp";
 
         xhprof_error("Warning: Must specify directory location for XHProf runs. ".
                      "Trying {$dir} as default. You can either pass the " .
@@ -118,14 +119,39 @@ class XHProfRuns_Default implements iXHProfRuns {
 
     $contents = file_get_contents($file_name);
     $run_desc = "XHProf Run (Namespace=$type)";
-    return unserialize($contents);
+    return $this->processResult($contents);
+  }
+
+  //add 'uniqkey' level to xhprof_data, for reading by other log parsers
+  private function addUniqKey($xhprof_data, $run_id) {
+    $result = array();
+    if ($run_id) {
+      $result['uniqkey'] = $run_id;
+      $result['data'] = $xhprof_data;
+      return $result;
+    } else {
+      return $xhprof_data;
+    }
+  }
+
+  //to accommodate old format
+  private function processResult($result) {
+    $result = json_decode($result, true);
+    if (isset($result['uniqkey'])) {
+      $xhprof_data = $result['data'];
+    } else {
+      $xhprof_data = $result;
+    }
+    return $xhprof_data;
   }
 
   public function save_run($xhprof_data, $type, $run_id = null) {
 
-    // Use PHP serialize function to store the XHProf's
+    $xhprof_data = $this->addUniqKey($xhprof_data, $run_id);
+
+    // Use PHP json_encode (instead of serialize) function to store the XHProf's
     // raw profiler data.
-    $xhprof_data = serialize($xhprof_data);
+    $xhprof_data = json_encode($xhprof_data);
 
     if ($run_id === null) {
       $run_id = $this->gen_run_id($type);
