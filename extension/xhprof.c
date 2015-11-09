@@ -276,6 +276,7 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval* re
 
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC);
 
+ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC);
 /**
  * ****************************
  * STATIC FUNCTION DECLARATIONS
@@ -497,7 +498,10 @@ PHP_RINIT_FUNCTION(xhprof) {
    
   _zend_execute_ex = zend_execute_ex; 
   zend_execute_ex  = hp_execute_ex;
-  
+	
+  _zend_compile_file = zend_compile_file; 
+  zend_compile_file  = hp_compile_file;
+ 
   return SUCCESS;
 }
 
@@ -508,6 +512,8 @@ PHP_RSHUTDOWN_FUNCTION(xhprof) {
   hp_end(TSRMLS_C);
   zend_execute_ex       = _zend_execute_ex;
   zend_execute_internal = _zend_execute_internal;
+  
+  zend_compile_file = _zend_compile_file; 
   return SUCCESS;
 }
 
@@ -1468,7 +1474,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
  	func = zend_string_init(func->val, func->len, 0); 
   }
   if (!func) {
-    _zend_execute_ex(execute_data TSRMLS_CC);
+	_zend_execute_ex(execute_data TSRMLS_CC);
     return;
   }
 
@@ -1535,25 +1541,27 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *re
 ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
                                              int type TSRMLS_DC) {
 
-  /*const char     *filename;
-  char           *func;
+  const char     *filename;
   int             len;
   zend_op_array  *ret;
   int             hp_profile_flag = 1;
+  zend_string	 *func_name;
 
   filename = hp_get_base_filename(file_handle->filename);
   len      = strlen("load") + strlen(filename) + 3;
-  func      = (char *)emalloc(len);
-  snprintf(func, len, "load::%s", filename);
 
-  BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
+  func_name = zend_string_init(filename, len, 0); 
+ 
+  snprintf(func_name->val, len, "load::%s", filename);
+
+  BEGIN_PROFILING(&hp_globals.entries, func_name, hp_profile_flag);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
   if (hp_globals.entries) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
 
-  efree(func);
-  return ret;*/
+  zend_string_free(func_name);
+  return ret;
 }
 
 /**
@@ -1611,7 +1619,7 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     /* return here or recu*/
     return;
 
-    /* Replace zend_compile with our proxy */
+    /* Replace zend_compile_file with our proxy */
     _zend_compile_file = zend_compile_file;
     zend_compile_file  = hp_compile_file;
 
@@ -1620,7 +1628,6 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     zend_compile_string = hp_compile_string;
 
     /* Replace zend_execute with our proxy */
-
     _zend_execute_ex = zend_execute_ex;
     zend_execute_ex  = hp_execute_ex;
 
@@ -1632,7 +1639,6 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
        */
       zend_execute_internal = hp_execute_internal;
     }
-
 
 
     /* one time initializations */
@@ -1675,9 +1681,10 @@ static void hp_stop(TSRMLS_D) {
 
   zend_execute_ex       = _zend_execute_ex;
   zend_execute_internal = _zend_execute_internal;
+  
   /* Remove proxies, restore the originals */
-  //zend_compile_file     = _zend_compile_file;
-  //zend_compile_string   = _zend_compile_string;
+  zend_compile_file     = _zend_compile_file;
+  zend_compile_string   = _zend_compile_string;
 
   /* Resore cpu affinity. */
   restore_cpu_affinity(&hp_globals.prev_mask);
@@ -1793,11 +1800,3 @@ static inline void hp_array_del(char **name_array) {
 //    efree(name_array);
 //  }
 }
-/*inline int xhprof_icall_handler(zend_execute_data *execute_data) {
-    zend_op *opline = execute_data->opline;
-    
-    php_printf("before\n");
-//    zend_opcode_handlers[opline->opcode + 1](execute_data);
-    php_printf("after\n");
-    return ZEND_USER_OPCODE_DISPATCH;
-}*/
