@@ -1453,9 +1453,10 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   int hp_profile_flag = 1;
 
   func = execute_data->func->internal_function.function_name;
-  if (execute_data ->This.value.obj != NULL) {
+  /* check if was in a class */ 
+  if (execute_data ->called_scope != NULL) {
   	//this is a class method;
-	zend_string *class_name = execute_data->func ->common.scope ->name;
+	zend_string *class_name = execute_data->called_scope ->name;
 	zend_string *func_name = func;
 
 	int class_name_len = class_name->len;
