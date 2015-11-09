@@ -396,7 +396,7 @@ PHP_FUNCTION(xhprof_enable) {
     return;
   }
 
-  hp_get_ignored_functions_from_arg(optional_array);
+  //hp_get_ignored_functions_from_arg(optional_array);
 
   hp_begin(XHPROF_MODE_HIERARCHICAL, xhprof_flags TSRMLS_CC);
 }
