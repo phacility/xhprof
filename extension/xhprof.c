@@ -1472,7 +1472,17 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   } else if (func) {
 	//just do the copy;
  	func = zend_string_init(func->val, func->len, 0); 
+  } else if (execute_data->literals->u1.type_info == 4) {
+    
+    //could include, not sure others has the same value
+    //This is fucking dam ugly
+    zend_string *filename = execute_data->func->op_array.filename;
+
+    int run_init_len = sizeof("run_init::") - 1;
+ 	func = zend_string_init("run_init::", run_init_len + filename->len, 0); 
+	memcpy(func->val + run_init_len, filename->val, filename->len);
   }
+
   if (!func) {
 	_zend_execute_ex(execute_data TSRMLS_CC);
     return;
