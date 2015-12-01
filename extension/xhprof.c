@@ -933,7 +933,7 @@ static void hp_free_the_free_list() {
   while (p) {
     cur = p;
     p = p->prev_hprof;
-    free(cur);
+    efree(cur);
   }
 }
 
@@ -954,7 +954,7 @@ static hp_entry_t *hp_fast_alloc_hprof_entry() {
     hp_globals.entry_free_list = p->prev_hprof;
     return p;
   } else {
-    return (hp_entry_t *)malloc(sizeof(hp_entry_t));
+    return (hp_entry_t *)emalloc(sizeof(hp_entry_t));
   }
 }
 
@@ -1460,10 +1460,10 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 
   func = execute_data->func->internal_function.function_name;
   /* check if was in a class */ 
-  if (execute_data ->called_scope != NULL) {
+  if (execute_data ->called_scope != NULL && func != NULL) {
   	//this is a class method;
 	zend_string *class_name = execute_data->called_scope ->name;
-	zend_string *func_name = func;
+    zend_string *func_name = func;
 
 	int class_name_len = class_name->len;
 	func = zend_string_init(class_name->val, class_name_len + 2 + func_name->len, 0); 
@@ -1558,11 +1558,11 @@ ZEND_DLEXPORT zend_op_array* hp_compile_file(zend_file_handle *file_handle,
   zend_string	 *func_name;
 
   filename = hp_get_base_filename(file_handle->filename);
-  len      = strlen("load") + strlen(filename) + 3;
+  len      = strlen("load::") + strlen(filename);
 
   func_name = zend_string_init(filename, len, 0); 
  
-  snprintf(func_name->val, len, "load::%s", filename);
+  snprintf(func_name->val, len + 1, "load::%s", filename);
 
   BEGIN_PROFILING(&hp_globals.entries, func_name, hp_profile_flag);
   ret = _zend_compile_file(file_handle, type TSRMLS_CC);
