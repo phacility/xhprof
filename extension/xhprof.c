@@ -493,15 +493,22 @@ PHP_MSHUTDOWN_FUNCTION(xhprof) {
  * Request init callback. Nothing to do yet!
  */
 PHP_RINIT_FUNCTION(xhprof) {
+ 
+  _zend_compile_file = zend_compile_file;
+  zend_compile_file  = hp_compile_file;
+
+  /* Replace zend_compile_string with our proxy */
+  //_zend_compile_string = zend_compile_string;
+  //zend_compile_string = hp_compile_string;
+
+  /* Replace zend_execute with our proxy */
+  _zend_execute_ex = zend_execute_ex;
+  zend_execute_ex  = hp_execute_ex;
+
+  /* Replace zend_execute_internal with our proxy */
   _zend_execute_internal = zend_execute_internal;
   zend_execute_internal = hp_execute_internal;
-   
-  _zend_execute_ex = zend_execute_ex; 
-  zend_execute_ex  = hp_execute_ex;
-	
-  _zend_compile_file = zend_compile_file; 
-  zend_compile_file  = hp_compile_file;
- 
+  
   return SUCCESS;
 }
 
@@ -933,7 +940,7 @@ static void hp_free_the_free_list() {
   while (p) {
     cur = p;
     p = p->prev_hprof;
-    efree(cur);
+    free(cur);
   }
 }
 
@@ -954,7 +961,8 @@ static hp_entry_t *hp_fast_alloc_hprof_entry() {
     hp_globals.entry_free_list = p->prev_hprof;
     return p;
   } else {
-    return (hp_entry_t *)emalloc(sizeof(hp_entry_t));
+    hp_entry_t *tmp = malloc(sizeof(hp_entry_t));
+    return tmp;
   }
 }
 
@@ -1454,7 +1462,6 @@ void hp_mode_hier_endfn_cb(hp_entry_t **entries  TSRMLS_DC) {
  * @author hzhao, kannan, Jason
  */
 ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
-  zend_op_array *ops = &execute_data->func->op_array;
   zend_string   *func = NULL;
   int hp_profile_flag = 1;
 
@@ -1483,7 +1490,8 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 	memcpy(func->val + run_init_len, filename->val, filename->len);
   }
 
-  if (!func) {
+  if (!func || hp_globals.enabled == 0) {
+    if (func) zend_string_free(func);
 	_zend_execute_ex(execute_data TSRMLS_CC);
     return;
   }
@@ -1520,7 +1528,9 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *re
   func = current_data->func->op_array.function_name ;
 
   if (func && strcmp("xhprof_enable", func->val) != 0) {
-    BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
+    if (hp_globals.enabled == 1) {
+      BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
+    }
   }
 
   if (!_zend_execute_internal) {
@@ -1626,9 +1636,8 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
         break;
     }
     BEGIN_PROFILING(&hp_globals.entries, zend_string_init(ROOT_SYMBOL, sizeof(ROOT_SYMBOL) - 1, 1), hp_profile_flag);
-    /* return here or recu*/
     return;
-
+	
     /* Replace zend_compile_file with our proxy */
     _zend_compile_file = zend_compile_file;
     zend_compile_file  = hp_compile_file;
@@ -1655,7 +1664,7 @@ static void hp_begin(long level, long xhprof_flags TSRMLS_DC) {
     hp_init_profiler_state(level TSRMLS_CC);
 
     /* start profiling from fictitious main() */
-    //BEGIN_PROFILING(&hp_globals.entries, ROOT_SYMBOL, hp_profile_flag);
+    BEGIN_PROFILING(&hp_globals.entries, zend_string_init(ROOT_SYMBOL, sizeof(ROOT_SYMBOL) - 1, 1), hp_profile_flag);
   }
 }
 
@@ -1688,13 +1697,14 @@ static void hp_stop(TSRMLS_D) {
   while (hp_globals.entries) {
     END_PROFILING(&hp_globals.entries, hp_profile_flag);
   }
-
-  zend_execute_ex       = _zend_execute_ex;
-  zend_execute_internal = _zend_execute_internal;
-  
-  /* Remove proxies, restore the originals */
-  zend_compile_file     = _zend_compile_file;
-  zend_compile_string   = _zend_compile_string;
+    
+  /* We have done this in RSHUT */
+  //zend_execute_ex       = _zend_execute_ex;
+  //zend_execute_internal = _zend_execute_internal;
+  //
+  ///* Remove proxies, restore the originals */
+  //zend_compile_file     = _zend_compile_file;
+  //zend_compile_string   = _zend_compile_string;
 
   /* Resore cpu affinity. */
   restore_cpu_affinity(&hp_globals.prev_mask);
