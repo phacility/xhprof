@@ -2,8 +2,6 @@
 
 Please do not use this in an production env.
 
-For installation and usage notes refer to:
-   xhprof_html/docs/index.html
+生产环境勿用。
+代码简直没法看。
 
-To view the latest version of the doc, go to:
-  http://pecl.php.net/package/xhprof ---> [View Documentation]
