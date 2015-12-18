@@ -42,9 +42,24 @@
            cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
 #   define GET_AFFINITY(pid, size, mask) \
            cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1, size, mask)
+#   define CPUSET_SIZE(cpuset) sizeof(*(cpuset))
+#   define CPUSET_CREATE() ((cpu_set_t *) malloc(sizeof(cpu_set_t)))
 # else
 #   error "This version of FreeBSD does not support cpusets"
 # endif /* __FreeBSD_version */
+#elif __NetBSD__
+#   include <sys/sched.h>
+#   define cpu_set_t cpuset_t
+#   define SET_AFFINITY(pid, size, mask) \
+           pthread_setaffinity_np(pthread_self(), size, mask)
+#   define GET_AFFINITY(pid, size, mask) \
+           pthread_getaffinity_np(pthread_self(), size, mask)
+#   define CPUSET_CREATE() cpuset_create()
+#   define CPUSET_SIZE(cpuset) cpuset_size(cpuset)
+#   define CPU_SET(cpu_id, new_mask) \
+           (cpuset_set(cpu_id, new_mask))
+#   define CPU_ZERO(new_mask) \
+           (cpuset_zero(new_mask))
 #elif __APPLE__
 /*
  * Patch for compiling in Mac OS X Leopard
@@ -60,11 +75,15 @@
 #   define SET_AFFINITY(pid, size, mask)       \
         thread_policy_set(mach_thread_self(), THREAD_AFFINITY_POLICY, mask, \
                           THREAD_AFFINITY_POLICY_COUNT)
+#   define CPUSET_SIZE(cpuset) sizeof(*(cpuset))
+#   define CPUSET_CREATE() ((cpu_set_t *) malloc(sizeof(cpu_set_t)))
 #else
 /* For sched_getaffinity, sched_setaffinity */
 # include <sched.h>
 # define SET_AFFINITY(pid, size, mask) sched_setaffinity(0, size, mask)
 # define GET_AFFINITY(pid, size, mask) sched_getaffinity(0, size, mask)
+# define CPUSET_SIZE(cpuset) sizeof(*(cpuset))
+# define CPUSET_CREATE() ((cpu_set_t *) malloc(sizeof(cpu_set_t)))
 #endif /* __FreeBSD__ */
 
 
@@ -207,7 +226,7 @@ typedef struct hp_global_t {
   uint32 cpu_num;
 
   /* The saved cpu affinity. */
-  cpu_set_t prev_mask;
+  cpu_set_t *prev_mask;
 
   /* The cpu id current process is bound to. (default 0) */
   uint32 cur_cpu_id;
@@ -451,14 +470,18 @@ PHP_MINIT_FUNCTION(xhprof) {
   /* Get the number of available logical CPUs. */
   hp_globals.cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
+  hp_globals.prev_mask = CPUSET_CREATE();
+  if (hp_globals.prev_mask ==  NULL)
+    return FAILURE;
+
   /* Get the cpu affinity mask. */
 #ifndef __APPLE__
-  if (GET_AFFINITY(0, sizeof(cpu_set_t), &hp_globals.prev_mask) < 0) {
+  if (GET_AFFINITY(0, CPUSET_SIZE(hp_globals.prev_mask), hp_globals.prev_mask) < 0) {
     perror("getaffinity");
     return FAILURE;
   }
 #else
-  CPU_ZERO(&(hp_globals.prev_mask));
+  CPU_ZERO(hp_globals.prev_mask);
 #endif
 
   /* Initialize cpu_frequencies and cur_cpu_id. */
@@ -492,6 +515,8 @@ PHP_MSHUTDOWN_FUNCTION(xhprof) {
 
   /* free any remaining items in the free list */
   hp_free_the_free_list();
+
+  free(hp_globals.prev_mask);
 
   UNREGISTER_INI_ENTRIES();
 
@@ -674,7 +699,7 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
    * calculate them lazily. */
   if (hp_globals.cpu_frequencies == NULL) {
     get_all_cpu_frequencies();
-    restore_cpu_affinity(&hp_globals.prev_mask);
+    restore_cpu_affinity(hp_globals.prev_mask);
   }
 
   /* bind to a random cpu so that we can use rdtsc instruction. */
@@ -1248,15 +1273,23 @@ static inline uint64 cycle_timer() {
  * @author cjiang
  */
 int bind_to_cpu(uint32 cpu_id) {
-  cpu_set_t new_mask;
+  cpu_set_t *new_mask;
 
-  CPU_ZERO(&new_mask);
-  CPU_SET(cpu_id, &new_mask);
+  new_mask = CPUSET_CREATE();
+  if (new_mask == NULL) {
+    perror("malloc");
+    return -1;
+  }
 
-  if (SET_AFFINITY(0, sizeof(cpu_set_t), &new_mask) < 0) {
+  CPU_ZERO(new_mask);
+  CPU_SET(cpu_id, new_mask);
+
+  if (SET_AFFINITY(0, CPUSET_SIZE(new_mask), new_mask) < 0) {
     perror("setaffinity");
     return -1;
   }
+
+  free(new_mask);
 
   /* record the cpu_id the process is bound to. */
   hp_globals.cur_cpu_id = cpu_id;
@@ -1380,7 +1413,7 @@ static void get_all_cpu_frequencies() {
  * @author cjiang
  */
 int restore_cpu_affinity(cpu_set_t * prev_mask) {
-  if (SET_AFFINITY(0, sizeof(cpu_set_t), prev_mask) < 0) {
+  if (SET_AFFINITY(0, CPUSET_SIZE(prev_mask), prev_mask) < 0) {
     perror("restore setaffinity");
     return -1;
   }
@@ -1399,7 +1432,7 @@ static void clear_frequencies() {
     free(hp_globals.cpu_frequencies);
     hp_globals.cpu_frequencies = NULL;
   }
-  restore_cpu_affinity(&hp_globals.prev_mask);
+  restore_cpu_affinity(hp_globals.prev_mask);
 }
 
 
@@ -1939,7 +1972,7 @@ static void hp_stop(TSRMLS_D) {
   zend_compile_string   = _zend_compile_string;
 
   /* Resore cpu affinity. */
-  restore_cpu_affinity(&hp_globals.prev_mask);
+  restore_cpu_affinity(hp_globals.prev_mask);
 
   /* Stop profiling */
   hp_globals.enabled = 0;
