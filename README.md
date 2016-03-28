@@ -1,4 +1,4 @@
-# xhporf for PHP7
+# xhprof for PHP7
 
 Please do not use this in an production env.
 
