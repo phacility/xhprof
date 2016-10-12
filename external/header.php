@@ -7,6 +7,25 @@ if (PHP_SAPI == 'cli') {
 
 include(dirname(__FILE__) . '/../xhprof_lib/config.php');
 
+function getExtensionName()
+{
+    if (extension_loaded('tideways'))
+    {
+        return 'tideways';
+    }elseif(extension_loaded('xhprof')) {
+        return 'xhprof';
+    }
+    return false;
+}
+$_xhprof['ext_name'] = getExtensionName();
+if($_xhprof['ext_name'])
+{
+    $flagsCpu = constant(strtoupper($_xhprof['ext_name']).'_FLAGS_CPU');
+    $flagsMemory = constant(strtoupper($_xhprof['ext_name']).'_FLAGS_MEMORY');
+    $envVarName = strtoupper($_xhprof['ext_name']).'_PROFILE';
+}
+
+
 //I'm Magic :)
 class visibilitator
 {
@@ -34,21 +53,30 @@ class visibilitator
 // Only users from authorized IP addresses may control Profiling
 if ($controlIPs === false || in_array($_SERVER['REMOTE_ADDR'], $controlIPs) || PHP_SAPI == 'cli')
 {
-  if (isset($_GET['_profile']))
+  /* Backwards Compatibility getparam check*/
+  if (!isset($_xhprof['getparam']))
+  {
+      $_xhprof['getparam'] = '_profile';
+  }
+  
+  if (isset($_GET[$_xhprof['getparam']]))
   {
     //Give them a cookie to hold status, and redirect back to the same page
-    setcookie('_profile', $_GET['_profile']);
-    $newURI = str_replace(array('_profile=1','_profile=0'), '', $_SERVER['REQUEST_URI']);
+    setcookie('_profile', $_GET[$_xhprof['getparam']]);
+    $newURI = str_replace(array($_xhprof['getparam'].'=1',$_xhprof['getparam'].'=0'), '', $_SERVER['REQUEST_URI']);
     header("Location: $newURI");
     exit;
   }
-
-  if (isset($_COOKIE['_profile']) && $_COOKIE['_profile'] || PHP_SAPI == 'cli' && ((isset($_SERVER['XHPROF_PROFILE']) && $_SERVER['XHPROF_PROFILE']) || (isset($_ENV['XHPROF_PROFILE']) && $_ENV['XHPROF_PROFILE'])))
+  
+  if (isset($_COOKIE['_profile']) && $_COOKIE['_profile'] 
+          || PHP_SAPI == 'cli' && ( (isset($_SERVER[$envVarName]) && $_SERVER[$envVarName]) 
+          || (isset($_ENV[$envVarName]) && $_ENV[$envVarName])))
   {
       $_xhprof['display'] = true;
       $_xhprof['doprofile'] = true;
       $_xhprof['type'] = 1;
   }
+  unset($envVarName);
 }
 
 
@@ -112,20 +140,24 @@ unset($ignoreDomains);
 unset($domain);
 
 //Display warning if extension not available
-if (extension_loaded('xhprof') && $_xhprof['doprofile'] === true) {
+if ($_xhprof['ext_name'] && $_xhprof['doprofile'] === true) {
     include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_lib.php';
     include_once dirname(__FILE__) . '/../xhprof_lib/utils/xhprof_runs.php';
-    if (isset($ignoredFunctions) && is_array($ignoredFunctions) && !empty($ignoredFunctions)) {
-        xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY, array('ignored_functions' => $ignoredFunctions));
+    if (isset($ignoredFunctions) && is_array($ignoredFunctions) && !empty($ignoredFunctions)) {   
+        call_user_func($_xhprof['ext_name'].'_enable', $flagsCpu + $flagsMemory, array('ignored_functions' => $ignoredFunctions));
     } else {
-        xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+        call_user_func($_xhprof['ext_name'].'_enable', $flagsCpu + $flagsMemory);
     }
-}elseif(!extension_loaded('xhprof') && $_xhprof['display'] === true)
+    unset($flagsCpu);
+    unset($flagsMemory);
+    
+}elseif(false === $_xhprof['ext_name'] && $_xhprof['display'] === true)
 {
-    $message = 'Warning! Unable to profile run, xhprof extension not loaded';
+    $message = 'Warning! Unable to profile run, tideways or xhprof extension not loaded';
     trigger_error($message, E_USER_WARNING);
 }
-
+unset($flagsCpu);
+    unset($flagsMemory);
 function xhprof_shutdown_function() {
     global $_xhprof;
     require dirname(__FILE__).'/footer.php';
