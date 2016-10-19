@@ -1469,8 +1469,8 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
   /* check if was in a class */ 
   if (execute_data ->called_scope != NULL && func != NULL) {
   	//this is a class method;
-	zend_string *class_name = execute_data->called_scope ->name;
-    zend_string *func_name = func;
+	zend_string *class_name = execute_data->called_scope->name;
+	zend_string *func_name = func;
 
 	int class_name_len = class_name->len;
 	func = zend_string_init(class_name->val, class_name_len + 2 + func_name->len, 0); 
@@ -1478,7 +1478,7 @@ ZEND_DLEXPORT void hp_execute_ex (zend_execute_data *execute_data TSRMLS_DC) {
 	memcpy(func->val + class_name_len + 2, func_name->val, func_name->len);
   } else if (func) {
 	//just do the copy;
- 	func = zend_string_init(func->val, func->len, 0); 
+	func = zend_string_init(func->val, func->len, 0);
   } else if (execute_data->literals->u1.type_info == 4) {
     
     //could include, not sure others has the same value
@@ -1527,6 +1527,20 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *re
   current_data = EG(current_execute_data);
   func = current_data->func->op_array.function_name ;
 
+  //check is a class method
+  if(current_data->func->op_array.scope != NULL) {
+	  zend_string *class_name = current_data->func->op_array.scope->name;
+	  zend_string *func_name = func;
+
+	  int class_name_len = class_name->len;
+	  func = zend_string_init(class_name->val, class_name_len + 2 + func_name->len, 0); 
+	  memcpy(func->val + class_name_len, "::", 2);
+	  memcpy(func->val + class_name_len + 2, func_name->val, func_name->len);
+  } else {
+	  //just do the copy;
+	  func = zend_string_init(func->val, func->len, 0);
+  }
+
   if (func && strcmp("xhprof_enable", func->val) != 0) {
     if (hp_globals.enabled == 1) {
       BEGIN_PROFILING(&hp_globals.entries, func, hp_profile_flag);
@@ -1549,6 +1563,10 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data, zval *re
       END_PROFILING(&hp_globals.entries, hp_profile_flag);
     }
     //zend_string_free(func);
+  }
+
+  if (func) {
+	  zend_string_free(func);
   }
 
 }
