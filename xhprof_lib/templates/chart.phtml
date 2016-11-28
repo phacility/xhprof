@@ -5,6 +5,7 @@
                 chart: {
                     renderTo: 'container',
                     margin: [80, 200, 60, 100],
+                    borderWidth: '0px',
                     zoomType: 'xy',
                     events:
                      {
@@ -13,9 +14,9 @@
                             // find the clicked values and the series
                             var x = e.xAxis[0].value,
                                 y = e.yAxis[0].value,
-                                series = this.series[0];        
+                                series = this.series[0];
                         }
-                    }                    
+                    }
                 },
                 credits: {
                 	enabled:false
@@ -29,48 +30,48 @@
                 subtitle: {
                     text: 'Source: XH Gui',
                     style: {
-                        margin: '0 0 0 0' // center it
+                        margin: '10px 0 0 0' // center it
                     }
                 },
                 xAxis: [{
                     categories: [<?php echo $dateidsJS;?>],
-                    labels: { 
+                    labels: {
                         formatter: function() {
-                            var date = (this.value).split(" ");                            
+                            var date = (this.value).split(" ");
                             return date[0];
                         },
                         rotation: -45,
                         align: 'right',
                     }
-                    
+
                 }],
-                
+
                 yAxis: [
                 { // Primary yAxis
                     labels:
-                    {   
+                    {
                         formatter: function() {
                             return this.value;
                         },
                         style: {
-                            color: '#89A54E'
+                            color: '#547E8F'
                         }
                     },
                     title: {
                         text: 'Peak Memory Usage',
                         style: {
-                            color: '#89A54E'
+                            color: '#547E8F'
                         },
-                        margin: 80
+                        margin: 25
                     },
                     opposite: true
-                    
+
                 }, { // Secondary yAxis
                     title: {
                         text: 'CPU',
-                        margin: 50,
+                        margin: 40,
                         style: {
-                            color: '#4572A7'
+                            color: '#69B0CC'
                         }
                     },
                     labels: {
@@ -78,16 +79,16 @@
                             return this.value;
                         },
                         style: {
-                            color: '#4572A7'
+                            color: '#69B0CC'
                         }
                     }
-                    
+
                 }, { // Tertiary yAxis
                     title: {
                         text: 'Wall Time (ms)',
-                        margin: 80,
+                        margin: 20,
                         style: {
-                            color: '#AA4643'
+                            color: '#F47EAB'
                         }
                     },
                     labels: {
@@ -95,7 +96,7 @@
                             return this.value;
                         },
                         style: {
-                            color: '#AA4643'
+                            color: '#F47EAB'
                         }
                     },
                     opposite: true,
@@ -108,7 +109,7 @@
                             '': '',
                             '': ''
                         }[this.series.name];
-                          
+
                         return '<b>'+ this.series.name +'</b><br/><br/>' + this.y +'';
                     }
                 },
@@ -128,38 +129,37 @@
                           point: {
                             events: {
                                 'click': function() {
-                                      
-                                      if (this.series.data.length > 1)  
+
+                                      if (this.series.data.length > 1)
                                       {
                                         var runid = (this.category).split(" ");
-                                        document.location = '?run=' + runid[2];               
-                                      }                                   
+                                        document.location = '?run=' + runid[2];
+                                      }
                                 }
                             }
                         }
                     }
-                },                     
+                },
                 series: [{
                     name: 'CPU',
-                    color: '#4572A7',
+                    color: '#69B0CC',
                     type: 'line',
                     yAxis: 1,
                     data: [<?php echo $cpuJS;?>],
-                                 
+
                 },{
                     name: 'Wall Time',
                     type: 'line',
-                    color: '#AA4643',
+                    color: '#F47EAB',
                     yAxis: 2,
-                    data: [<?php echo $wtJS;?>]        
-                
+                    data: [<?php echo $wtJS;?>]
+
                 },{
                     name: 'Peak Memory Usage',
-                    color: '#89A54E',
+                    color: '#547E8F',
                     type: 'line',
-                    data: [<?php echo $pmuJS;?>,]        
+                    data: [<?php echo $pmuJS;?>,]
                 }]
-              });            
-            
+              });
         });
 </script>

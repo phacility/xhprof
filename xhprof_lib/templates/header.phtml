@@ -4,12 +4,12 @@
     <head>
 	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 	<title>XHGui: Hierarchical Profiler Report</title>
-
+<link href="https://fonts.googleapis.com/css?family=Inconsolata|Lato:300,400" rel="stylesheet">
 <link href='css/xhprof.css' rel='stylesheet'  type='text/css'></link>
-<link href="css/tablesorter.pager.css" rel="stylesheet" type="text/css" />             
+<link href="css/tablesorter.pager.css" rel="stylesheet" type="text/css" />
 <link href='third-party/jquery/jquery.tooltip.css'  rel='stylesheet' type='text/css'></link>
 <link href='third-party/jquery/jquery.autocomplete.css'  rel='stylesheet' type='text/css'></link>
-<script src='third-party/jquery/jquery-1.7.1.min.js' type="text/javascript"></script>    
+<script src='third-party/jquery/jquery-1.7.1.min.js' type="text/javascript"></script>
 <script src='third-party/jquery/jquery.tooltip.js' type="text/javascript"></script>
 <script src='third-party/jquery/jquery.autocomplete.js' type="text/javascript"></script>
 <script src='third-party/jquery/jquery.stickytableheaders.js' type="text/javascript"></script>
@@ -25,17 +25,21 @@ if (isset($_xh_header))
 ?>
 </head>
 <body>
+<div class="container">
  <div class="dash-header">
+   <div class="xh-title-wrap">
+      <a class="xh-title" href="?">XH GUI</a>
+   </div>
    <div class="search">
-       <form name="simple_bar" method="get" action="">      
-          Search: <input type="text" name="run" size="25" />
+       <form name="simple_bar" method="get" action="">
+          Search: <input class="form-text" type="text" name="run" size="25" />
           <input type="submit" value="Go" name="submit" class="form-button" />
        </form>
    </div>
    <div class="search">
-       <form name="simple_bar" method="get" action="">      
-          Filter Domain: 
-		  <select name="domain_filter">
+       <form name="simple_bar" method="get" action="">
+          Filter Domain:
+		  <select class="form-select" name="domain_filter">
 <?php
 foreach($domainFilterOptions as $server)
 {
@@ -54,9 +58,9 @@ foreach($domainFilterOptions as $server)
        </form>
    </div>
       <div class="search">
-       <form name="simple_bar" method="get" action="">      
-          Filter Server: 
-		  <select name="server_filter">
+       <form name="simple_bar" method="get" action="">
+          Filter Server:
+		  <select class="form-select" name="server_filter">
 <?php
 foreach($serverFilterOptions as $server)
 {
@@ -75,11 +79,20 @@ foreach($serverFilterOptions as $server)
        </form>
    </div>
    <div class="link-options">
-      Last <a href="?last=25">25</a> <a href="?last=50">50</a> Runs |
-      Hardest Hit <a href="?hit=50&amp;days=1">Today</a> <a href="?hit=50&amp;days=7">Past Week</a> |
-      Most Expensive <a href="?getruns=cpu&amp;days=1">Today</a> <a href="?getruns=cpu&amp;days=7">Past Week</a> |
-      Most Ram <a href="?getruns=pmu&amp;days=1">Today</a> <a href="?getruns=pmu&amp;days=7">Past Week</a> |
-      Longest Running <a href="?getruns=wt&amp;days=1">Today</a> <a href="?getruns=wt&amp;days=7">Past Week</a>
+      <ul class="options-list">
+      <li>
+        Last <a href="?last=25">25</a> | <a href="?last=50">50</a> Runs
+      </li>
+      <li>
+        Hardest Hit <a href="?hit=50&amp;days=1">Today</a> | <a href="?hit=50&amp;days=7">Past Week</a>
+      </li>
+      <li>
+        Most Expensive <a href="?getruns=cpu&amp;days=1">Today</a> | <a href="?getruns=cpu&amp;days=7">Past Week</a>
+      </li>
+      <li>Most Ram <a href="?getruns=pmu&amp;days=1">Today</a> | <a href="?getruns=pmu&amp;days=7">Past Week</a></li>
+      <li>
+      Longest Running <a href="?getruns=wt&amp;days=1">Today</a> | <a href="?getruns=wt&amp;days=7">Past Week</a>
+      </li>
+      </ul>
    </div>
-   <h1 class="xh-title"><a href="?">XH GUI</a></h1> 
- </div>  
+ </div>

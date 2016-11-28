@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="75px" height="75px" viewBox="0 0 75 75" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Chevron</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Chevron" fill="#7CCED6">
+            <polygon id="Line" points="25 10 25 63 28 63 28 10"></polygon>
+            <polygon id="Line" points="49 66 49 13 46 13 46 66"></polygon>
+            <g id="Group-7" transform="translate(47.500000, 15.500000) scale(1, -1) translate(-47.500000, -15.500000) translate(40.000000, 9.000000)">
+                <polygon id="Triangle" transform="translate(7.240088, 6.180563) scale(1, -1) translate(-7.240088, -6.180563) " points="7.24008788 1.24344979e-14 14.4801758 12.3611257 0 12.3611257"></polygon>
+            </g>
+            <g id="Group-7" transform="translate(19.000000, 55.000000)">
+                <polygon id="Triangle" transform="translate(7.240088, 6.180563) scale(1, -1) translate(-7.240088, -6.180563) " points="7.24008788 1.24344979e-14 14.4801758 12.3611257 0 12.3611257"></polygon>
+            </g>
+        </g>
+    </g>
+</svg>

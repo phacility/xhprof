@@ -600,7 +600,7 @@ function profiler_report ($url_params,
 
   // lookup function typeahead form
 
-  
+
 
 /**
   echo
@@ -743,7 +743,7 @@ function print_function_info($url_params, $info, $sort, $run1, $run2) {
     print("<tr>");
   }
   else {
-    print('<tr bgcolor="#e5e5e5">');
+    print('<tr>');
   }
 
   $href = "$base_path/?" .
@@ -802,12 +802,12 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
                                        http_build_query(xhprof_array_set($url_params,
                                                                          'all', 1)));
   }
-  
+
   //Find top $n requests
   $data_copy = $flat_data;
   $data_copy = _aggregateCalls($data_copy, null, $run2);
   usort($data_copy, 'sortWT');
-  
+
   $iterations = 0;
   $colors = array('#4572A7', '#AA4643', '#89A54E', '#80699B', '#3D96AE', '#DB843D', '#92A8CD', '#A47D7C', '#B5CA92', '#EAFEBB', '#FEB4B1', '#2B6979', '#E9D6FE', '#FECDA3', '#FED980');
   foreach($data_copy as $datapoint)
@@ -864,8 +864,8 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
       global $xhprof_runs_impl;
     include "../xhprof_lib/templates/single_run_header_block.phtml";
   }
-  
-  
+
+
   //echo xhprof_render_actions($links);
 
 
@@ -873,7 +873,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2, $links) {
   foreach ($symbol_tab as $symbol => $info) {
     $tmp = $info;
     $tmp["fn"] = $symbol;
-    
+
     $flat_data[] = $tmp;
   }
   usort($flat_data, 'sort_cbk');
@@ -966,8 +966,8 @@ function print_pc_array($url_params, $results, $base_ct, $base_info, $parent,
     $title .= 's';
   }
 
-  print("<tr bgcolor='#e0e0ff'><td>");
-  print("<b><i><center>" . $title . "</center></i></b>");
+  print("<tr class='box-table-title'><td>");
+  print("<strong>" . $title . "</strong>");
   print("</td></tr>");
 
   $odd_even = 0;
@@ -981,7 +981,7 @@ function print_pc_array($url_params, $results, $base_ct, $base_info, $parent,
       print('<tr>');
     }
     else {
-      print('<tr bgcolor="#e5e5e5">');
+      print('<tr>');
     }
 
     print("<td>" . xhprof_render_link($info["fn"], $href) . "</td>");
@@ -1051,9 +1051,9 @@ function symbol_report($url_params,
       . http_build_query(xhprof_array_set($base_url_params, 'run', $run2));
 
     print("<h3 align=center>$regr_impr summary for $rep_symbol<br /><br /></h3>");
-    print('<table border=1 cellpadding=2 cellspacing=1 width="30%" '
-          .'rules=rows bordercolor="#bdc7d8" align=center>' . "\n");
-    print('<tr bgcolor="#bdc7d8" align=right>');
+    print('<table cellpadding=2 cellspacing=1 width="30%" '
+          .'rules=rows align=center>' . "\n");
+    print('<tr align=right>');
     print("<th align=left>$rep_symbol</th>");
     print("<th $vwbar><a href=" . $href1 . ">Run #$run1</a></th>");
     print("<th $vwbar><a href=" . $href2 . ">Run #$run2</a></th>");
@@ -1105,7 +1105,7 @@ function symbol_report($url_params,
 
       // Exclusive stat for metric
       $m = "excl_" . $metric;
-      print('<tr style="border-bottom: 1px solid black;">');
+      print('<tr>');
       print("<td>" . str_replace("<br />", " ", $descriptions[$m]) . "</td>");
       print_td_num($symbol_info1[$m], $format_cbk[$m]);
       print_td_num($symbol_info2[$m], $format_cbk[$m]);
@@ -1117,19 +1117,19 @@ function symbol_report($url_params,
     print('</table>');
   }
 
-  print("<br /><h4><center>");
-  print("Parent/Child $regr_impr report for <b>$rep_symbol</b>");
+  print("<br /><h1 class='runTitle'>");
+  print("Parent/Child $regr_impr report for <b>$rep_symbol</b></h1>");
 
   $callgraph_href = "$base_path/callgraph.php?"
     . http_build_query(xhprof_array_set($url_params, 'func', $rep_symbol));
 
-  print(" <a href='$callgraph_href'>[View Callgraph $diff_text]</a><br />");
+  print(" <a class='callgraph' href='$callgraph_href'>View Callgraph $diff_text</a><br />");
 
-  print("</center></h4><br />");
+  print("<br />");
 
-  print('<table border=1 cellpadding=2 cellspacing=1 width="90%" '
-        .'rules=rows bordercolor="#bdc7d8" align=center>' . "\n");
-  print('<tr bgcolor="#bdc7d8" align=right>');
+  print('<table class="box-tables" border=1 cellpadding=2 cellspacing=1 width="90%" '
+        .'rules=rows align=center>' . "\n");
+  print('<tr align=right>');
 
   foreach ($pc_stats as $stat) {
     $desc = stat_description($stat);
@@ -1150,8 +1150,8 @@ function symbol_report($url_params,
   }
   print("</tr>");
 
-  print("<tr bgcolor='#e0e0ff'><td>");
-  print("<b><i><center>Current Function</center></i></b>");
+  print("<tr class='box-table-title'><td>");
+  print("<strong>Current Function</strong>");
   print("</td></tr>");
 
   print("<tr>");
@@ -1171,9 +1171,9 @@ function symbol_report($url_params,
   }
   print("</tr>");
 
-  print("<tr bgcolor='#ffffff'>");
-  print("<td style='text-align:right;color:blue'>"
-        ."Exclusive Metrics $diff_text for Current Function</td>");
+  print("<tr class='box-table-title'>");
+  print("<td><strong>"
+        ."Exclusive Metrics $diff_text for Current Function</strong></td>");
 
   if ($display_calls) {
     // Call Count
@@ -1369,7 +1369,7 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
     //
     $runs_array = explode(",", $run);
 
-    if (count($runs_array) == 1) 
+    if (count($runs_array) == 1)
     {
         global $run_details;
         list($xhprof_data, $run_details) = $xhprof_runs_impl->get_run($runs_array[0],

@@ -21,19 +21,20 @@ div.tablesorterPager input {
 	text-align: center;
 }
 table.tablesorter thead tr .header {
-   background-image: url(../img/bg.gif);
+   background-image: url(../img/bg.svg);
+   background-size: 20px 20px;
    background-position:left center;
    background-repeat:no-repeat;
    cursor:pointer;
    padding-left:55px;
 }
 table.tablesorter thead tr .headerSortUp {
-	background-image: url(../img/asc.gif);
+	background-image: url(../img/asc.svg);
 	background-repeat:no-repeat;
 	background-position:left center;
 }
 table.tablesorter thead tr .headerSortDown {
-	background-image: url(../img/desc.gif);
+	background-image: url(../img/desc.svg);
 	background-repeat:no-repeat;
 	background-position:left center;
 }
