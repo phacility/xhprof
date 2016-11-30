@@ -1713,6 +1713,9 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   }
 
   if (!_zend_execute_internal) {
+#if PHP_VERSION_ID >= 50500
+    if (fci == NULL) {
+#endif
     /* no old override to begin with. so invoke the builtin's implementation  */
 
 #if ZEND_EXTENSION_API_NO >= 220121212
@@ -1753,6 +1756,15 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
                        EX(function_state).function->common.return_reference ?
                        &EX_T(opline->result.u.var).var.ptr:NULL,
                        EX(object), ret TSRMLS_CC);
+#endif
+#if PHP_VERSION_ID >= 50500
+    } else {
+        ((zend_internal_function *) EX(function_state).function)->handler(
+                           fci->param_count,
+                           *fci->retval_ptr_ptr,
+                           fci->retval_ptr_ptr,
+                           fci->object_ptr, ret TSRMLS_CC);
+    }
 #endif
   } else {
     /* call the old override */
