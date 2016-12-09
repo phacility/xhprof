@@ -1304,7 +1304,14 @@ function profiler_single_run_report ($url_params,
                                      $run_desc,
                                      $rep_symbol,
                                      $sort,
-                                     $run) {
+                                     $run,
+				     $metadata = null ) {
+
+
+  //display metadata in a table if there is any
+  if ( $metadata ) {    
+    dump_table( $metadata, "Run Metadata");
+  }
 
   init_metrics($xhprof_data, $rep_symbol, $sort, false);
 
@@ -1342,6 +1349,49 @@ function profiler_diff_report($url_params,
                   $run2,
                   $run2_desc,
                   $xhprof_data2);
+}
+
+function dump_table($var, $title=false, $level=0)
+{
+  if($level==0)
+    {
+      echo '<table border="1" cellspacing="1" cellpadding="3" class="dump">';
+        
+      if($title)
+              echo '<tr>
+                     <th colspan="2">'.$title.'</th>
+                   </tr>';
+          
+        echo '
+          <tr>
+            <th>VAR NAME</th>
+            <th>VALUE</th>
+          </tr>';
+    }
+    else
+      {
+        echo '<tr>
+                <td colspan="2">
+                    <table width="100%" border="0" cellspacing="3" cellpadding="3" class="dump_b">
+                </td>
+              </tr>';
+      }
+    
+  foreach($var as $i=>$value)
+    {
+      if(is_array($value) or is_object($value))
+        {
+	  dump_table($value, false, ($level +1));
+        }
+        else
+	  {
+                echo '<tr>
+                        <td width="50%" >'.$i.'</th>
+                        <td width="50%" >'.$value.'</th>
+                       </tr>';
+	  }
+    }
+  echo '</table>';
 }
 
 
@@ -1395,6 +1445,9 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
       $xhprof_data = $xhprof_runs_impl->get_run($runs_array[0],
                                                 $source,
                                                 $description);
+      $metadata = $xhprof_runs_impl->get_metadata( $runs_array[0],
+					     $source );
+      
     } else {
       if (!empty($wts)) {
         $wts_array  = explode(",", $wts);
@@ -1403,6 +1456,10 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
       }
       $data = xhprof_aggregate_runs($xhprof_runs_impl,
                                     $runs_array, $wts_array, $source, false);
+
+      //for now metadata for multiple runs isn't implemented, sorry
+      $metadata = null;
+
       $xhprof_data = $data['raw'];
       $description = $data['description'];
     }
@@ -1413,7 +1470,8 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
                                $description,
                                $symbol,
                                $sort,
-                               $run);
+                               $run,
+			       $metadata);
 
   } else if ($run1 && $run2) {                  // diff report for two runs
 
