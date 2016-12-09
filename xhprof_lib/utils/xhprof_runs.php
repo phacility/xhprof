@@ -1,5 +1,5 @@
 <?php
-//
+g//
 //  Copyright (c) 2009 Facebook
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,14 @@ interface iXHProfRuns {
   public function get_run($run_id, $type, &$run_desc);
 
   /**
+   * Returns meta data associated with a given XHPRof run id ($run) of 
+   * a given type ($type).
+   *
+   */
+  public function get_metadata($run_id, $type);
+
+
+  /**
    * Save XHProf data for a profiler run of specified type
    * ($type).
    *
@@ -49,10 +57,16 @@ interface iXHProfRuns {
    * the implementation of this method must generated a
    * unique run id for this saved XHProf run.
    *
+   * The Caller may also optionally pass in metadata, which 
+   * is an array containing metadata to included ( and displayed )
+   * along with this run.
+   *
    * Returns the run id for the saved XHProf run.
    *
    */
-  public function save_run($xhprof_data, $type, $run_id = null);
+
+  public function save_run($xhprof_data, $type, $run_id = null, $metadata = null );
+
 }
 
 
@@ -76,11 +90,12 @@ class XHProfRuns_Default implements iXHProfRuns {
 
   private function file_name($run_id, $type) {
 
-    $file = "$run_id.$type." . $this->suffix;
+    $file = "$run_id.$type." . $this->suffix . ".gz";
 
     if (!empty($this->dir)) {
-      $file = $this->dir . "/" . $file;
+      $file  = $this->dir . "/" . $file;
     }
+    
     return $file;
   }
 
@@ -108,35 +123,113 @@ class XHProfRuns_Default implements iXHProfRuns {
   }
 
   public function get_run($run_id, $type, &$run_desc) {
+
     $file_name = $this->file_name($run_id, $type);
 
     if (!file_exists($file_name)) {
-      xhprof_error("Could not find file $file_name");
-      $run_desc = "Invalid Run Id = $run_id";
-      return null;
+
+      //backwards compatibility with non-gziped runs
+      $without_gz = substr( $file_name, 0, -3 );
+      if ( !file_exists($without_gz) ) { 
+	xhprof_error("Could not find file $file_name (or $without_gz)");
+	$run_desc = "Invalid Run Id = $run_id";
+	return null;
+      }
+      else {
+	$file_name = $without_gz;
+      }
     }
 
-    $contents = file_get_contents($file_name);
+    //backwards compatible support for both gziped or regular runs
+    if ( substr( $file_name, -3, 3 ) == ".gz" ) {
+      $data = gzfile($file_name);
+    }
+    else {
+      $data = file($file_name);
+    }
+    
+    $contents = implode($data);   
     $run_desc = "XHProf Run (Namespace=$type)";
+<<<<<<< HEAD
     return unserialize($contents);
+=======
+    $unserialized = unserialize($contents);
+    
+    //if the unserialized data is an arrray, the data is using the metadata format
+    //we only return the xhprof_data to maintains api compatibility
+    if ( gettype( $unserialized ) == 'array' ) {
+      return $unserialized['xhprof_data'];
+    }
+    else {
+      return $unserialized;
+    }
+  }
+
+  public function get_metadata( $run_id, $type ) {
+
+    $file_name = $this->file_name($run_id, $type);
+
+    if (!file_exists($file_name)) {
+
+      //backwards compatibility with non-gziped runs
+      $without_gz = substr( $file_name, 0, -3 );
+      if ( !file_exists($without_gz) ) { 
+	xhprof_error("Could not find file $file_name (or $without_gz)");
+	$run_desc = "Invalid Run Id = $run_id";
+	return null;
+      }
+      else {
+	$file_name = $without_gz;
+      }
+    }
+
+    //backwards compatible support for both gziped or regular runs
+    if ( substr( $file_name, -3, 3 ) == ".gz" ) {
+      $data = gzfile($file_name);
+    }
+    else {
+      $data = file($file_name);
+    }
+
+    $contents = implode($data);
+    $unserialized = unserialize($contents);
+    
+    //if the unserialized data is an arrray, the data is using the metadata format
+    //we only return the xhprof_data to maintains api compatibility
+    if ( gettype( $unserialized ) == 'array' ) {
+      return $unserialized['metadata'];
+    }
+    else {
+      return null;
+    }
+>>>>>>> metadata
   }
 
   public function save_run($xhprof_data, $type, $run_id = null) {
 
     // Use PHP serialize function to store the XHProf's
     // raw profiler data.
+<<<<<<< HEAD
     $xhprof_data = serialize($xhprof_data);
+=======
+    $all_data = array(
+		      "xhprof_data" => $xhprof_data,
+		      "metadata" => $metadata,
+		   );
+    $all_data = serialize($all_data);
+>>>>>>> metadata
 
     if ($run_id === null) {
       $run_id = $this->gen_run_id($type);
     }
-
+    
     $file_name = $this->file_name($run_id, $type);
-    $file = fopen($file_name, 'w');
+
+    $file = gzopen($file_name, 'w');
 
     if ($file) {
-      fwrite($file, $xhprof_data);
-      fclose($file);
+      gzwrite($file, $xhprof_data);
+      gzclose($file);
     } else {
       xhprof_error("Could not open $file_name\n");
     }
@@ -148,7 +241,7 @@ class XHProfRuns_Default implements iXHProfRuns {
   function list_runs() {
     if (is_dir($this->dir)) {
         echo "<hr/>Existing runs:\n<ul>\n";
-        $files = glob("{$this->dir}/*.{$this->suffix}");
+        $files = glob("{$this->dir}/*.{$this->suffix}*");
         usort($files, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
         foreach ($files as $file) {
             list($run,$source) = explode('.', basename($file));
