@@ -1715,7 +1715,9 @@ ZEND_DLEXPORT void hp_execute_internal(zend_execute_data *execute_data,
   if (!_zend_execute_internal) {
     /* no old override to begin with. so invoke the builtin's implementation  */
 
-#if ZEND_EXTENSION_API_NO >= 220121212
+#if ZEND_EXTENSION_API_NO >= 220131226 
+    execute_internal(execute_data, fci, ret TSRMLS_CC);
+#elif ZEND_EXTENSION_API_NO >= 220121212
     /* PHP 5.5. This is just inlining a copy of execute_internal(). */
 
     if (fci != NULL) {
