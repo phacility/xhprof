@@ -103,11 +103,6 @@
 /* Constants for XHPROF_MODE_SAMPLED        */
 #define XHPROF_SAMPLING_INTERVAL       100000      /* In microsecs        */
 
-/* Constant for ignoring functions, transparent to hierarchical profile */
-#define XHPROF_MAX_IGNORED_FUNCTIONS  256
-#define XHPROF_IGNORED_FUNCTION_FILTER_SIZE                           \
-               ((XHPROF_MAX_IGNORED_FUNCTIONS + 7)/8)
-
 #if !defined(uint64)
 typedef unsigned long long uint64;
 #endif
@@ -218,10 +213,6 @@ typedef struct hp_global_t {
   /* counter table indexed by hash value of function names. */
   uint8  func_hash_counters[256];
 
-  /* Table of ignored function names and their filter */
-  char  **ignored_function_names;
-  uint8   ignored_function_filter[XHPROF_IGNORED_FUNCTION_FILTER_SIZE];
-
 } hp_global_t;
 
 
@@ -256,10 +247,6 @@ static zend_op_array * (*_zend_compile_file) (zend_file_handle *file_handle,
 /* Pointer to the original compile string function (used by eval) */
 static zend_op_array * (*_zend_compile_string) (zval *source_string, char *filename TSRMLS_DC);
 
-/* Bloom filter for function names to be ignored */
-#define INDEX_2_BYTE(index)  (index >> 3)
-#define INDEX_2_BIT(index)   (1 << (index & 0x7));
-
 
 /**
  * ****************************
@@ -283,15 +270,6 @@ static inline uint8 hp_inline_hash(char * str);
 static void get_all_cpu_frequencies();
 static long get_us_interval(struct timeval *start, struct timeval *end);
 static void incr_us_interval(struct timeval *start, uint64 incr);
-
-static void hp_get_ignored_functions_from_arg(zval *args);
-static void hp_ignored_functions_filter_clear();
-static void hp_ignored_functions_filter_init();
-
-static inline zval  *hp_zval_at_key(char  *key,
-                                    zval  *values);
-static inline char **hp_strings_in_zval(zval  *values);
-static inline void   hp_array_del(char **name_array);
 
 /* {{{ arginfo */
 ZEND_BEGIN_ARG_INFO_EX(arginfo_xhprof_enable, 0, 0, 0)
@@ -387,8 +365,6 @@ PHP_FUNCTION(xhprof_enable) {
     return;
   }
 
-  hp_get_ignored_functions_from_arg(optional_array);
-
   hp_begin(XHPROF_MODE_HIERARCHICAL, xhprof_flags TSRMLS_CC);
 }
 
@@ -416,7 +392,6 @@ PHP_FUNCTION(xhprof_disable) {
  */
 PHP_FUNCTION(xhprof_sample_enable) {
   long  xhprof_flags = 0;                                    /* XHProf flags */
-  hp_get_ignored_functions_from_arg(NULL);
   hp_begin(XHPROF_MODE_SAMPLED, xhprof_flags TSRMLS_CC);
 }
 
@@ -473,8 +448,6 @@ PHP_MINIT_FUNCTION(xhprof) {
   for (i = 0; i < 256; i++) {
     hp_globals.func_hash_counters[i] = 0;
   }
-
-  hp_ignored_functions_filter_clear();
 
 #if defined(DEBUG)
   /* To make it random number generator repeatable to ease testing. */
@@ -565,88 +538,8 @@ static void hp_register_constants(INIT_FUNC_ARGS) {
                          CONST_CS | CONST_PERSISTENT);
 }
 
-/**
- * A hash function to calculate a 8-bit hash code for a function name.
- * This is based on a small modification to 'zend_inline_hash_func' by summing
- * up all bytes of the ulong returned by 'zend_inline_hash_func'.
- *
- * @param str, char *, string to be calculated hash code for.
- *
- * @author cjiang
- */
-static inline uint8 hp_inline_hash(char * str) {
-  ulong h = 5381;
-  uint i = 0;
-  uint8 res = 0;
 
-  while (*str) {
-    h += (h << 5);
-    h ^= (ulong) *str++;
-  }
 
-  for (i = 0; i < sizeof(ulong); i++) {
-    res += ((uint8 *)&h)[i];
-  }
-  return res;
-}
-
-/**
- * Parse the list of ignored functions from the zval argument.
- *
- * @author mpal
- */
-static void hp_get_ignored_functions_from_arg(zval *args) {
-
-  if (hp_globals.ignored_function_names) {
-    hp_array_del(hp_globals.ignored_function_names);
-  }
-
-  if (args != NULL) {
-    zval  *zresult = NULL;
-
-    zresult = hp_zval_at_key("ignored_functions", args);
-    hp_globals.ignored_function_names = hp_strings_in_zval(zresult);
-  } else {
-    hp_globals.ignored_function_names = NULL;
-  }
-}
-
-/**
- * Clear filter for functions which may be ignored during profiling.
- *
- * @author mpal
- */
-static void hp_ignored_functions_filter_clear() {
-  memset(hp_globals.ignored_function_filter, 0,
-         XHPROF_IGNORED_FUNCTION_FILTER_SIZE);
-}
-
-/**
- * Initialize filter for ignored functions using bit vector.
- *
- * @author mpal
- */
-static void hp_ignored_functions_filter_init() {
-  if (hp_globals.ignored_function_names != NULL) {
-    int i = 0;
-    for(; hp_globals.ignored_function_names[i] != NULL; i++) {
-      char *str  = hp_globals.ignored_function_names[i];
-      uint8 hash = hp_inline_hash(str);
-      int   idx  = INDEX_2_BYTE(hash);
-      hp_globals.ignored_function_filter[idx] |= INDEX_2_BIT(hash);
-    }
-  }
-}
-
-/**
- * Check if function collides in filter of functions to be ignored.
- *
- * @author mpal
- */
-int hp_ignored_functions_filter_collision(uint8 hash) {
-  uint8 mask = INDEX_2_BIT(hash);
-  return hp_globals.ignored_function_filter[INDEX_2_BYTE(hash)] & mask;
-}
 
 /**
  * Initialize profiler state
@@ -682,9 +575,6 @@ void hp_init_profiler_state(int level TSRMLS_DC) {
 
   /* Call current mode's init cb */
   hp_globals.mode_cb.init_cb(TSRMLS_C);
-
-  /* Set up filter of functions which may be ignored during profiling */
-  hp_ignored_functions_filter_init();
 }
 
 /**
@@ -705,10 +595,6 @@ void hp_clean_profiler_state(TSRMLS_D) {
   hp_globals.entries = NULL;
   hp_globals.profiler_level = 1;
   hp_globals.ever_enabled = 0;
-
-  /* Delete the array storing ignored function names */
-  hp_array_del(hp_globals.ignored_function_names);
-  hp_globals.ignored_function_names = NULL;
 }
 
 /*
@@ -719,23 +605,20 @@ void hp_clean_profiler_state(TSRMLS_D) {
  *        CALLING FUNCTION OR BY CALLING TSRMLS_FETCH()
  *        TSRMLS_FETCH() IS RELATIVELY EXPENSIVE.
  */
-#define BEGIN_PROFILING(entries, symbol, profile_curr)                  \
-  do {                                                                  \
-    /* Use a hash code to filter most of the string comparisons. */     \
-    uint8 hash_code  = hp_inline_hash(symbol);                          \
-    profile_curr = !hp_ignore_entry(hash_code, symbol);                 \
-    if (profile_curr) {                                                 \
-      hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();              \
-      (cur_entry)->hash_code = hash_code;                               \
-      (cur_entry)->name_hprof = symbol;                                 \
-      (cur_entry)->prev_hprof = (*(entries));                           \
-      /* Call the universal callback */                                 \
-      hp_mode_common_beginfn((entries), (cur_entry) TSRMLS_CC);         \
-      /* Call the mode's beginfn callback */                            \
-      hp_globals.mode_cb.begin_fn_cb((entries), (cur_entry) TSRMLS_CC); \
-      /* Update entries linked list */                                  \
-      (*(entries)) = (cur_entry);                                       \
-    }                                                                   \
+#define BEGIN_PROFILING(entries, symbol, profile_curr)                \
+  do {                                                                \
+    /* Use a hash code to filter most of the string comparisons. */   \
+    uint8 hash_code  = hp_inline_hash(symbol);                        \
+    hp_entry_t *cur_entry = hp_fast_alloc_hprof_entry();              \
+    (cur_entry)->hash_code = hash_code;                               \
+    (cur_entry)->name_hprof = symbol;                                 \
+    (cur_entry)->prev_hprof = (*(entries));                           \
+    /* Call the universal callback */                                 \
+    hp_mode_common_beginfn((entries), (cur_entry) TSRMLS_CC);         \
+    /* Call the mode's beginfn callback */                            \
+    hp_globals.mode_cb.begin_fn_cb((entries), (cur_entry) TSRMLS_CC); \
+    /* Update entries linked list */                                  \
+    (*(entries)) = (cur_entry);                                       \
   } while (0)
 
 /*
@@ -801,34 +684,6 @@ size_t hp_get_entry_name(hp_entry_t  *entry,
   result_buf[result_len - 1] = 0;
 
   return strlen(result_buf);
-}
-
-/**
- * Check if this entry should be ignored, first with a conservative Bloomish
- * filter then with an exact check against the function names.
- *
- * @author mpal
- */
-int  hp_ignore_entry_work(uint8 hash_code, char *curr_func) {
-  int ignore = 0;
-  if (hp_ignored_functions_filter_collision(hash_code)) {
-    int i = 0;
-    for (; hp_globals.ignored_function_names[i] != NULL; i++) {
-      char *name = hp_globals.ignored_function_names[i];
-      if ( !strcmp(curr_func, name)) {
-        ignore++;
-        break;
-      }
-    }
-  }
-
-  return ignore;
-}
-
-static inline int  hp_ignore_entry(uint8 hash_code, char *curr_func) {
-  /* First check if ignoring functions is enabled */
-  return hp_globals.ignored_function_names != NULL &&
-         hp_ignore_entry_work(hash_code, curr_func);
 }
 
 /**
@@ -1945,108 +1800,3 @@ static void hp_stop(TSRMLS_D) {
   hp_globals.enabled = 0;
 }
 
-
-/**
- * *****************************
- * XHPROF ZVAL UTILITY FUNCTIONS
- * *****************************
- */
-
-/** Look in the PHP assoc array to find a key and return the zval associated
- *  with it.
- *
- *  @author mpal
- **/
-static zval *hp_zval_at_key(char  *key,
-                            zval  *values) {
-  zval *result = NULL;
-
-  if (values->type == IS_ARRAY) {
-    HashTable *ht;
-    zval     **value;
-    uint       len = strlen(key) + 1;
-
-    ht = Z_ARRVAL_P(values);
-    if (zend_hash_find(ht, key, len, (void**)&value) == SUCCESS) {
-      result = *value;
-    }
-  } else {
-    result = NULL;
-  }
-
-  return result;
-}
-
-/** Convert the PHP array of strings to an emalloced array of strings. Note,
- *  this method duplicates the string data in the PHP array.
- *
- *  @author mpal
- **/
-static char **hp_strings_in_zval(zval  *values) {
-  char   **result;
-  size_t   count;
-  size_t   ix = 0;
-
-  if (!values) {
-    return NULL;
-  }
-
-  if (values->type == IS_ARRAY) {
-    HashTable *ht;
-
-    ht    = Z_ARRVAL_P(values);
-    count = zend_hash_num_elements(ht);
-
-    if((result =
-         (char**)emalloc(sizeof(char*) * (count + 1))) == NULL) {
-      return result;
-    }
-
-    for (zend_hash_internal_pointer_reset(ht);
-         zend_hash_has_more_elements(ht) == SUCCESS;
-         zend_hash_move_forward(ht)) {
-      char  *str;
-      uint   len;
-      ulong  idx;
-      int    type;
-      zval **data;
-
-      type = zend_hash_get_current_key_ex(ht, &str, &len, &idx, 0, NULL);
-      /* Get the names stored in a standard array */
-      if(type == HASH_KEY_IS_LONG) {
-        if ((zend_hash_get_current_data(ht, (void**)&data) == SUCCESS) &&
-            Z_TYPE_PP(data) == IS_STRING &&
-            strcmp(Z_STRVAL_PP(data), ROOT_SYMBOL)) { /* do not ignore "main" */
-          result[ix] = estrdup(Z_STRVAL_PP(data));
-          ix++;
-        }
-      }
-    }
-  } else if(values->type == IS_STRING) {
-    if((result = (char**)emalloc(sizeof(char*) * 2)) == NULL) {
-      return result;
-    }
-    result[0] = estrdup(Z_STRVAL_P(values));
-    ix = 1;
-  } else {
-    result = NULL;
-  }
-
-  /* NULL terminate the array */
-  if (result != NULL) {
-    result[ix] = NULL;
-  }
-
-  return result;
-}
-
-/* Free this memory at the end of profiling */
-static inline void hp_array_del(char **name_array) {
-  if (name_array != NULL) {
-    int i = 0;
-    for(; name_array[i] != NULL && i < XHPROF_MAX_IGNORED_FUNCTIONS; i++) {
-      efree(name_array[i]);
-    }
-    efree(name_array);
-  }
-}
