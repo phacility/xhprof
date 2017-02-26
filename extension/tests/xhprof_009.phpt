@@ -1,6 +1,5 @@
 --TEST--
 XHProf: PHP 5.5 crash in hp_execute_internal
-Author: epriestley
 --FILE--
 <?php
 

@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Test Class Methods, Constructors, Destructors.
-Author: Kannan
 --FILE--
 <?php
 

@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Sampling Mode Test
-Author: kannan
 --FILE--
 <?php
 

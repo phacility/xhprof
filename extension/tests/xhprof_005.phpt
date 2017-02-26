@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Timer Tests
-Author: Kannan
 --FILE--
 <?php
 

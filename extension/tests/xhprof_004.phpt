@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Test Include File (load/run_init operations)
-Author: Kannan
 --FILE--
 <?php
 
@@ -41,17 +40,16 @@ I am in foo()...
 11
 I am in bar()...
 Test for 'include_once' & 'require_once' operation
+include_once::tests/xhprof_004_inc.php==>explode: ct=       1; wt=*;
+include_once::tests/xhprof_004_inc.php==>foo: ct=       1; wt=*;
+include_once::tests/xhprof_004_inc.php==>implode: ct=       1; wt=*;
 main()                                  : ct=       1; wt=*;
 main()==>dirname                        : ct=       6; wt=*;
+main()==>include_once::tests/xhprof_004_inc.php: ct=       1; wt=*;
 main()==>load::tests/xhprof_004_inc.php : ct=       1; wt=*;
 main()==>load::tests/xhprof_004_require.php: ct=       1; wt=*;
-main()==>run_init::tests/xhprof_004_inc.php: ct=       1; wt=*;
-main()==>run_init::tests/xhprof_004_require.php: ct=       1; wt=*;
+main()==>require_once::tests/xhprof_004_require.php: ct=       1; wt=*;
 main()==>xhprof_disable                 : ct=       1; wt=*;
-run_init::tests/xhprof_004_inc.php==>explode: ct=       1; wt=*;
-run_init::tests/xhprof_004_inc.php==>foo: ct=       1; wt=*;
-run_init::tests/xhprof_004_inc.php==>implode: ct=       1; wt=*;
-run_init::tests/xhprof_004_require.php==>bar: ct=       1; wt=*;
-run_init::tests/xhprof_004_require.php==>explode: ct=       1; wt=*;
-run_init::tests/xhprof_004_require.php==>implode: ct=       1; wt=*;
-run_init::tests/xhprof_004_require.php==>strlen: ct=       1; wt=*;
+require_once::tests/xhprof_004_require.php==>bar: ct=       1; wt=*;
+require_once::tests/xhprof_004_require.php==>explode: ct=       1; wt=*;
+require_once::tests/xhprof_004_require.php==>implode: ct=       1; wt=*;

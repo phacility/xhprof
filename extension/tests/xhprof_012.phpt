@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Memory Leak in Ignored Functions
-Author: epriestley
 --FILE--
 <?php
 

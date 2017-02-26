@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Crash with auto_append_file
-Author: epriestley
 --INI--
 include_path={PWD}
 auto_append_file=xhprof_010_append.php

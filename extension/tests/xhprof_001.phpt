@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Basic Profiling Test
-Author: Kannan
 --FILE--
 <?php
 
@@ -67,14 +66,12 @@ echo "\n";
 --EXPECT--
 Part 1: Default Flags
 foo==>bar                               : ct=       2; wt=*;
-foo==>strlen                            : ct=       1; wt=*;
 main()                                  : ct=       1; wt=*;
 main()==>foo                            : ct=       1; wt=*;
 main()==>xhprof_disable                 : ct=       1; wt=*;
 
 Part 2: CPU
 foo==>bar                               : cpu=*; ct=       2; wt=*;
-foo==>strlen                            : cpu=*; ct=       1; wt=*;
 main()                                  : cpu=*; ct=       1; wt=*;
 main()==>foo                            : cpu=*; ct=       1; wt=*;
 main()==>xhprof_disable                 : cpu=*; ct=       1; wt=*;
@@ -86,14 +83,12 @@ main()==>foo                            : ct=       1; wt=*;
 
 Part 4: Memory
 foo==>bar                               : ct=       2; mu=*; pmu=*; wt=*;
-foo==>strlen                            : ct=       1; mu=*; pmu=*; wt=*;
 main()                                  : ct=       1; mu=*; pmu=*; wt=*;
 main()==>foo                            : ct=       1; mu=*; pmu=*; wt=*;
 main()==>xhprof_disable                 : ct=       1; mu=*; pmu=*; wt=*;
 
 Part 5: Memory & CPU
 foo==>bar                               : cpu=*; ct=       2; mu=*; pmu=*; wt=*;
-foo==>strlen                            : cpu=*; ct=       1; mu=*; pmu=*; wt=*;
 main()                                  : cpu=*; ct=       1; mu=*; pmu=*; wt=*;
 main()==>foo                            : cpu=*; ct=       1; mu=*; pmu=*; wt=*;
 main()==>xhprof_disable                 : cpu=*; ct=       1; mu=*; pmu=*; wt=*;

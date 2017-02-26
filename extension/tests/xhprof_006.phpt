@@ -1,6 +1,5 @@
 --TEST--
 XHProf: Basic Sampling Test
-Author: mpal
 --FILE--
 <?php
 
