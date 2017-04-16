@@ -104,6 +104,11 @@ class XHProfRuns_Default implements iXHProfRuns {
                      "ini param.");
       }
     }
+
+    if (!is_dir($dir)) {
+        mkdir($dir, 0700, true);
+    }
+
     $this->dir = $dir;
   }
 
