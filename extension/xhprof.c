@@ -1234,13 +1234,10 @@ static inline uint64 cycle_timer() {
   uint64 val;
   #ifdef _ARCH_PPC64
   asm volatile(
-    "0: mftbu %0\n\t"
+    "   mftbu %0\n\t"
     "   mftb %1\n\t"
-    "   mftbu %2\n\t"
-    "   cmpw %0,%2\n\t"  /* make sure high register same before and after */
-    "   bne 0b\n\t"  /* should only take two tries max */
     : "=r" (__d), "=r" (__a)
-    :: "r");
+    : : "cc");
   #else
   asm volatile("rdtsc" : "=a" (__a), "=d" (__d));
   #endif
