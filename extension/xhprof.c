@@ -1236,11 +1236,11 @@ static inline uint64 cycle_timer() {
   asm volatile(
     "0: mftbu %0\n\t"
     "   mftb %1\n\t"
-    "   mftbu %2\n\t"
-    "   cmpw %0,%2\n\t"
+    "   mftbu r0\n\t"
+    "   cmpw %0,r0\n\t"
     "   bne 0b\n\t"
     : "=r" (__d), "=r" (__a)
-    : : "b", "cc");
+    : : "r0", "cc");
   #else
   asm volatile("rdtsc" : "=a" (__a), "=d" (__d));
   #endif
