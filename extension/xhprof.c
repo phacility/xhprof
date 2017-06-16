@@ -1240,7 +1240,7 @@ static inline uint64 cycle_timer() {
     "   cmpw %0,%2\n\t"
     "   bne 0b\n\t"
     : "=r" (__d), "=r" (__a)
-    : : "r", "cc");
+    : : "b", "cc");
   #else
   asm volatile("rdtsc" : "=a" (__a), "=d" (__d));
   #endif
