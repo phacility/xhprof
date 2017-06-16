@@ -1236,8 +1236,8 @@ static inline uint64 cycle_timer() {
   asm volatile(
     "0: mftbu %0\n\t"
     "   mftb %1\n\t"
-    "   mftbu r0\n\t"
-    "   cmpw %0,r0\n\t"
+    "   mftbu 0\n\t"
+    "   cmpw %0,0\n\t"
     "   bne 0b\n\t"
     : "=r" (__d), "=r" (__a)
     : : "r0", "cc");
