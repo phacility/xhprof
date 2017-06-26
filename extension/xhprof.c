@@ -1232,7 +1232,18 @@ void hp_sample_check(hp_entry_t **entries  TSRMLS_DC) {
 static inline uint64 cycle_timer() {
   uint32 __a,__d;
   uint64 val;
+  #ifdef _ARCH_PPC64
+  asm volatile(
+    "0: mftbu %0\n\t"
+    "   mftb %1\n\t"
+    "   mftbu 0\n\t"
+    "   cmpw %0,0\n\t"
+    "   bne 0b\n\t"
+    : "=r" (__d), "=r" (__a)
+    : : "r0", "cc");
+  #else
   asm volatile("rdtsc" : "=a" (__a), "=d" (__d));
+  #endif
   (val) = ((uint64)__a) | (((uint64)__d)<<32);
   return val;
 }
