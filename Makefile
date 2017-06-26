@@ -9,3 +9,5 @@ all:
 	cd extension && $(MAKE)
 	cd extension && sudo $(MAKE) install
 	cd extension && $(MAKE) test
+diff:
+	git diff 0bbf2a2a
