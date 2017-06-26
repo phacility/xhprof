@@ -1,12 +1,4 @@
-NOTE: This version of xhprof will not compile under PHP7. It is known to work
-on PHP5.6. On an Ubuntu system, follow the advice given at
-https://askubuntu.com/a/756901/135108, i.e.:
-
-sudo add-apt-repository ppa:ondrej/php
-sudo apt-get update
-sudo apt-get install php5.6-dev
-
-For other installation and usage notes refer to:
+For installation and usage notes refer to:
    xhprof_html/docs/index.html
 
 To view the latest version of the doc, go to:
