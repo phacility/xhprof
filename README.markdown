@@ -8,7 +8,6 @@ Related Tools
 -------------
 
 * [XHGui](https://github.com/perftools/xhgui) - Uses MongoDB as a backend (rather than MySQL)
-* [XHProf.io](http://xhprof.io/) - Uses MySQL backend, more normalized storage schema 
 
 
 Project Includes
